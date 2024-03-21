@@ -1,0 +1,20 @@
+{
+    "http_port": 8080,
+    "http_heart": "http://localhost:7777/heart",
+    "db": {
+        "lifetime": 30,
+        "openconns": 200,
+        "idleconns": 100,
+        "host": "",
+        "port": "3306",
+        "dbname": "iota_dex",
+        "usr": "eadbeb407d284e634ccdf34daea951c3",
+        "pwd": "e6f895891e1496337329050d66290290"
+    },
+    "token_time": 7200,
+    "lock_time": 300,
+    "send_coin": [
+        "IOTA"
+    ],
+    "max_query_count": 100
+}
