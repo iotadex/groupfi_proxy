@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"crypto/ecdsa"
-	"encoding/hex"
 	"fmt"
 	"gproxy/gl"
 	"net/http"
@@ -52,7 +51,6 @@ func VerifySignature(c *gin.Context) {
 
 	c.Set("chain", chain)
 	c.Set("account", addr)
-	c.Set("publickey", hex.EncodeToString(crypto.FromECDSAPub(publickey)))
 	c.Set("data", data)
 	c.Next()
 }

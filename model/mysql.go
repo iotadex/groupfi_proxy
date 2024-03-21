@@ -3,7 +3,6 @@ package model
 import (
 	"database/sql"
 	"fmt"
-	"gproxy/config"
 	"gproxy/tools"
 	"log"
 
@@ -31,7 +30,6 @@ func ConnectToMysql(host, port, database, usr, pwd string) {
 	}
 
 	LoadAllNames()
-	config.MainWalletPk = GetPk()
 }
 
 func Ping() error {
@@ -42,13 +40,4 @@ func Ping() error {
 		return fmt.Errorf("connect to Mysql error : %v", err)
 	}
 	return nil
-}
-
-func GetPk() string {
-	row := db.QueryRow("select `pk` from `issuer` where `nftid`=?", config.NFTID)
-	var pk string
-	if err := row.Scan(&pk); err != nil {
-		log.Panic(err)
-	}
-	return pk
 }

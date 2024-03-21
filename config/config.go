@@ -27,9 +27,11 @@ var (
 	ProxySendAmount     uint64
 	MainWallet          string
 	MainWalletPk        string
-	NFTID               string
+	NameNftId           string
+	PkNftId             string
 	DefaultImg          string
 	Days                int
+	MaxMsgLockTime      int64
 )
 
 // Load load config file

@@ -4,6 +4,7 @@ go 1.21.3
 
 require (
 	github.com/go-sql-driver/mysql v1.8.0
+	github.com/iotaledger/hive.go/serializer/v2 v2.0.0-rc.1
 	golang.org/x/crypto v0.21.0
 )
 
@@ -23,7 +24,6 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/holiman/uint256 v1.2.4 // indirect
-	github.com/iotaledger/hive.go/serializer/v2 v2.0.0-rc.1 // indirect
 	github.com/iotaledger/iota.go v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect

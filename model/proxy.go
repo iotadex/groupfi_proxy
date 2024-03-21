@@ -111,7 +111,9 @@ func GetProxyAccount(signAcc string) (*ShimmerAccount, error) {
 	if err != nil {
 		return nil, err
 	}
-	signAccounts.Add(signAcc, proxy)
+	if proxy != nil {
+		signAccounts.Add(signAcc, proxy)
+	}
 	return proxy, nil
 }
 

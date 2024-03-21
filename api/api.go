@@ -1,18 +1,16 @@
 package api
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"gproxy/config"
 	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/service"
-	"gproxy/wallet"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
 	iotago "github.com/iotaledger/iota.go/v3"
 )
@@ -55,48 +53,22 @@ func MintNFT(c *gin.Context) {
 		return
 	}
 
-	w := wallet.NewIotaSmrWallet(config.SmrRpc, config.MainWallet, config.MainWalletPk, config.NFTID)
 	data := make(map[string]string)
 	data["standard"] = "IRC27"
 	data["name"] = name + ".gf"
 	data["type"] = "image/png"
 	data["version"] = "v1.0"
 	data["uri"] = img
-	data["collectionId"] = config.NFTID
+	data["collectionId"] = config.NameNftId
 	data["collectionName"] = "GroupFi OG Names"
 	data["profile"] = "# GroupFi Name System"
 	data["property"] = "groupfi-name"
 	meta, _ := json.Marshal(data)
-	hash, err := w.MintNFT(address, config.Days, meta, []byte("group-id"))
-	if err != nil {
-		gl.OutLogger.Warn("w.MintNFT error. %s : %v", address, err)
-		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": 3,
-			"err-msg":  "network error when mint nft",
-		})
-		model.DeleteName(name)
-		return
-	}
 
-	// store it to db
-	go func() {
-		time.Sleep(time.Minute * 2)
-		nftid, err := w.GetNftOutputFromBlockID(hash)
-		if err != nil {
-			gl.OutLogger.Error("w.GetNftOutputFromBlockID error. %s, %v", hexutil.Encode(hash), err)
-			return
-		}
-		gl.OutLogger.Info("Mint nft %s, %s, %s", nftid, name, address)
-
-		if err := model.StoreNft(nftid, name, address, hexutil.Encode(hash), config.NFTID); err != nil {
-			gl.OutLogger.Error("model.StoreNft error. %s, %s, %s, %v", nftid, hexutil.Encode(hash), name, err)
-		}
-	}()
+	service.MintNameNft(address, meta)
 
 	c.JSON(http.StatusOK, gin.H{
-		"result":   true,
-		"block_id": hexutil.Encode(hash),
+		"result": true,
 	})
 }
 
@@ -128,7 +100,7 @@ func RegisterProxy(c *gin.Context) {
 	if len(data) > 1 {
 		meta := common.FromHex(data[1])
 		if len(meta) > 0 {
-			service.SendSignAccToShimmer(signAcc, meta)
+			service.MintSignAccPkNft(signAcc, meta)
 		}
 	}
 
@@ -138,11 +110,38 @@ func RegisterProxy(c *gin.Context) {
 	})
 }
 
-func SendMsgToShimmer(c *gin.Context) {
+func GetProxyAccount(c *gin.Context) {
+	signAcc := c.GetString("account")
+	proxy, err := model.GetProxyAccount(signAcc)
+	if err != nil {
+		gl.OutLogger.Error("model.GetProxyAccount error. %s, %v", signAcc, err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": 10,
+			"err-msg":  "system error",
+		})
+		return
+	}
+	if proxy == nil {
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": 9,
+			"err-msg":  "proxy account is not exist",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"result":        true,
+		"proxy_account": proxy.Smr,
+	})
+}
+
+func SignMetaMsg(c *gin.Context) {
 	signAcc := c.GetString("account")
 	meta := common.FromHex(c.GetString("data"))
 
-	if err := service.SendMsgToShimmer(signAcc, meta); err != nil {
+	signHash, err := service.SignMetaMsg(signAcc, meta)
+	if err != nil {
 		gl.OutLogger.Error("model.RegisterProxy error. %s, %v", signAcc, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
@@ -151,6 +150,11 @@ func SendMsgToShimmer(c *gin.Context) {
 		})
 		return
 	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"result":    true,
+		"sign_hash": "0x" + hex.EncodeToString(signHash),
+	})
 }
 
 func isAlphaNumeric(str string) bool {

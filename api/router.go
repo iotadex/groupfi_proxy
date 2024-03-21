@@ -61,8 +61,9 @@ func InitRouter() *gin.Engine {
 
 	proxy := api.Group("/proxy").Use(middleware.VerifySignature).Use(middleware.SignIpRateLimiterWare)
 	{
-		proxy.GET("/account", nil)
 		proxy.GET("/register", RegisterProxy)
+		proxy.GET("/account", GetProxyAccount)
+		proxy.GET("/sign_account")
 		proxy.GET("/send", nil)
 	}
 
