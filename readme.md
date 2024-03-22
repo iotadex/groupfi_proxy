@@ -30,7 +30,7 @@ https://api.groupfi.ai
 ```json
 {
     "result":   true,
-	"proxy_account": "a smr address",
+    "proxy_account": "a smr address",
 }
 ```
 
@@ -44,7 +44,7 @@ https://api.groupfi.ai
 ```json
 {
     "result":   true,
-	"proxy_account": "a smr address",
+    "proxy_account": "a smr address",
 }
 ```
 
@@ -59,7 +59,7 @@ https://api.groupfi.ai
 ```json
 {
     "result":   true,
-	"sign_hash": "signed hash of the TransactionEssence",
+    "transactionid": "transaction id",
 }
 ```
 
