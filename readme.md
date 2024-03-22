@@ -15,7 +15,7 @@ https://api.groupfi.ai
 ### response
 ```json
 {
-    "result":   true,
+    "result": true
 }
 ```
 
@@ -29,8 +29,8 @@ https://api.groupfi.ai
 ### response
 ```json
 {
-    "result":   true,
-    "proxy_account": "a smr address",
+    "result": true,
+    "proxy_account": "a smr address"
 }
 ```
 
@@ -43,8 +43,8 @@ https://api.groupfi.ai
 ### response
 ```json
 {
-    "result":   true,
-    "proxy_account": "a smr address",
+    "result": true,
+    "proxy_account": "a smr address"
 }
 ```
 
@@ -58,12 +58,22 @@ https://api.groupfi.ai
 ### response
 ```json
 {
-    "result":   true,
-    "transactionid": "transaction id",
+    "result": true,
+    "transactionid": "transaction id"
 }
 ```
 
-## ERROR CODE
+## Error Response
+### Response format
+```json
+{
+    "result": false,
+    "err-code": 0,
+    "err-msg": "system error"
+}
+```
+
+### ERROR CODE
 |code | description|
 |---|------------|
 |1|the signed ts is time out, 10 minutes|
