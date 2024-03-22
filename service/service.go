@@ -57,7 +57,7 @@ func checkNameNft(w *wallet.IotaSmrWallet, addr, name string, blockId []byte) {
 	}
 	gl.OutLogger.Info("Mint name nft %s, %s, %s", nftid, addr, name)
 
-	if err := model.StoreNft(nftid, name, addr, hexutil.Encode(blockId), config.NameNftId); err != nil {
+	if err := model.UpdateNameNft(nftid, hexutil.Encode(blockId), name); err != nil {
 		gl.OutLogger.Error("model.StoreNameNft error. %s, %s, %s, %v", nftid, hexutil.Encode(blockId), name, err)
 	}
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/iotaledger/hive.go/serializer/v2"
 	iotago "github.com/iotaledger/iota.go/v3"
 	"github.com/iotaledger/iota.go/v3/builder"
 	"github.com/iotaledger/iota.go/v3/nodeclient"
@@ -422,6 +423,30 @@ func (w *IotaSmrWallet) CheckTx(blockId []byte) (bool, error) {
 	return true, nil
 }
 
+func (w *IotaSmrWallet) SendSignedTxData(tx *iotago.Transaction) ([]byte, error) {
+	info, err := w.nodeAPI.Info(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	blockBuilder, err := NewBlockBuilder(&info.Protocol, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	block, err := blockBuilder.Tips(context.Background(), w.nodeAPI).
+		ProofOfWork(context.Background(), &info.Protocol, float64(info.Protocol.MinPoWScore)).
+		Build()
+	if err != nil {
+		return nil, err
+	}
+	id, err := w.nodeAPI.SubmitBlock(context.Background(), block, &info.Protocol)
+	if err != nil {
+		return nil, err
+	}
+	return id[:], err
+}
+
 func (w *IotaSmrWallet) getWalletAddress() (iotago.Address, iotago.AddressSigner, error) {
 	pk, err := hex.DecodeString(string(tools.Aes.GetDecryptString(w.pk, seeds)))
 	if len(pk) != 64 || err != nil {
@@ -635,4 +660,14 @@ func (w *IotaSmrWallet) GetNftOutputFromBlockID(id []byte) (string, error) {
 	txid, _ := tx.ID()
 	sum := blake2b.Sum256(common.FromHex(txid.ToHex() + "0000"))
 	return hexutil.Encode(sum[:]), nil
+}
+
+// NewBlockBuilder builds the transaction with signature and then swaps to a BlockBuilder with
+// the transaction set as its payload.
+func NewBlockBuilder(protoParas *iotago.ProtocolParameters, tx *iotago.Transaction) (*builder.BlockBuilder, error) {
+	if _, err := tx.Serialize(serializer.DeSeriModePerformValidation, protoParas); err != nil {
+		return nil, err
+	}
+	blockBuilder := builder.NewBlockBuilder()
+	return blockBuilder.ProtocolVersion(protoParas.Version).Payload(tx), nil
 }

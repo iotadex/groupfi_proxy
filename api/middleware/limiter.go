@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"gproxy/gl"
 	"net/http"
 	"sync"
 	"time"
@@ -76,7 +77,11 @@ func SignIpRateLimiterWare(c *gin.Context) {
 	limiter := signLimiter.GetLimiter(c.ClientIP())
 	if !limiter.Allow() {
 		c.Abort()
-		c.String(http.StatusOK, "too many requests.")
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.REQUEST_LIMIT,
+			"err-msg":  "too many requests",
+		})
 		return
 	}
 	c.Next()
@@ -86,7 +91,11 @@ func PublicIpRateLimiterWare(c *gin.Context) {
 	limiter := publicLimiter.GetLimiter(c.ClientIP())
 	if !limiter.Allow() {
 		c.Abort()
-		c.String(http.StatusOK, "too many requests.")
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.REQUEST_LIMIT,
+			"err-msg":  "too many requests",
+		})
 		return
 	}
 	c.Next()

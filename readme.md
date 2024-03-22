@@ -7,7 +7,7 @@ https://api.groupfi.ai
 
 ## GET /mint_nicknft, mint a nft which contains user's nick name
 ### params
-|  name  |  type  |  descript  |
+|  name  |  type  |  description  |
 | ------ | :---- | ---------- |
 |address|string| user's address, smr address or evm address|
 |name|string|letters and numbers, lowercase, 10 <= length <= 20|
@@ -16,45 +16,14 @@ https://api.groupfi.ai
 ```json
 {
     "result":   true,
-	"block_id": "id of the block which mints the name fnt",
 }
 ```
 
-## GET /proxy/account, get the proxy account for the user's evm account, using the sign_account to sign
+## GET /proxy/register, register a new proxy account or update the sign_account
 ### params
-|  name  |  type  |  descript  |
+|  name  |  type  |  description  |
 | ------ | :---- | ---------- |
-|ts|int| current timestamp|
-|sign|string| sign(bytes(string(ts))) using the sign account|
-### response
-```json
-{
-    "result":   true,
-	"proxy_account": "a smr address",
-}
-```
-
-## GET /proxy/register, register a new proxy account or update the sign account
-### params
-|  name  |  type  |  descript  |
-| ------ | :---- | ---------- |
-|chain|string|the network symbol, eth, bsc, shimmer, iota, etc|
-|data|string|the sign_account's address, a evm address|
-|ts|int| current timestamp|
-|sign|string| sign(bytes(chain+data+ts)) using user's evm main account|
-### response
-```json
-{
-    "result":   true,
-	"proxy_account": "a smr address",
-}
-```
-
-## GET /proxy/sign_account, sign the TransactionEssence which store the map fo evm account<->sign_account to shimmer L1 network
-### params
-|  name  |  type  |  descript  |
-| ------ | :---- | ---------- |
-|data|string|bytes of TransactionEssence, hex format, the tx contains a nft|
+|data|string| `sign_account`+`_`+`metadata`, the sign_account's publickey as hex string and the metadata that will used to mint a nft|
 |ts|int| current timestamp|
 |sign|string| sign(bytes(data+ts)) using user's evm main account|
 ### response
@@ -64,3 +33,43 @@ https://api.groupfi.ai
 	"proxy_account": "a smr address",
 }
 ```
+
+## GET /proxy/account, get the proxy account for the user's evm account, using the sign_account to sign
+### params
+|  name  |  type  |  description  |
+| ------ | :---- | ---------- |
+|ts|int| current timestamp|
+|sign|string| sign(bytes(string(ts))), using the sign_account|
+### response
+```json
+{
+    "result":   true,
+	"proxy_account": "a smr address",
+}
+```
+
+## GET /proxy/send, send the TransactionEssence which contains a msg as metadata on shimmer L1 network
+### params
+|  name  |  type  |  description  |
+| ------ | :---- | ---------- |
+|data|string|bytes of TransactionEssence, hex format, containing a basic output with metadata feature|
+|ts|int| current timestamp|
+|sign|string| sign(bytes(data+ts)), using user's sign_account|
+### response
+```json
+{
+    "result":   true,
+	"sign_hash": "signed hash of the TransactionEssence",
+}
+```
+
+## ERROR CODE
+|code | description|
+|---|------------|
+|1|the signed ts is time out, 10 minutes|
+|2|sign error, can not get the public key from it|
+|3|request times over limit|
+|4|params error|
+|5|the proxy is not exist|
+|6|the output is illegal|
+|7|system error|

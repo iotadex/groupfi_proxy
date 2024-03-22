@@ -53,18 +53,20 @@ func InitRouter() *gin.Engine {
 		log.Panicf("Create GinLogger file error. %v", err)
 	}
 
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.DebugMode)
 	api := gin.New()
 	api.Use(gin.LoggerWithConfig(gin.LoggerConfig{Output: GinLogger}), gin.Recovery())
-
 	api.GET("/mint_nicknft", MintNFT)
 
-	proxy := api.Group("/proxy").Use(middleware.VerifySignature).Use(middleware.SignIpRateLimiterWare)
+	mainAcc := api.Group("/proxy").Use(middleware.SignIpRateLimiterWare).Use(middleware.VerifyEvmSign)
 	{
-		proxy.GET("/register", RegisterProxy)
+		mainAcc.GET("/register", RegisterProxy)
+	}
+
+	proxy := api.Group("/proxy").Use(middleware.SignIpRateLimiterWare).Use(middleware.VerifyEd25519Sign)
+	{
 		proxy.GET("/account", GetProxyAccount)
-		proxy.GET("/sign_account")
-		proxy.GET("/send", nil)
+		proxy.GET("/send", SendTxEssence)
 	}
 
 	return api

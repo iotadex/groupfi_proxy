@@ -1,59 +1,32 @@
 package model
 
 import (
-	"log"
-	"sync"
+	"strconv"
+	"strings"
+	"time"
 )
 
-type NameCache struct {
-	names map[string]bool
-	sync.RWMutex
-}
-
-func (nc *NameCache) insert(name string) bool {
-	nc.Lock()
-	defer nc.Unlock()
-	if _, exist := nc.names[name]; exist {
-		return false
-	}
-	nc.names[name] = true
-	return true
-}
-
-func (nc *NameCache) delete(name string) {
-	nc.Lock()
-	defer nc.Unlock()
-	delete(nc.names, name)
-}
-
-var names NameCache = NameCache{
-	names: make(map[string]bool),
-}
-
-func LoadAllNames() {
-	rows, err := db.Query("select `name` from `nft_record`")
+func VerifyAndInsertName(user, name, collectionid string) (bool, error) {
+	tx, err := db.Begin()
 	if err != nil {
-		log.Panic(err)
-	}
-	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
-			log.Panic(err)
+		if tx != nil {
+			tx.Rollback()
 		}
-		names.insert(name)
+		return false, err
 	}
+
+	tempNftid := user + strconv.FormatInt(time.Now().UnixNano(), 10)
+	if _, err := tx.Exec("insert into `nft_record`(`nftid`,`name`,`address`,`collectionid`) VALUES(?,?,?,?)", tempNftid, name, user, collectionid); err != nil {
+		tx.Rollback()
+		if strings.HasPrefix(err.Error(), "Error 1062") {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, tx.Commit()
 }
 
-func VerifyAndInsertName(name string) bool {
-	return names.insert(name)
-}
-
-func DeleteName(name string) {
-	names.delete(name)
-}
-
-func StoreNft(nftid, name, user, blockid, collectionid string) error {
-	names.insert(name)
-	_, err := db.Exec("insert into `nft_record`(`nftid`,`name`,`address`,`blockid`,`collectionid`) VALUES(?,?,?,?,?)", nftid, name, user, blockid, collectionid)
+func UpdateNameNft(nftid, blockid, name string) error {
+	_, err := db.Exec("update `nft_record` set `nftid`=?, `blockid`=? where `name`=?", nftid, blockid, name)
 	return err
 }

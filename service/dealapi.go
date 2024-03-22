@@ -1,17 +1,21 @@
 package service
 
 import (
+	"encoding/hex"
 	"fmt"
 	"gproxy/config"
+	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/tools"
+	"gproxy/wallet"
 	"time"
 
 	"github.com/iotaledger/hive.go/serializer/v2"
 	iotago "github.com/iotaledger/iota.go/v3"
 )
 
-func SignMetaMsg(signAcc string, txEssenceBytes []byte) ([]byte, error) {
+func SendTxEssence(signAcc string, txEssenceBytes []byte) ([]byte, error) {
+	// get proxy from signAcc
 	proxy, err := model.GetProxyAccount(signAcc)
 	if err != nil {
 		return nil, err
@@ -40,17 +44,24 @@ func SignMetaMsg(signAcc string, txEssenceBytes []byte) ([]byte, error) {
 	}
 
 	// sign the transaction essence
-	hash, err := essence.SigningMessage()
-	if err != nil {
-		return nil, fmt.Errorf("essence.SigningMessage error. %v", err)
-	}
 	pk := tools.Aes.GetDecryptString(proxy.EnPk, seeds)
-	signedHash, err := signIotaSmrHashWithPK(hash, pk)
+	signature, err := signIotaSmrHashWithPK(essence, pk)
 	if err != nil {
 		return nil, fmt.Errorf("signIotaSmrHashWithPK error. %v", err)
 	}
+	tx := newTransaction(essence, signature)
+	// send the tx to network
+	go func(tx *iotago.Transaction) {
+		w := wallet.NewIotaSmrWallet(config.SmrRpc, "", "", "0x00")
+		if id, err := w.SendSignedTxData(tx); err != nil {
+			gl.OutLogger.Error("w.SendSignedTxData error. %s, %v", proxy.Smr, err)
+		} else {
+			gl.OutLogger.Info("send msg meta output. 0x%s", hex.EncodeToString(id))
+		}
+	}(tx)
 
-	return signedHash, nil
+	id, _ := tx.ID()
+	return id[:], nil
 }
 
 func MintSignAccPkNft(signAcc string, metadata []byte) error {
@@ -115,13 +126,29 @@ func verifyBalanceOutput(to string, op iotago.Output) bool {
 	return true
 }
 
-func signIotaSmrHashWithPK(msg []byte, pk []byte) ([]byte, error) {
-	addr := iotago.Ed25519AddressFromPubKey(pk[32:])
-	addrKeys := iotago.NewAddressKeysForEd25519Address(&addr, pk)
-	signer := iotago.NewInMemoryAddressSigner(addrKeys)
-	signature, err := signer.Sign(&addr, msg)
+func signIotaSmrHashWithPK(essence *iotago.TransactionEssence, pk []byte) (*iotago.Ed25519Signature, error) {
+	hash, err := essence.SigningMessage()
 	if err != nil {
 		return nil, err
 	}
-	return signature.(*iotago.Ed25519Signature).Signature[:], nil
+	addr := iotago.Ed25519AddressFromPubKey(pk[32:])
+	addrKeys := iotago.NewAddressKeysForEd25519Address(&addr, pk)
+	signer := iotago.NewInMemoryAddressSigner(addrKeys)
+	signature, err := signer.Sign(&addr, hash)
+	if err != nil {
+		return nil, err
+	}
+	return signature.(*iotago.Ed25519Signature), nil
+}
+
+func newTransaction(txEssence *iotago.TransactionEssence, signature iotago.Signature) *iotago.Transaction {
+	unlocks := iotago.Unlocks{}
+	for i := range txEssence.Inputs {
+		if i == 0 {
+			unlocks = append(unlocks, &iotago.SignatureUnlock{Signature: signature})
+		} else {
+			unlocks = append(unlocks, &iotago.ReferenceUnlock{Reference: 0})
+		}
+	}
+	return &iotago.Transaction{Essence: txEssence, Unlocks: unlocks}
 }
