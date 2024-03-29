@@ -14,8 +14,16 @@ type db struct {
 	Pwd    string `json:"pwd"`
 }
 
+type node struct {
+	Rpc        string `json:"rpc"`
+	Wss        string `json:"wss"`
+	Contract   string `json:"contract"`
+	ListenType int    `json:"listen_type"` //0
+}
+
 var (
 	Db                  db
+	EvmNodes            map[string]node
 	HttpPort            int
 	SmrRpc              string
 	SendIntervalTime    int64
@@ -27,6 +35,7 @@ var (
 	ProxySendAmount     uint64
 	MainWallet          string
 	MainWalletPk        string
+	SignEdPk            string
 	NameNftId           string
 	PkNftId             string
 	DefaultImg          string

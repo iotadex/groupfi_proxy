@@ -91,6 +91,19 @@ func MintNameNft(to string, meta []byte) {
 	})
 }
 
+func SignEd25519Hash(hash []byte) ([]byte, error) {
+	pk := tools.Aes.GetDecryptString(config.SignEdPk, seeds)
+	addr := iotago.Ed25519AddressFromPubKey(pk[32:])
+	addrKeys := iotago.NewAddressKeysForEd25519Address(&addr, pk)
+	signer := iotago.NewInMemoryAddressSigner(addrKeys)
+	signature, err := signer.Sign(&addr, hash)
+	if err != nil {
+		return nil, err
+	}
+
+	return signature.(*iotago.Ed25519Signature).Signature[:], nil
+}
+
 func verifyMsgOutput(to string, op iotago.Output) bool {
 	if !verifyBalanceOutput(to, op) {
 		return false

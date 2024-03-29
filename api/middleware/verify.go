@@ -3,6 +3,7 @@ package middleware
 import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
+	"encoding/json"
 	"fmt"
 	"gproxy/gl"
 	"net/http"
@@ -15,14 +16,20 @@ import (
 )
 
 func VerifyEvmSign(c *gin.Context) {
-	data := c.Query("data")
-	ts := c.Query("ts")
-	sign := c.Query("sign")
+	metaBytes := common.FromHex(c.Query("data"))
+	meta := make(map[string]interface{})
+	if err := json.Unmarshal(metaBytes, &meta); err != nil {
+		c.Abort()
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.PARAMS_ERROR,
+			"err-msg":  "not json format",
+		})
+		return
+	}
 
-	signature := common.FromHex(sign)
-
-	timeStamp, _ := strconv.ParseInt(ts, 10, 64)
-	if timeStamp+600 < time.Now().Unix() {
+	timeStamp, b := meta["timestamp"].(int64)
+	if !b || timeStamp+600 < time.Now().Unix() {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
@@ -32,8 +39,16 @@ func VerifyEvmSign(c *gin.Context) {
 		return
 	}
 
-	hashData := data + ts
-	hashData = fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len([]byte(hashData)), hashData)
+	signature := common.FromHex(meta["signature"].(string))
+	encryptedPrivateKey, _ := meta["encryptedPrivateKey"].(string)
+	pairXPublicKey, _ := meta["pairXPublicKey"].(string)
+	evmAddress, _ := meta["evmAddress"].(string)
+	scenery := meta["scenery"].(int64)
+	timestamp := meta["timestamp"].(int64)
+	data := encryptedPrivateKey + evmAddress + pairXPublicKey + strconv.FormatInt(scenery, 10) + strconv.FormatInt(timestamp, 10)
+	data = fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
+
+	hashData := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
 	publickey, err := verifyEthAddress(signature, crypto.Keccak256Hash([]byte(hashData)).Bytes())
 	addr := crypto.PubkeyToAddress(*publickey).Hex()
 

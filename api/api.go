@@ -7,6 +7,8 @@ import (
 	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/service"
+	"gproxy/tokens"
+	"math/big"
 	"net/http"
 	"strings"
 
@@ -14,7 +16,124 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
 	iotago "github.com/iotaledger/iota.go/v3"
+	"golang.org/x/crypto/blake2b"
 )
+
+type Filter struct {
+	chain     string
+	addresses []string
+	contract  string
+	threshold int64
+	erc       int
+}
+
+func FilterGroup(c *gin.Context) {
+	f := Filter{}
+	err := c.BindJSON(&f)
+	node, exist := config.EvmNodes[f.chain]
+	if err != nil || !exist {
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.PARAMS_ERROR,
+			"err-msg":  "params error. ",
+		})
+		return
+	}
+	addrs := make([]common.Address, 0, len(f.addresses))
+	for i := range f.addresses {
+		addrs = append(addrs, common.HexToAddress(f.addresses[i]))
+	}
+
+	var indexes []uint16
+	t := tokens.NewEvmToken(node.Rpc, node.Wss, f.chain, node.Contract, 0)
+	if f.erc == 20 {
+		indexes, err = t.FilterERC20Addresses(addrs, common.HexToAddress(f.contract), big.NewInt(f.threshold))
+	} else if f.erc == 721 {
+		indexes, err = t.FilterERC721Addresses(addrs, common.HexToAddress(f.contract))
+	}
+
+	if err != nil {
+		gl.OutLogger.Error("Filter addresses from group error. %s, %s, %v", f.chain, f.contract, err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.SYSTEM_ERROR,
+			"err-msg":  "system error",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"result":  true,
+		"indexes": indexes,
+	})
+}
+
+type Verfiy struct {
+	chain     string
+	adds      []string
+	subs      []string
+	contract  string
+	threshold int64
+	erc       int
+}
+
+func VerifyGroup(c *gin.Context) {
+	f := Verfiy{}
+	err := c.BindJSON(&f)
+	node, exist := config.EvmNodes[f.chain]
+	if err != nil || !exist {
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.PARAMS_ERROR,
+			"err-msg":  "params error. ",
+		})
+		return
+	}
+	adds := make([]common.Address, 0, len(f.adds))
+	subs := make([]common.Address, 0, len(f.subs))
+	for i := range f.adds {
+		adds = append(adds, common.HexToAddress(f.adds[i]))
+	}
+	for i := range f.subs {
+		subs = append(subs, common.HexToAddress(f.subs[i]))
+	}
+
+	var res int8
+	t := tokens.NewEvmToken(node.Rpc, node.Wss, f.chain, node.Contract, 0)
+	if f.erc == 20 {
+		res, err = t.CheckERC20Addresses(adds, subs, common.HexToAddress(f.contract), big.NewInt(f.threshold))
+	} else if f.erc == 721 {
+		res, err = t.CheckERC721Addresses(adds, subs, common.HexToAddress(f.contract))
+	}
+	if err != nil {
+		gl.OutLogger.Error("check addresses for group error. %s, %s, %v", f.chain, f.contract, err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.SYSTEM_ERROR,
+			"err-msg":  "system error",
+		})
+		return
+	}
+
+	data, _ := json.Marshal(f)
+	dataBytes := blake2b.Sum256(data)
+	sign, err := service.SignEd25519Hash(dataBytes[:])
+	if err != nil {
+		gl.OutLogger.Error("service.SignEd25519Hash error. %s, %s, %v", f.chain, f.contract, err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.SYSTEM_ERROR,
+			"err-msg":  "system error",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"result": true,
+		"flag":   res,
+		"sign":   hexutil.Encode(sign),
+	})
+}
 
 func MintNFT(c *gin.Context) {
 	address := c.Query("address")

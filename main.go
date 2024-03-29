@@ -36,7 +36,3 @@ func SetSeeds() {
 	// set service's seeds
 	wallet.SetSeeds(seeds)
 }
-
-func test() {
-
-}

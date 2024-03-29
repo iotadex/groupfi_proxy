@@ -1,0 +1,23 @@
+package middleware
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+)
+
+func TestVerifyEth(t *testing.T) {
+	// encryptedPrivateKey+evmAddress+pairXPublicKey+scenery+timestamp
+	encryptedPrivateKey := "0x7b2276657273696f6e223a227832353531392d7873616c736132302d706f6c7931333035222c226e6f6e6365223a222f2f546875654e70447859465861746556337232414e4635516b354a4d777044222c22657068656d5075626c69634b6579223a225431304f516a74313736695170394d524d56666f4e47677a67456e39524b33584d447133456b6a335143593d222c2263697068657274657874223a2275625548325137746a524b6d4d74315a63733153364653574542474d4839334d4c546b4f3636364f5a2b61513563744d6e4174624f4b66524e643157374a5a617a52497459464e6f467965475a5863635256654b6b6c744b76326a544a73696468633641343253387943513d227d"
+	pairXPublicKey := "0xe9024a1bad751950c768417ad9de3709a67709a40331e79b4e80870b23aa17d6"
+	evmAddress := "0x928100571464c900A2F53689353770455D78a200"
+	timestamp := "1711445126"
+	scenery := "1"
+	data := encryptedPrivateKey + evmAddress + pairXPublicKey + scenery + timestamp
+	data = fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
+	sign := common.FromHex("0xebce1073770bd60834071230d8f3faa9d7057a96974d338a355abb568e9fe2435cb85d5b490a9c59cb01fed0d7a7254a36dceb6d835d7b92e236cd82ee6a8db91b")
+	_, err := verifyEthAddress(sign, crypto.Keccak256Hash([]byte(data)).Bytes())
+	fmt.Println(err)
+}

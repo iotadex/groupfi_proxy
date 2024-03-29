@@ -19,13 +19,33 @@ https://api.groupfi.ai
 }
 ```
 
+## GET /verify, verify the addresses that belong to one group or not
+### params
+|  name  |  type  |  description  |
+| ------ | :---- | ---------- |
+|data|json string| hex bytes string|
+```json
+{
+    "adds" : ["address1","address2"],
+    "subs" : ["address1","address2"],
+    "group" : "group contract",
+    "threshold" : 1,
+    "ts" : "current timestamp"
+}
+```
+### response
+```json
+{
+    "result": true,
+    "sign": "sign hex string"
+}
+```
+
 ## GET /proxy/register, register a new proxy account or update the sign_account
 ### params
 |  name  |  type  |  description  |
 | ------ | :---- | ---------- |
-|data|string| `sign_account`+`_`+`metadata`, the sign_account's publickey as hex string and the metadata that will used to mint a nft|
-|ts|int| current timestamp|
-|sign|string| sign(bytes(data+ts)) using user's evm main account|
+|data|string| metadata that will used to mint a nft, it contains sign and timestamp|
 ### response
 ```json
 {
@@ -62,6 +82,7 @@ https://api.groupfi.ai
     "transactionid": "transaction id"
 }
 ```
+
 
 ## Error Response
 ### Response format
