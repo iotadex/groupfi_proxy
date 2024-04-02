@@ -24,3 +24,28 @@ func StoreBuyOrder(chain, txHash, user, edAddr, bech32Addr, fromAmount string, t
 
 	return tx.Commit()
 }
+
+type SmrPrice struct {
+	Smr    int64  `json:"smr"`
+	Token  string `json:"token"`
+	Amount string `json:"amount"`
+	Deci   int    `json:"deci"`
+}
+
+func GetSmrPrices() (map[string]SmrPrice, error) {
+	rows, err := db.Query("SELECT `chain`,`smr`,`token`,`amount`,`deci` FROM `price`")
+	if err != nil {
+		return nil, err
+	}
+
+	sps := make(map[string]SmrPrice)
+	for rows.Next() {
+		sp := SmrPrice{}
+		var chain string
+		if err := rows.Scan(&chain, &sp.Smr, &sp.Token, &sp.Token, &sp.Deci); err != nil {
+			return nil, err
+		}
+		sps[chain] = sp
+	}
+	return sps, nil
+}

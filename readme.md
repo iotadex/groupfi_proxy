@@ -5,40 +5,45 @@
 https://api.groupfi.ai
 ```
 
-## GET /price
-### response
-```json
-[{
-    "chain1":{
-        "smr" : 10000000000,
-        "eth" : 100000000000000000000,
-    },
-    "chain1":{
-        "smr" : 10000000000,
-        "bsc" : 100000000000000000000,
-    }
-}]
-```
-
-## GET /mint_nicknft, mint a nft which contains user's nick name
-### params
+## public apis
+### GET /mint_nicknft, mint a nft which contains user's nick name
+#### params
 |  name  |  type  |  description  |
 | ------ | :---- | ---------- |
 |address|string| user's address, smr address or evm address|
 |name|string|letters and numbers, lowercase, 10 <= length <= 20|
 |image| string, optional|image url|
-### response
+#### response
 ```json
 {
     "result": true
 }
 ```
 
-## GET /verify, verify the addresses that belong to one group or not
-### params
-|  name  |  type  |  description  |
-| ------ | :---- | ---------- |
-|data|json string| hex bytes string|
+### GET /price
+#### response
+```json
+{
+    "result" : true,
+    "data" :{
+        "chain1":{
+            "smr" : 10000000000,
+            "token": "eth",
+            "amount" : "100000000000000000000",
+            "deci": 18
+        },
+        "chain1":{
+            "smr" : 10000000000,
+            "token": "bsc",
+            "amount" : "100000000000000000000",
+            "deci": 18
+        }
+    }
+}
+```
+
+### POST /filter, filter the addresses, remove ones don't belong to the group
+#### params
 ```json
 {
     "adds" : ["address1","address2"],
@@ -48,7 +53,7 @@ https://api.groupfi.ai
     "ts" : "current timestamp"
 }
 ```
-### response
+#### response
 ```json
 {
     "result": true,
@@ -56,12 +61,39 @@ https://api.groupfi.ai
 }
 ```
 
-## GET /proxy/register, register a new proxy account or update the sign_account
-### params
-|  name  |  type  |  description  |
-| ------ | :---- | ---------- |
-|data|string| metadata that will used to mint a nft, it contains sign and timestamp|
-### response
+### POST /verify, verify the addresses that belong to one group or not
+#### params
+```json
+{
+    "adds" : ["address1","address2"],
+    "subs" : ["address1","address2"],
+    "group" : "group contract",
+    "threshold" : 1,
+    "ts" : "current timestamp"
+}
+```
+#### response
+```json
+{
+    "result": true,
+    "sign": "sign hex string"
+}
+```
+
+## sign apis
+### POST /proxy/register, register a new proxy account or update the sign_account
+#### params
+```json
+{
+    "encryptedPrivateKey": "0x7b2276657273696f6e223a227832353531392d7873616c736132302d706f6c7931333035222c226e6f6e6365223a226148496b55726e724a68534c374b445a655057415a707658554c6442495a4344222c22657068656d5075626c69634b6579223a226d4c566e6f2b4943326776417641342f766330516639656638362f65394c5a6377562f34576b56565a6d513d222c2263697068657274657874223a224f477236757734756c6c66465a74712b762b65707a302b4f4c4738714879324e754347445959593078726f6b7464304d763251326646497678527136505041397573353666304e2f4169446a4e6172775768416764486e4d546f312b65796b39536b712b633841635665633d227d",
+    "pairXPublicKey": "0x9b3da30c3aa890958b95e96b65a5e0f77a28cb1211d097ab943ef03d9dab9651",
+    "evmAddress": "0x928100571464c900A2F53689353770455D78a200",
+    "timestamp": 1711449778,
+    "scenery": 1,
+    "signature": "0xccec1e146ff48198566e706d548536c4cc3e6afa3ac351c740fb9f951912b90f1fb064f33682ac12f9e9fad446e3a9dc7ce53dd81c36729fa41cf946f4d1138c1b"
+}
+```
+#### response
 ```json
 {
     "result": true,
@@ -69,13 +101,15 @@ https://api.groupfi.ai
 }
 ```
 
-## GET /proxy/account, get the proxy account for the user's evm account, using the sign_account to sign
-### params
-|  name  |  type  |  description  |
-| ------ | :---- | ---------- |
-|ts|int| current timestamp|
-|sign|string| sign(bytes(string(ts))), using the sign_account|
-### response
+### POST /proxy/account, get the proxy account for the user's evm account, using the sign_account to sign
+#### params
+```json
+{
+    "ts": 1711449778,
+    "sign": "0x0000000000000000000000, sign(ts), using the sign_account"
+}
+```
+#### response
 ```json
 {
     "result": true,
@@ -83,21 +117,22 @@ https://api.groupfi.ai
 }
 ```
 
-## GET /proxy/send, send the TransactionEssence which contains a msg as metadata on shimmer L1 network
-### params
-|  name  |  type  |  description  |
-| ------ | :---- | ---------- |
-|data|string|bytes of TransactionEssence, hex format, containing a basic output with metadata feature|
-|ts|int| current timestamp|
-|sign|string| sign(bytes(data+ts)), using user's sign_account|
-### response
+### POST /proxy/send, send the TransactionEssence which contains a msg as metadata on shimmer L1 network
+#### params
+```json
+{
+    "data":"0x0, TransactionEssence, bytes",
+    "ts": 1711449778,
+    "sign": "0x0000000000000000000000, sign(ts), using the sign_account"
+}
+```
+#### response
 ```json
 {
     "result": true,
     "transactionid": "transaction id"
 }
 ```
-
 
 ## Error Response
 ### Response format

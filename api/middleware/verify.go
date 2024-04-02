@@ -3,7 +3,6 @@ package middleware
 import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
-	"encoding/json"
 	"fmt"
 	"gproxy/gl"
 	"net/http"
@@ -15,10 +14,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type MetaData struct {
+	EncryptedPrivateKey string `json:"encryptedPrivateKey"`
+	PairXPublicKey      string `json:"pairXPublicKey"`
+	EvmAddress          string `json:"evmAddress"`
+	Timestamp           int64  `json:"timestamp"`
+	Scenery             int    `json:"scenery"`
+	Signature           string `json:"signature"`
+}
+
 func VerifyEvmSign(c *gin.Context) {
-	metaBytes := common.FromHex(c.Query("data"))
-	meta := make(map[string]interface{})
-	if err := json.Unmarshal(metaBytes, &meta); err != nil {
+	md := MetaData{}
+	if err := c.BindJSON(&md); err != nil {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
@@ -28,8 +35,7 @@ func VerifyEvmSign(c *gin.Context) {
 		return
 	}
 
-	timeStamp, b := meta["timestamp"].(int64)
-	if !b || timeStamp+600 < time.Now().Unix() {
+	if md.Timestamp+600 < time.Now().Unix() {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
@@ -39,13 +45,8 @@ func VerifyEvmSign(c *gin.Context) {
 		return
 	}
 
-	signature := common.FromHex(meta["signature"].(string))
-	encryptedPrivateKey, _ := meta["encryptedPrivateKey"].(string)
-	pairXPublicKey, _ := meta["pairXPublicKey"].(string)
-	evmAddress, _ := meta["evmAddress"].(string)
-	scenery := meta["scenery"].(int64)
-	timestamp := meta["timestamp"].(int64)
-	data := encryptedPrivateKey + evmAddress + pairXPublicKey + strconv.FormatInt(scenery, 10) + strconv.FormatInt(timestamp, 10)
+	signature := common.FromHex(md.Signature)
+	data := md.EncryptedPrivateKey + md.EvmAddress + md.PairXPublicKey + strconv.Itoa(md.Scenery) + strconv.FormatInt(md.Timestamp, 10)
 	data = fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
 
 	hashData := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
@@ -68,16 +69,28 @@ func VerifyEvmSign(c *gin.Context) {
 	c.Next()
 }
 
+type SignData struct {
+	PublicKey string `json:"publickey"`
+	Data      string `json:"data"`
+	Ts        int64  `json:"ts"`
+	Sign      string `json:"sign"`
+}
+
 func VerifyEd25519Sign(c *gin.Context) {
-	publickey := c.Query("publickey")
-	data := c.Query("data")
-	ts := c.Query("ts")
-	sign := c.Query("sign")
+	sd := SignData{}
+	if err := c.BindJSON(&sd); err != nil {
+		c.Abort()
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.PARAMS_ERROR,
+			"err-msg":  "not json format",
+		})
+		return
+	}
 
-	signature := common.FromHex(sign)
+	signature := common.FromHex(sd.Sign)
 
-	timeStamp, _ := strconv.ParseInt(ts, 10, 64)
-	if timeStamp+600 < time.Now().Unix() {
+	if sd.Ts+600 < time.Now().Unix() {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
@@ -87,19 +100,19 @@ func VerifyEd25519Sign(c *gin.Context) {
 		return
 	}
 
-	if !ed25519.Verify(common.FromHex(publickey), signature, []byte(data+ts)) {
+	if !ed25519.Verify(common.FromHex(sd.PublicKey), signature, []byte(sd.Data+strconv.FormatInt(sd.Ts, 10))) {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.SIGN_ERROR,
 			"err-msg":  "sign error",
 		})
-		gl.OutLogger.Error("User's sign error. %s : %s : %s : %s", publickey, data, ts, sign)
+		gl.OutLogger.Error("User's sign error. %v", sd)
 		return
 	}
 
-	c.Set("publickey", publickey)
-	c.Set("data", data)
+	c.Set("publickey", sd.PublicKey)
+	c.Set("data", sd.Data)
 	c.Next()
 }
 

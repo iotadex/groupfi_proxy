@@ -19,18 +19,37 @@ import (
 	"golang.org/x/crypto/blake2b"
 )
 
+// Get the prices of smr on different evm chains
+func SmrPrice(c *gin.Context) {
+	sps, err := model.GetSmrPrices()
+	if err != nil {
+		gl.OutLogger.Error("model.GetSmrPrices error. %v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.SYSTEM_ERROR,
+			"err-msg":  "system error",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"result": true,
+		"data":   sps,
+	})
+}
+
 type Filter struct {
-	chain     string
-	addresses []string
-	contract  string
-	threshold int64
-	erc       int
+	Chain     string   `json:"chain"`
+	Addresses []string `json:"addresses"`
+	Contract  string   `json:"contract"`
+	Threshold int64    `json:"threshold"`
+	Erc       int      `json:"erc"`
 }
 
 func FilterGroup(c *gin.Context) {
 	f := Filter{}
 	err := c.BindJSON(&f)
-	node, exist := config.EvmNodes[f.chain]
+	node, exist := config.EvmNodes[f.Chain]
 	if err != nil || !exist {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
@@ -39,21 +58,21 @@ func FilterGroup(c *gin.Context) {
 		})
 		return
 	}
-	addrs := make([]common.Address, 0, len(f.addresses))
-	for i := range f.addresses {
-		addrs = append(addrs, common.HexToAddress(f.addresses[i]))
+	addrs := make([]common.Address, 0, len(f.Addresses))
+	for i := range f.Addresses {
+		addrs = append(addrs, common.HexToAddress(f.Addresses[i]))
 	}
 
 	var indexes []uint16
-	t := tokens.NewEvmToken(node.Rpc, node.Wss, f.chain, node.Contract, 0)
-	if f.erc == 20 {
-		indexes, err = t.FilterERC20Addresses(addrs, common.HexToAddress(f.contract), big.NewInt(f.threshold))
-	} else if f.erc == 721 {
-		indexes, err = t.FilterERC721Addresses(addrs, common.HexToAddress(f.contract))
+	t := tokens.NewEvmToken(node.Rpc, node.Wss, f.Chain, node.Contract, 0)
+	if f.Erc == 20 {
+		indexes, err = t.FilterERC20Addresses(addrs, common.HexToAddress(f.Contract), big.NewInt(f.Threshold))
+	} else if f.Erc == 721 {
+		indexes, err = t.FilterERC721Addresses(addrs, common.HexToAddress(f.Contract))
 	}
 
 	if err != nil {
-		gl.OutLogger.Error("Filter addresses from group error. %s, %s, %v", f.chain, f.contract, err)
+		gl.OutLogger.Error("Filter addresses from group error. %s, %s, %v", f.Chain, f.Contract, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.SYSTEM_ERROR,
@@ -69,18 +88,18 @@ func FilterGroup(c *gin.Context) {
 }
 
 type Verfiy struct {
-	chain     string
-	adds      []string
-	subs      []string
-	contract  string
-	threshold int64
-	erc       int
+	Chain     string   `json:"chain"`
+	Adds      []string `json:"adds"`
+	Subs      []string `json:"subs"`
+	Contract  string   `json:"contract"`
+	Threshold int64    `json:"threshold"`
+	Erc       int      `json:"erc"`
 }
 
 func VerifyGroup(c *gin.Context) {
 	f := Verfiy{}
 	err := c.BindJSON(&f)
-	node, exist := config.EvmNodes[f.chain]
+	node, exist := config.EvmNodes[f.Chain]
 	if err != nil || !exist {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
@@ -89,24 +108,24 @@ func VerifyGroup(c *gin.Context) {
 		})
 		return
 	}
-	adds := make([]common.Address, 0, len(f.adds))
-	subs := make([]common.Address, 0, len(f.subs))
-	for i := range f.adds {
-		adds = append(adds, common.HexToAddress(f.adds[i]))
+	adds := make([]common.Address, 0, len(f.Adds))
+	subs := make([]common.Address, 0, len(f.Subs))
+	for i := range f.Adds {
+		adds = append(adds, common.HexToAddress(f.Adds[i]))
 	}
-	for i := range f.subs {
-		subs = append(subs, common.HexToAddress(f.subs[i]))
+	for i := range f.Subs {
+		subs = append(subs, common.HexToAddress(f.Subs[i]))
 	}
 
 	var res int8
-	t := tokens.NewEvmToken(node.Rpc, node.Wss, f.chain, node.Contract, 0)
-	if f.erc == 20 {
-		res, err = t.CheckERC20Addresses(adds, subs, common.HexToAddress(f.contract), big.NewInt(f.threshold))
-	} else if f.erc == 721 {
-		res, err = t.CheckERC721Addresses(adds, subs, common.HexToAddress(f.contract))
+	t := tokens.NewEvmToken(node.Rpc, node.Wss, f.Chain, node.Contract, 0)
+	if f.Erc == 20 {
+		res, err = t.CheckERC20Addresses(adds, subs, common.HexToAddress(f.Contract), big.NewInt(f.Threshold))
+	} else if f.Erc == 721 {
+		res, err = t.CheckERC721Addresses(adds, subs, common.HexToAddress(f.Contract))
 	}
 	if err != nil {
-		gl.OutLogger.Error("check addresses for group error. %s, %s, %v", f.chain, f.contract, err)
+		gl.OutLogger.Error("check addresses for group error. %s, %s, %v", f.Chain, f.Contract, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.SYSTEM_ERROR,
@@ -119,7 +138,7 @@ func VerifyGroup(c *gin.Context) {
 	dataBytes := blake2b.Sum256(data)
 	sign, err := service.SignEd25519Hash(dataBytes[:])
 	if err != nil {
-		gl.OutLogger.Error("service.SignEd25519Hash error. %s, %s, %v", f.chain, f.contract, err)
+		gl.OutLogger.Error("service.SignEd25519Hash error. %s, %s, %v", f.Chain, f.Contract, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.SYSTEM_ERROR,
