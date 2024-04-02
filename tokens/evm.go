@@ -28,7 +28,7 @@ type Order struct {
 	ChainId string
 	TxHash  common.Hash
 	User    common.Address
-	PubKey  []byte
+	EdAddr  []byte
 	Amount  *big.Int
 }
 
@@ -178,7 +178,7 @@ func (t *EvmToken) dealEventOrder(vLog *types.Log, chOrder chan Order) {
 	chOrder <- Order{
 		TxHash: vLog.TxHash,
 		User:   common.BytesToAddress(vLog.Topics[1].Bytes()),
-		PubKey: vLog.Topics[2].Bytes(),
+		EdAddr: vLog.Topics[2].Bytes(),
 		Amount: new(big.Int).SetBytes(vLog.Data),
 	}
 }

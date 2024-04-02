@@ -5,6 +5,21 @@
 https://api.groupfi.ai
 ```
 
+## GET /price
+### response
+```json
+[{
+    "chain1":{
+        "smr" : 10000000000,
+        "eth" : 100000000000000000000,
+    },
+    "chain1":{
+        "smr" : 10000000000,
+        "bsc" : 100000000000000000000,
+    }
+}]
+```
+
 ## GET /mint_nicknft, mint a nft which contains user's nick name
 ### params
 |  name  |  type  |  description  |

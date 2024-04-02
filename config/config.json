@@ -1,20 +1,27 @@
 {
     "http_port": 8080,
-    "http_heart": "http://localhost:7777/heart",
     "db": {
-        "lifetime": 30,
-        "openconns": 200,
-        "idleconns": 100,
-        "host": "",
+        "host": "http://127.0.0.1",
         "port": "3306",
         "dbname": "iota_dex",
         "usr": "eadbeb407d284e634ccdf34daea951c3",
         "pwd": "e6f895891e1496337329050d66290290"
     },
-    "token_time": 7200,
-    "lock_time": 300,
-    "send_coin": [
-        "IOTA"
-    ],
-    "max_query_count": 100
+    "evm_node": {
+        "bsc": {
+            "rpc": "https://blissful-silent-crater.bsc.discover.quiknode.pro/63a4056e8fd304c26893b83d9f4b1bb38c0ea62b/",
+            "wss": "wss://blissful-silent-crater.bsc.discover.quiknode.pro/63a4056e8fd304c26893b83d9f4b1bb38c0ea62b/",
+            "contract": "0x000000000000000",
+            "listen_type": 0
+        }
+    },
+    "shimmer_rpc": "https://api.shimmer.network",
+    "send_interval_time": 60,
+    "proxy_pool_check_hours": 1,
+    "min_proxy_pool_count": 50,
+    "proxy_send_amount": 100,
+    "name_nftid": "0x6997ba8a3c9db0daa0ebbfe73ad253b34e9c6628ae94d906f707e48bbb5e6f51",
+    "name_nft_days": 7,
+    "default_img": "https:npfs",
+    "max_msg_locked_days": 30
 }

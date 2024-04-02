@@ -1,12 +1,10 @@
 package service
 
 import (
-	"encoding/hex"
 	"gproxy/config"
 	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/tokens"
-	"gproxy/wallet"
 	"strings"
 	"sync"
 
@@ -26,7 +24,6 @@ func StartListenSell() {
 	}
 }
 
-// key = chainid + symbol
 func listen(chainid string, t *tokens.EvmToken) {
 	evmBuyTasks.Add(1)
 	defer evmBuyTasks.Done()
@@ -54,23 +51,14 @@ func listen(chainid string, t *tokens.EvmToken) {
 func dealOrder(order tokens.Order) {
 	// store it to db
 	var addr iotago.Ed25519Address
-	copy(addr[:], order.PubKey)
+	copy(addr[:], order.EdAddr)
 	smrAddr := addr.Bech32(iotago.PrefixShimmer)
-	if err := model.StoreBuyOrder(order.ChainId, order.TxHash.Hex(), order.User.Hex(), hexutil.Encode(order.PubKey), smrAddr, order.Amount.String()); err != nil {
+	if err := model.StoreBuyOrder(order.ChainId, order.TxHash.Hex(), order.User.Hex(), hexutil.Encode(order.EdAddr), smrAddr, order.Amount.String(), config.ProxySendAmount); err != nil {
 		if !strings.HasPrefix(err.Error(), "Error 1062") {
 			gl.OutLogger.Error("model.StoreBuyOrder error. %v, %v", err, order)
 		}
 		return
 	}
-
-	// add a sending order to
-	w := wallet.NewIotaSmrWallet(config.SmrRpc, config.MainWallet, config.MainWalletPk, "0x0")
-	id, err := w.SendBasic(smrAddr, config.ProxySendAmount)
-	if err != nil {
-		gl.OutLogger.Error("w.SendBasic error. %s, %v", smrAddr, err)
-		return
-	}
-	gl.OutLogger.Info("Buy smr, send to %s. block_id : 0x%s", smrAddr, hex.EncodeToString(id))
 }
 
 func StopListen() {

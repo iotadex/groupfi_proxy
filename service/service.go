@@ -1,20 +1,20 @@
 package service
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"gproxy/config"
 	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/wallet"
 	"log"
+	"strconv"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 func Start() {
-	go RunProxyPool()
 }
 
 func RunMintNameNft() {
@@ -22,7 +22,7 @@ func RunMintNameNft() {
 	if err != nil {
 		log.Panicf("model.GetIssuerByNftid error. %s, %v", config.NameNftId, err)
 	}
-	w := wallet.NewIotaSmrWallet(config.SmrRpc, addr, pk, config.NameNftId)
+	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, addr, pk, config.NameNftId)
 	mintNameNftQueue = NewSendQueue()
 	q := mintNameNftQueue
 	ticker := time.NewTicker(time.Second * time.Duration(config.SendIntervalTime))
@@ -63,11 +63,11 @@ func checkNameNft(w *wallet.IotaSmrWallet, addr, name string, blockId []byte) {
 }
 
 func RunMintPkNft() {
-	addr, pk, err := model.GetIssuerByNftid(config.PkNftId)
+	addr, pk, err := model.GetIssuerByNftid(config.ProxyWalletNftId)
 	if err != nil {
-		log.Panicf("model.GetIssuerByNftid error. %s, %v", config.PkNftId, err)
+		log.Panicf("model.GetIssuerByNftid error. %s, %v", config.ProxyWalletNftId, err)
 	}
-	w := wallet.NewIotaSmrWallet(config.SmrRpc, addr, pk, config.PkNftId)
+	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, addr, pk, config.ProxyWalletNftId)
 	mintPkNftQueue = NewSendQueue()
 	q := mintPkNftQueue
 	ticker := time.NewTicker(time.Second * time.Duration(config.SendIntervalTime))
@@ -102,6 +102,7 @@ func checkPkNft(w *wallet.IotaSmrWallet, addr string, blockId []byte) {
 }
 
 // run a thread to keep the proxy pool full
+/*
 func RunProxyPool() {
 	f := func() {
 		// 1. Get the count of proxy pool; check the count smaller than required or not
@@ -127,7 +128,7 @@ func RunProxyPool() {
 			gl.OutLogger.Error("model.GetUninitializedProxiesFromPool error. %v", err)
 			return
 		}
-		w := wallet.NewIotaSmrWallet(config.SmrRpc, config.MainWallet, config.MainWalletPk, "0x0")
+		w := wallet.NewIotaSmrWallet(config.ShimmerRpc, config.MainWallet, config.MainWalletPk, "0x0")
 		ids := make([][]byte, len(addresses))
 		for i, addr := range addresses {
 			id, err := w.SendBasic(addr, config.ProxySendAmount)
@@ -161,4 +162,92 @@ func RunProxyPool() {
 	for range ticker.C {
 		f()
 	}
+}*/
+
+func RunSendSmr() {
+	CurrentSentTs := int64(-1)
+	ticker := time.NewTicker(time.Second * 10)
+	for range ticker.C {
+		// Get a record from database
+		o, err := model.PopOnePendingSendSmrOrder()
+		if err != nil {
+			gl.OutLogger.Error("model.PopOnePendingSendSmrOrder error. %v", err)
+			continue
+		}
+		if o == nil {
+			continue
+		}
+
+		// check the ts
+		if o.Ts <= CurrentSentTs {
+			gl.OutLogger.Error("send_coin_pending id error. %d : %v", CurrentSentTs, *o)
+			continue
+		}
+		CurrentSentTs = o.Ts
+
+		// get the wallet
+		w, err := getWallet(strconv.Itoa(int(o.Type)))
+		if err != nil {
+			gl.OutLogger.Error("getWallet error. %v, %v", *o, err)
+			continue
+		}
+
+		blockId, err := w.SendBasic(o.To, o.Amount)
+		if err != nil {
+			gl.OutLogger.Error("w.SendBasic error. %v, %v", *o, err)
+			// store back
+			if err = model.StoreBackPendingSendSmrOrder(o.To, o.Amount, o.Type); err != nil {
+				gl.OutLogger.Error("model.StoreBackPendingSendSmrOrder error. %v, %v", *o, err)
+			}
+			continue
+		}
+
+		// updata blockid and state
+		if err = model.UpdatePendingOrderblockId(o.Id, hexutil.Encode(blockId)); err != nil {
+			gl.OutLogger.Error("model.UpdatePendingOrderblockId error. %v, %v", *o, err)
+			continue
+		}
+
+		time.Sleep(time.Second * 30)
+	}
+}
+
+func RunCheckPendingOrders() {
+	ticker := time.NewTicker(time.Second * 10)
+	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", "")
+	for range ticker.C {
+		orders, err := model.GetPendingOrders()
+		if err != nil {
+			gl.OutLogger.Error("model.GetPendingOrders error. %v", err)
+			continue
+		}
+
+		for id, blockid := range orders {
+			time.Sleep(time.Second)
+			b, err := w.CheckTx(common.FromHex(blockid))
+			if b && err != nil {
+				gl.OutLogger.Error("w.CheckTx error. %s, %v", blockid, err)
+				continue
+			}
+
+			state := 2
+			if !b {
+				state = 3
+			}
+			if err = model.UpdatePendingOrderState(id, state); err != nil {
+				gl.OutLogger.Error("model.UpdatePendingOrderState. %d, %v", id, err)
+			}
+		}
+	}
+}
+
+func getWallet(nftid string) (*wallet.IotaSmrWallet, error) {
+	// Get wallet
+	addr, enpk, err := model.GetWallet(nftid)
+	if err != nil {
+		return nil, err
+	}
+
+	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, addr, enpk, "0x0")
+	return w, nil
 }

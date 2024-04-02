@@ -52,7 +52,7 @@ func SendTxEssence(signAcc string, txEssenceBytes []byte) ([]byte, error) {
 	tx := newTransaction(essence, signature)
 	// send the tx to network
 	go func(tx *iotago.Transaction) {
-		w := wallet.NewIotaSmrWallet(config.SmrRpc, "", "", "0x00")
+		w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", "0x00")
 		if id, err := w.SendSignedTxData(tx); err != nil {
 			gl.OutLogger.Error("w.SendSignedTxData error. %s, %v", proxy.Smr, err)
 		} else {
@@ -76,7 +76,7 @@ func MintSignAccPkNft(signAcc string, metadata []byte) error {
 	mintPkNftQueue.pushBack(&MintMsg{
 		Addr:       proxy.Smr,
 		NftMeta:    metadata,
-		NftTag:     []byte("GroupFi-PK"),
+		NftTag:     []byte(config.PkNftTag),
 		ExpireDays: 0,
 	})
 	return nil
@@ -87,7 +87,7 @@ func MintNameNft(to string, meta []byte) {
 		Addr:       to,
 		NftMeta:    meta,
 		NftTag:     []byte("group-id"),
-		ExpireDays: config.Days,
+		ExpireDays: config.NameNftDays,
 	})
 }
 
