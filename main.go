@@ -17,7 +17,7 @@ func main() {
 		tools.Aes.Input()
 		os.Args = append(os.Args, "-d")
 	}
-	//daemon.Background("./out.log", true)
+	daemon.Background("./out.log", true)
 
 	setSeeds()
 

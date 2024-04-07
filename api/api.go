@@ -31,6 +31,11 @@ func SmrPrice(c *gin.Context) {
 		})
 		return
 	}
+	for id, p := range sps {
+		if sp, exist := config.EvmNodes[id]; exist {
+			p.Contract = sp.Contract
+		}
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"result": true,
@@ -39,7 +44,7 @@ func SmrPrice(c *gin.Context) {
 }
 
 type Filter struct {
-	Chain     string   `json:"chain"`
+	Chain     uint64   `json:"chain"`
 	Addresses []string `json:"addresses"`
 	Contract  string   `json:"contract"`
 	Threshold int64    `json:"threshold"`
@@ -64,7 +69,7 @@ func FilterGroup(c *gin.Context) {
 	}
 
 	var indexes []uint16
-	t := tokens.NewEvmToken(node.Rpc, node.Wss, f.Chain, node.Contract, 0)
+	t := tokens.NewEvmToken(node.Rpc, node.Wss, node.Contract, f.Chain, 0)
 	if f.Erc == 20 {
 		indexes, err = t.FilterERC20Addresses(addrs, common.HexToAddress(f.Contract), big.NewInt(f.Threshold))
 	} else if f.Erc == 721 {
@@ -72,7 +77,7 @@ func FilterGroup(c *gin.Context) {
 	}
 
 	if err != nil {
-		gl.OutLogger.Error("Filter addresses from group error. %s, %s, %v", f.Chain, f.Contract, err)
+		gl.OutLogger.Error("Filter addresses from group error. %d, %s, %v", f.Chain, f.Contract, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.SYSTEM_ERROR,
@@ -88,7 +93,7 @@ func FilterGroup(c *gin.Context) {
 }
 
 type Verfiy struct {
-	Chain     string   `json:"chain"`
+	Chain     uint64   `json:"chain"`
 	Adds      []string `json:"adds"`
 	Subs      []string `json:"subs"`
 	Contract  string   `json:"contract"`
@@ -118,14 +123,14 @@ func VerifyGroup(c *gin.Context) {
 	}
 
 	var res int8
-	t := tokens.NewEvmToken(node.Rpc, node.Wss, f.Chain, node.Contract, 0)
+	t := tokens.NewEvmToken(node.Rpc, node.Wss, node.Contract, f.Chain, 0)
 	if f.Erc == 20 {
 		res, err = t.CheckERC20Addresses(adds, subs, common.HexToAddress(f.Contract), big.NewInt(f.Threshold))
 	} else if f.Erc == 721 {
 		res, err = t.CheckERC721Addresses(adds, subs, common.HexToAddress(f.Contract))
 	}
 	if err != nil {
-		gl.OutLogger.Error("check addresses for group error. %s, %s, %v", f.Chain, f.Contract, err)
+		gl.OutLogger.Error("check addresses for group error. %d, %s, %v", f.Chain, f.Contract, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.SYSTEM_ERROR,
@@ -138,7 +143,7 @@ func VerifyGroup(c *gin.Context) {
 	dataBytes := blake2b.Sum256(data)
 	sign, err := service.SignEd25519Hash(dataBytes[:])
 	if err != nil {
-		gl.OutLogger.Error("service.SignEd25519Hash error. %s, %s, %v", f.Chain, f.Contract, err)
+		gl.OutLogger.Error("service.SignEd25519Hash error. %d, %s, %v", f.Chain, f.Contract, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.SYSTEM_ERROR,

@@ -8,11 +8,12 @@
         "pwd": "053c5f79a68fd96ae71309af8f920036"
     },
     "evm_node": {
-        "bsc": {
-            "rpc": "https://blissful-silent-crater.bsc.discover.quiknode.pro/63a4056e8fd304c26893b83d9f4b1bb38c0ea62b/",
-            "wss": "wss://blissful-silent-crater.bsc.discover.quiknode.pro/63a4056e8fd304c26893b83d9f4b1bb38c0ea62b/",
-            "contract": "0x000000000000000",
-            "listen_type": 0
+        "148": {
+            "rpc": "https://json-rpc.evm.shimmer.network",
+            "wss": "wss://ws.json-rpc.evm.shimmer.network",
+            "listen_type": 0,
+            "max_filter_block": 999,
+            "contract": "0xc2F820BA3DBe0755deE2cD0ddc8Bf2fEc1e57255"
         }
     },
     "shimmer_rpc": "https://api.shimmer.network",

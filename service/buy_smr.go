@@ -14,18 +14,18 @@ import (
 )
 
 var evmBuyTasks sync.WaitGroup
-var listenTokens map[string]*tokens.EvmToken // symbol->chains.Token
+var listenTokens map[uint64]*tokens.EvmToken // symbol->chains.Token
 
 func StartListenBuySmrOrder() {
-	listenTokens = make(map[string]*tokens.EvmToken)
+	listenTokens = make(map[uint64]*tokens.EvmToken)
 	for chainid, node := range config.EvmNodes {
-		t := tokens.NewEvmToken(node.Rpc, node.Wss, chainid, node.Contract, node.ListenType)
+		t := tokens.NewEvmToken(node.Rpc, node.Wss, node.Contract, chainid, node.ListenType)
 		listenTokens[chainid] = t
 		go listen(chainid, t)
 	}
 }
 
-func listen(chainid string, t *tokens.EvmToken) {
+func listen(chainid uint64, t *tokens.EvmToken) {
 	evmBuyTasks.Add(1)
 	defer evmBuyTasks.Done()
 
@@ -39,11 +39,11 @@ func listen(chainid string, t *tokens.EvmToken) {
 			case 1, 2:
 				gl.OutLogger.Error(log.Info)
 			case 3:
-				gl.OutLogger.Info("Listen service %s is stoped!", chainid)
+				gl.OutLogger.Info("Listen service %d is stoped!", chainid)
 				return
 			}
 		case order := <-chOrder:
-			gl.OutLogger.Info("%s : %s : %s : %s", order.ChainId, order.TxHash, order.User.Hex(), order.Amount.String())
+			gl.OutLogger.Info("%d : %s : %s : %s : %d", order.ChainId, order.TxHash, order.User.Hex(), order.AmountIn.String(), order.AmountOut.Uint64())
 			dealOrder(order)
 		}
 	}
@@ -56,9 +56,10 @@ func dealOrder(order tokens.Order) {
 		gl.OutLogger.Error("model.GetSmrPrice error. %v, %v", err, order)
 		return
 	}
-	a, _ := new(big.Int).SetString(p.Amount, 10)
-	if a == nil || order.Amount == nil || a.Cmp(order.Amount) < 0 {
-		gl.OutLogger.Error("smr price amount is not satisfied. %s, %v", p.Amount, order.Amount)
+	a, _ := new(big.Int).SetString(p.Price, 10)
+	a = a.Mul(order.AmountOut, a)
+	if a.Cmp(order.AmountIn) > 0 {
+		gl.OutLogger.Error("amountIn is not satisfied. %s, %s, %s", order.AmountIn.String(), order.AmountOut.String(), p.Price)
 		return
 	}
 
@@ -66,7 +67,7 @@ func dealOrder(order tokens.Order) {
 	var addr iotago.Ed25519Address
 	copy(addr[:], order.EdAddr)
 	smrAddr := addr.Bech32(iotago.PrefixShimmer)
-	if err := model.StoreBuyOrder(order.ChainId, order.TxHash.Hex(), order.User.Hex(), hexutil.Encode(order.EdAddr), smrAddr, order.Amount.String(), config.ProxySendAmount); err != nil {
+	if err := model.StoreBuyOrder(order.ChainId, order.TxHash.Hex(), order.User.Hex(), hexutil.Encode(order.EdAddr), smrAddr, order.AmountIn.String(), order.AmountOut.Uint64()); err != nil {
 		if !strings.HasPrefix(err.Error(), "Error 1062") {
 			gl.OutLogger.Error("model.StoreBuyOrder error. %v, %v", err, order)
 		}

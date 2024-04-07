@@ -53,7 +53,7 @@ func InitRouter() *gin.Engine {
 		log.Panicf("Create GinLogger file error. %v", err)
 	}
 
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(gin.ReleaseMode)
 	api := gin.New()
 	api.Use(gin.LoggerWithConfig(gin.LoggerConfig{Output: GinLogger}), gin.Recovery())
 	api.GET("/mint_nicknft", MintNFT)

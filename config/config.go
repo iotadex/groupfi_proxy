@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"strconv"
 )
 
 type db struct {
@@ -24,7 +25,7 @@ type node struct {
 var (
 	HttpPort            int             // http service port
 	Db                  db              // database config
-	EvmNodes            map[string]node // evm node config of groupfi
+	EvmNodes            map[uint64]node // evm node config of groupfi
 	ShimmerRpc          string          // shimmer L1 network rpc url
 	SendIntervalTime    int64           // the interval time of sending smr, seconds
 	ProxyPoolCheckHours int64           // the interval time of checking proxy pool's count, hours
@@ -69,7 +70,11 @@ func init() {
 	}
 	HttpPort = all.HttpPort
 	Db = all.Db
-	EvmNodes = all.EvmNodes
+	EvmNodes = make(map[uint64]node)
+	for id, node := range all.EvmNodes {
+		chainid, _ := strconv.ParseUint(id, 10, 64)
+		EvmNodes[chainid] = node
+	}
 	ShimmerRpc = all.ShimmerRpc
 	SendIntervalTime = all.SendIntervalTime
 	ProxyPoolCheckHours = all.ProxyPoolCheckHours

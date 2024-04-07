@@ -3,6 +3,7 @@ package service
 func Start() {
 	RunKeepProxyPoolFull()
 	RunSendSmr()
+	StartListenBuySmrOrder()
 }
 
 // run a thread to keep the proxy pool full

@@ -20,7 +20,7 @@ https://api.groupfi.ai
 }
 ```
 
-### GET /price
+### GET /smr_price
 #### response
 ```json
 {
@@ -28,16 +28,14 @@ https://api.groupfi.ai
     "data" :{
         "chain1":{
             "contract" : "0x11",
-            "smr" : 1000000000,
             "token": "eth",
-            "amount" : "100000000000000000000",
+            "price" : "100000",
             "deci": 18
         },
         "chain1":{
             "contract" : "0x22",
-            "smr" : 1000000000,
             "token": "bsc",
-            "amount" : "100000000000000000000",
+            "price" : "100000",
             "deci": 18
         }
     }
@@ -48,7 +46,7 @@ https://api.groupfi.ai
 #### params
 ```json
 {
-    "chain": 148,
+    "chain": "148",
     "addresses" : ["address1","address2"],
     "group" : "group contract",
     "threshold" : 1,
@@ -67,7 +65,7 @@ https://api.groupfi.ai
 #### params
 ```json
 {
-    "chain": 148,
+    "chain": "148",
     "adds" : ["address1","address2"],
     "subs" : ["address1","address2"],
     "group" : "group contract",

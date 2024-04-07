@@ -16,8 +16,8 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-// event BuySmr(address indexed user, uint256 amount);
-var EventBuySmr = crypto.Keccak256Hash([]byte("BuySmr(address,uint256)"))
+// event BuySmr(address indexed user, bytes32 indexed pubkey, uint256 amount, uint64 amountOut);
+var EventBuySmr = crypto.Keccak256Hash([]byte("BuySmr(address,bytes32,uint256,uint64)"))
 
 type Log struct {
 	Type int    //0: infomation log; 1: connect error log; 2: order error log
@@ -25,11 +25,12 @@ type Log struct {
 }
 
 type Order struct {
-	ChainId string
-	TxHash  common.Hash
-	User    common.Address
-	EdAddr  []byte
-	Amount  *big.Int
+	ChainId   uint64
+	TxHash    common.Hash
+	User      common.Address
+	EdAddr    []byte
+	AmountIn  *big.Int
+	AmountOut *big.Int
 }
 
 // EvmToken
@@ -37,19 +38,19 @@ type EvmToken struct {
 	rpc        string
 	wss        string
 	listenType int            // 0: listen event; 1: scanBlock to read event log
-	chainid    string         // smr-evm, bsc-evm
+	chainid    uint64         // smr-evm : 148;
 	contract   common.Address // contract of groupfi
 	stop       chan bool      // send stop signal
 	run        atomic.Bool    // is the scanBlock running
 	wg         sync.WaitGroup // listen work to wait
 }
 
-func NewEvmToken(_rpc, _wss, _chainid_, _contract string, _listenType int) *EvmToken {
+func NewEvmToken(_rpc, _wss, _contract string, _chainid uint64, _listenType int) *EvmToken {
 	return &EvmToken{
 		rpc:        _rpc,
 		wss:        _wss,
 		listenType: _listenType,
-		chainid:    _chainid_,
+		chainid:    _chainid,
 		contract:   common.HexToAddress(_contract),
 	}
 }
@@ -91,7 +92,7 @@ func (t *EvmToken) listenEvent() (chan Log, chan Order) {
 			time.Sleep(time.Second * 5)
 			goto StartFilter
 		}
-		chLog <- Log{Type: 0, Info: fmt.Sprintf("Start to listen %s : %s", t.chainid, t.contract.Hex())}
+		chLog <- Log{Type: 0, Info: fmt.Sprintf("Start to listen %d : %s", t.chainid, t.contract.Hex())}
 		for {
 			select {
 			case err := <-sub.Err():
@@ -137,7 +138,7 @@ func (t *EvmToken) scanBlock() (chan Log, chan Order) {
 	t.run.Store(true)
 	go func() {
 		defer t.wg.Done()
-		chLog <- Log{Type: 0, Info: fmt.Sprintf("Start to scan %s : %s ...", t.chainid, t.contract.Hex())}
+		chLog <- Log{Type: 0, Info: fmt.Sprintf("Start to scan %d : %s ...", t.chainid, t.contract.Hex())}
 		for t.run.Load() {
 			time.Sleep(10 * time.Second)
 			var toHeight uint64
@@ -176,11 +177,12 @@ func (t *EvmToken) StopListen() {
 
 func (t *EvmToken) dealEventOrder(vLog *types.Log, chOrder chan Order) {
 	chOrder <- Order{
-		ChainId: t.chainid,
-		TxHash:  vLog.TxHash,
-		User:    common.BytesToAddress(vLog.Topics[1].Bytes()),
-		EdAddr:  vLog.Topics[2].Bytes(),
-		Amount:  new(big.Int).SetBytes(vLog.Data),
+		ChainId:   t.chainid,
+		TxHash:    vLog.TxHash,
+		User:      common.BytesToAddress(vLog.Topics[1].Bytes()),
+		EdAddr:    vLog.Topics[2].Bytes(),
+		AmountIn:  new(big.Int).SetBytes(vLog.Data[:32]),
+		AmountOut: new(big.Int).SetBytes(vLog.Data[32:]),
 	}
 }
 
