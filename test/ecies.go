@@ -226,7 +226,7 @@ func DeCryptByEcies(cryptData, privateFile string) (srcData string, err error) {
 	}
 
 	//私钥解密数据
-	cryptBytes, err := hex.DecodeString(cryptData)
+	cryptBytes, _ := hex.DecodeString(cryptData)
 	srcByte, err := privateKey.Decrypt(cryptBytes, nil, nil)
 	if err != nil {
 		fmt.Println("解密错误：", err)

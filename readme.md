@@ -2,7 +2,7 @@
 
 ## url 
 ```
-https://api.groupfi.ai
+https://testapi.groupfi.ai
 ```
 
 ## public apis
