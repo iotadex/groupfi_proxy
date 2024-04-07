@@ -267,6 +267,66 @@ func (w *IotaSmrWallet) MintNameNFT(bech32To string, days int, meta, tag []byte)
 	return id[:], nil
 }
 
+func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte) ([]byte, error) {
+	prefix, toAddr, err := iotago.ParseBech32(bech32To)
+	if err != nil {
+		return nil, fmt.Errorf("toAddress error. %s, %v", bech32To, err)
+	}
+
+	info, err := w.nodeAPI.Info(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("get iotasmr node info error. %v", err)
+	}
+
+	addr, signer, err := w.getWalletAddress()
+	if err != nil {
+		return nil, err
+	}
+
+	collectionOutput := iotago.NFTOutput{
+		Conditions: iotago.UnlockConditions{
+			&iotago.AddressUnlockCondition{Address: toAddr},
+		},
+		ImmutableFeatures: iotago.Features{
+			&iotago.MetadataFeature{Data: meta},
+		},
+		Features: iotago.Features{&iotago.TagFeature{Tag: tag}},
+	}
+	collectionOutput.Amount = uint64(info.Protocol.RentStructure.VByteCost) * uint64(collectionOutput.VBytes(&info.Protocol.RentStructure, nil))
+
+	txBuilder := builder.NewTransactionBuilder(info.Protocol.NetworkID())
+	txBuilder.AddOutput(&collectionOutput)
+
+	left, err := w.getBasiceUnSpentOutputs(txBuilder, collectionOutput.Amount, prefix, addr)
+	if err != nil {
+		return nil, fmt.Errorf("get basic shimmer outputs error. %s, %v", addr.Bech32(prefix), err)
+	}
+	if left > 0 {
+		smrOutput := &iotago.BasicOutput{
+			Amount: left,
+			Conditions: iotago.UnlockConditions{&iotago.AddressUnlockCondition{
+				Address: addr,
+			}},
+		}
+		txBuilder.AddOutput(smrOutput)
+	}
+
+	blockBuilder := txBuilder.BuildAndSwapToBlockBuilder(&info.Protocol, signer, nil)
+
+	block, err := blockBuilder.Tips(context.Background(), w.nodeAPI).
+		ProofOfWork(context.Background(), &info.Protocol, float64(info.Protocol.MinPoWScore)).
+		Build()
+	if err != nil {
+		return nil, fmt.Errorf("build block error. %v", err)
+	}
+	id, err := w.nodeAPI.SubmitBlock(context.Background(), block, &info.Protocol)
+	if err != nil {
+		return nil, fmt.Errorf("send block to node error. %v", err)
+	}
+
+	return id[:], nil
+}
+
 func (w *IotaSmrWallet) MintPkNFT(bech32To string, meta, tag []byte) ([]byte, error) {
 	prefix, toAddr, err := iotago.ParseBech32(bech32To)
 	if err != nil {

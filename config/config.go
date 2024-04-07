@@ -30,8 +30,8 @@ var (
 	ProxyPoolCheckHours int64           // the interval time of checking proxy pool's count, hours
 	MinProxyPoolCount   int             // the min proxy pool's count
 	ProxySendAmount     uint64          // the amount of sending smr per time
-	ProxyWalletNftId    string          // this is "1"
-	PkNftTag            string          = "GROUPFIPAIRXV1"
+	ProxyWallet         string          // this is "1"
+	ProxyPkNftTag       string          // pk nft's tag
 	NameNftId           string          // name nft id
 	NameNftDays         int             // the expired time of the name nft, days
 	DefaultImg          string          // default_image url of name nft
@@ -56,6 +56,8 @@ func init() {
 		ProxyPoolCheckHours int64           `json:"proxy_pool_check_hours"`
 		MinProxyPoolCount   int             `json:"min_proxy_pool_count"`
 		ProxySendAmount     uint64          `json:"proxy_send_amount"`
+		ProxyWallet         string          `json:"proxy_wallet"`
+		ProxyPkNftTag       string          `json:"proxy_pk_nft_tag"`
 		NameNftId           string          `json:"name_nftid"`
 		NameNftDays         int             `json:"name_nft_days"`
 		DefaultImg          string          `json:"default_img"`
@@ -73,6 +75,8 @@ func init() {
 	ProxyPoolCheckHours = all.ProxyPoolCheckHours
 	MinProxyPoolCount = all.MinProxyPoolCount
 	ProxySendAmount = all.ProxySendAmount
+	ProxyWallet = all.ProxyWallet
+	ProxyPkNftTag = all.ProxyPkNftTag
 	NameNftId = all.NameNftId
 	NameNftDays = all.NameNftDays
 	DefaultImg = all.DefaultImg

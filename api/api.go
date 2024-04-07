@@ -249,7 +249,8 @@ func RegisterProxy(c *gin.Context) {
 	if len(data) > 1 {
 		meta := common.FromHex(data[1])
 		if len(meta) > 0 {
-			service.MintSignAccPkNft(signAcc, meta)
+			id, err := service.MintSignAccPkNft(signAcc, meta)
+			gl.OutLogger.Info("pk nft mint. %s, %v", hexutil.Encode(id), err)
 		}
 	}
 

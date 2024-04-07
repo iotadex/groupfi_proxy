@@ -17,11 +17,12 @@ const (
 )
 
 type PendingSendSmrOrder struct {
-	Id     int64
-	To     string
-	Amount uint64
-	Type   SendingType
-	Ts     int64
+	Id      int64
+	BlockId string
+	To      string
+	Amount  uint64
+	Type    SendingType
+	Ts      int64
 }
 
 func GetWallet(nftid string) (string, string, error) {
@@ -75,7 +76,7 @@ func PopOnePendingSendSmrOrder() (*PendingSendSmrOrder, error) {
 		return nil, fmt.Errorf("sign error. %d", id)
 	}
 
-	if res, err := tx.Exec("delete from `send_smr` where `id`=?", id); err != nil {
+	if res, err := tx.Exec("update `send_smr` set `state`=1 where `id`=?", id); err != nil {
 		tx.Rollback()
 		return nil, err
 	} else {
@@ -93,28 +94,27 @@ func PopOnePendingSendSmrOrder() (*PendingSendSmrOrder, error) {
 }
 
 func UpdatePendingOrderblockId(id int64, blockid string) error {
-	_, err := db.Exec("upate `send_smr` set `blockid`=?,`state`=1 where `id`=?", blockid, id)
+	_, err := db.Exec("update `send_smr` set `blockid`=?,`state`=1 where `id`=?", blockid, id)
 	return err
 }
 
-func GetPendingOrders() (map[int64]string, error) {
-	rows, err := db.Query("select `id`,`blockid` from `send_smr` where `state`=1")
+func GetPendingOrders() ([]*PendingSendSmrOrder, error) {
+	rows, err := db.Query("select `id`,`blockid`,`to`,`type` from `send_smr` where `state`=1")
 	if err != nil {
 		return nil, err
 	}
-	orders := make(map[int64]string)
+	orders := make([]*PendingSendSmrOrder, 0)
 	for rows.Next() {
-		var id int64
-		var blockid string
-		if err := rows.Scan(&id, &blockid); err != nil {
+		psso := PendingSendSmrOrder{}
+		if err := rows.Scan(&psso.Id, &psso.BlockId, &psso.To, &psso.Type); err != nil {
 			return nil, err
 		}
-		orders[id] = blockid
+		orders = append(orders, &psso)
 	}
 	return orders, nil
 }
 
 func UpdatePendingOrderState(id int64, state int) error {
-	_, err := db.Exec("upate `send_smr` set `state`=? where `id`=?", state, id)
+	_, err := db.Exec("update `send_smr` set `state`=? where `id`=?", state, id)
 	return err
 }

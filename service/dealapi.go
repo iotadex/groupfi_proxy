@@ -64,22 +64,21 @@ func SendTxEssence(signAcc string, txEssenceBytes []byte) ([]byte, error) {
 	return id[:], nil
 }
 
-func MintSignAccPkNft(signAcc string, metadata []byte) error {
+func MintSignAccPkNft(signAcc string, metadata []byte) ([]byte, error) {
 	proxy, err := model.GetProxyAccount(signAcc)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if proxy == nil {
-		return fmt.Errorf("proxy account is not exist")
+		return nil, fmt.Errorf("proxy account is not exist")
 	}
 
-	mintPkNftQueue.pushBack(&MintMsg{
-		Addr:       proxy.Smr,
-		NftMeta:    metadata,
-		NftTag:     []byte(config.PkNftTag),
-		ExpireDays: 0,
-	})
-	return nil
+	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, proxy.Smr, proxy.EnPk, "")
+	id, err := w.MinPkCollectionNft(proxy.Smr, metadata, []byte(config.ProxyPkNftTag))
+	if err != nil {
+		return nil, err
+	}
+	return id, nil
 }
 
 func MintNameNft(to string, meta []byte) {

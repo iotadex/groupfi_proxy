@@ -6,6 +6,7 @@ import (
 	"gproxy/daemon"
 	"gproxy/gl"
 	"gproxy/model"
+	"gproxy/service"
 	"gproxy/tools"
 	"gproxy/wallet"
 	"os"
@@ -16,7 +17,9 @@ func main() {
 		tools.Aes.Input()
 		os.Args = append(os.Args, "-d")
 	}
-	daemon.Background("./out.log", true)
+	//daemon.Background("./out.log", true)
+
+	setSeeds()
 
 	gl.CreateLogFiles()
 
@@ -24,12 +27,14 @@ func main() {
 
 	api.StartHttpServer(config.HttpPort)
 
+	service.Start()
+
 	daemon.WaitForKill()
 
 	api.StopHttpServer()
 }
 
-func SetSeeds() {
+func setSeeds() {
 	seeds := tools.Aes.ReadRand()
 	// set model's seeeds
 	model.SetSeeds(seeds)

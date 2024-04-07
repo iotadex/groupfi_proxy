@@ -27,13 +27,15 @@ https://api.groupfi.ai
     "result" : true,
     "data" :{
         "chain1":{
-            "smr" : 10000000000,
+            "contract" : "0x11",
+            "smr" : 1000000000,
             "token": "eth",
             "amount" : "100000000000000000000",
             "deci": 18
         },
         "chain1":{
-            "smr" : 10000000000,
+            "contract" : "0x22",
+            "smr" : 1000000000,
             "token": "bsc",
             "amount" : "100000000000000000000",
             "deci": 18

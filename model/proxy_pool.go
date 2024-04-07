@@ -23,14 +23,14 @@ func CreateProxyToPool(amount uint64, minCount int) error {
 	}
 
 	// 2. Get the count of proxy pool; check the count smaller than required or not
-	row := tx.QueryRow("select count(`address`) from `proxy`")
+	row := tx.QueryRow("select count(`address`) from `proxy_pool`")
 	var count int
 	if err := row.Scan(&count); err != nil {
 		tx.Rollback()
 		return err
 	}
 	if count < minCount {
-		for i := minCount - count; i > -1; i-- {
+		for i := minCount - count; i > 0; i-- {
 			// create a ed25519 private key by random number
 			bech32Addr, enpk := getEdPrivateKey()
 			if _, err := tx.Exec("INSERT INTO `proxy_pool`(`address`,`enpk`) VALUES(?,?)", bech32Addr, enpk); err != nil {
@@ -50,8 +50,8 @@ func CreateProxyToPool(amount uint64, minCount int) error {
 }
 
 // set the proxy's state to 1 after add balance to it
-func InitPoolProxy(address string) error {
-	_, err := db.Exec("update `proxy_pool` set `state`=1 where `address`=?", address)
+func UpdateProxyPoolState(address string, state int) error {
+	_, err := db.Exec("update `proxy_pool` set `state`=? where `address`=?", state, address)
 	return err
 }
 

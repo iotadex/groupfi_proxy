@@ -15,7 +15,7 @@ import (
 var evmBuyTasks sync.WaitGroup
 var listenTokens map[string]*tokens.EvmToken // symbol->chains.Token
 
-func StartListenSell() {
+func StartListenBuySmrOrder() {
 	listenTokens = make(map[string]*tokens.EvmToken)
 	for chainid, node := range config.EvmNodes {
 		t := tokens.NewEvmToken(node.Rpc, node.Wss, chainid, node.Contract, node.ListenType)
