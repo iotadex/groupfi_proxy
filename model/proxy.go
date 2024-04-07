@@ -35,7 +35,7 @@ func RegisterProxyFromPool(account string, signAcc string) (string, error) {
 		return "", err
 	}
 	// 2. get a proxy from proxy_pool
-	row = tx.QueryRow("select `id`,`address`,`enpk` from `proxy_pool` where `state`=1 limit 1")
+	row = tx.QueryRow("select `id`,`address`,`enpk` from `proxy_pool` where `state`=? limit 1", CONFIRMED_SEND)
 	var id int64
 	var enpk string
 	if err := row.Scan(&id, &smr, &enpk); err != nil {

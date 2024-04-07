@@ -48,8 +48,8 @@ https://api.groupfi.ai
 #### params
 ```json
 {
-    "adds" : ["address1","address2"],
-    "subs" : ["address1","address2"],
+    "chain": 148,
+    "addresses" : ["address1","address2"],
     "group" : "group contract",
     "threshold" : 1,
     "ts" : "current timestamp"
@@ -67,6 +67,7 @@ https://api.groupfi.ai
 #### params
 ```json
 {
+    "chain": 148,
     "adds" : ["address1","address2"],
     "subs" : ["address1","address2"],
     "group" : "group contract",

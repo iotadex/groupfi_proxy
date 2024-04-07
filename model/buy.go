@@ -42,10 +42,20 @@ func GetSmrPrices() (map[string]SmrPrice, error) {
 	for rows.Next() {
 		sp := SmrPrice{}
 		var chain string
-		if err := rows.Scan(&chain, &sp.Smr, &sp.Token, &sp.Token, &sp.Deci); err != nil {
+		if err := rows.Scan(&chain, &sp.Smr, &sp.Token, &sp.Amount, &sp.Deci); err != nil {
 			return nil, err
 		}
 		sps[chain] = sp
 	}
 	return sps, nil
+}
+
+func GetSmrPrice(chain string) (*SmrPrice, error) {
+	row := db.QueryRow("SELECT `smr`,`token`,`amount`,`deci` FROM `price` where `chain`=?", chain)
+
+	sp := &SmrPrice{}
+	if err := row.Scan(&sp.Smr, &sp.Token, &sp.Amount, &sp.Deci); err != nil {
+		return nil, err
+	}
+	return sp, nil
 }

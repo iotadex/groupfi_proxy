@@ -176,10 +176,11 @@ func (t *EvmToken) StopListen() {
 
 func (t *EvmToken) dealEventOrder(vLog *types.Log, chOrder chan Order) {
 	chOrder <- Order{
-		TxHash: vLog.TxHash,
-		User:   common.BytesToAddress(vLog.Topics[1].Bytes()),
-		EdAddr: vLog.Topics[2].Bytes(),
-		Amount: new(big.Int).SetBytes(vLog.Data),
+		ChainId: t.chainid,
+		TxHash:  vLog.TxHash,
+		User:    common.BytesToAddress(vLog.Topics[1].Bytes()),
+		EdAddr:  vLog.Topics[2].Bytes(),
+		Amount:  new(big.Int).SetBytes(vLog.Data),
 	}
 }
 

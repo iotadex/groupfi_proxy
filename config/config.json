@@ -18,7 +18,7 @@
     "shimmer_rpc": "https://api.shimmer.network",
     "send_interval_time": 60,
     "proxy_pool_check_hours": 1,
-    "min_proxy_pool_count": 8,
+    "min_proxy_pool_count": 10,
     "proxy_wallet": "1",
     "proxy_pk_nft_tag": "GROUPFIPAIRXV1",
     "proxy_send_amount": 10000000,

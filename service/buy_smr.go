@@ -5,6 +5,7 @@ import (
 	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/tokens"
+	"math/big"
 	"strings"
 	"sync"
 
@@ -49,6 +50,18 @@ func listen(chainid string, t *tokens.EvmToken) {
 }
 
 func dealOrder(order tokens.Order) {
+	// get the price from db
+	p, err := model.GetSmrPrice(order.ChainId)
+	if err != nil {
+		gl.OutLogger.Error("model.GetSmrPrice error. %v, %v", err, order)
+		return
+	}
+	a, _ := new(big.Int).SetString(p.Amount, 10)
+	if a == nil || order.Amount == nil || a.Cmp(order.Amount) < 0 {
+		gl.OutLogger.Error("smr price amount is not satisfied. %s, %v", p.Amount, order.Amount)
+		return
+	}
+
 	// store it to db
 	var addr iotago.Ed25519Address
 	copy(addr[:], order.EdAddr)

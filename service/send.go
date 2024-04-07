@@ -81,9 +81,9 @@ func runCheckPendingOrders() {
 				continue
 			}
 
-			state := 2
+			state := model.CONFIRMED_SEND
 			if !b {
-				state = 3
+				state = model.FAILED_SEND
 			}
 			if err = model.UpdatePendingOrderState(o.Id, state); err != nil {
 				gl.OutLogger.Error("model.UpdatePendingOrderState. %d, %v", o.Id, err)
