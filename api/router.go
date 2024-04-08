@@ -64,13 +64,13 @@ func InitRouter() *gin.Engine {
 
 	mainAcc := api.Group("/proxy").Use(middleware.SignIpRateLimiterWare).Use(middleware.VerifyEvmSign)
 	{
-		mainAcc.GET("/register", RegisterProxy)
+		mainAcc.POST("/register", RegisterProxy)
 	}
 
 	proxy := api.Group("/proxy").Use(middleware.SignIpRateLimiterWare).Use(middleware.VerifyEd25519Sign)
 	{
-		proxy.GET("/account", GetProxyAccount)
-		proxy.GET("/send", SendTxEssence)
+		proxy.POST("/account", GetProxyAccount)
+		proxy.POST("/send", SendTxEssence)
 	}
 
 	return api

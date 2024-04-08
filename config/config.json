@@ -13,7 +13,7 @@
             "wss": "wss://ws.json-rpc.evm.shimmer.network",
             "listen_type": 0,
             "max_filter_block": 999,
-            "contract": "0xc2F820BA3DBe0755deE2cD0ddc8Bf2fEc1e57255"
+            "contract": "0xc2F820BA3DBe0755deE2cD0ddc8Bf2fEc1e57250"
         }
     },
     "shimmer_rpc": "https://api.shimmer.network",

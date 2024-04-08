@@ -3,6 +3,8 @@ package middleware
 import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"gproxy/gl"
 	"net/http"
@@ -47,12 +49,8 @@ func VerifyEvmSign(c *gin.Context) {
 
 	signature := common.FromHex(md.Signature)
 	data := md.EncryptedPrivateKey + md.EvmAddress + md.PairXPublicKey + strconv.Itoa(md.Scenery) + strconv.FormatInt(md.Timestamp, 10)
-	data = fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
-
 	hashData := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
 	publickey, err := verifyEthAddress(signature, crypto.Keccak256Hash([]byte(hashData)).Bytes())
-	addr := crypto.PubkeyToAddress(*publickey).Hex()
-
 	if err != nil {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
@@ -60,12 +58,14 @@ func VerifyEvmSign(c *gin.Context) {
 			"err-code": gl.SIGN_ERROR,
 			"err-msg":  "sign error. " + err.Error(),
 		})
-		gl.OutLogger.Error("User's sign error. %s : %s : %v", addr, data, err)
+		gl.OutLogger.Error("User's sign error. %v : %v", md, err)
 		return
 	}
+	meta, _ := json.Marshal(md)
 
-	c.Set("account", addr)
-	c.Set("data", data)
+	c.Set("account", crypto.PubkeyToAddress(*publickey).Hex())
+	c.Set("sign_acc", md.PairXPublicKey)
+	c.Set("meta", hex.EncodeToString(meta))
 	c.Next()
 }
 
@@ -100,7 +100,7 @@ func VerifyEd25519Sign(c *gin.Context) {
 		return
 	}
 
-	if !ed25519.Verify(common.FromHex(sd.PublicKey), signature, []byte(sd.Data+strconv.FormatInt(sd.Ts, 10))) {
+	if !ed25519.Verify(common.FromHex(sd.PublicKey), []byte(sd.Data+strconv.FormatInt(sd.Ts, 10)), signature) {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,

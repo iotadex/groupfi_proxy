@@ -1,13 +1,9 @@
 package model
 
 import (
-	"crypto/rand"
 	"database/sql"
 	"fmt"
-
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/crypto/ecies"
+	"sync"
 )
 
 // Register a shimmer address as the proxy of evm account, if the proxy is exist, update the sign_acc
@@ -17,7 +13,7 @@ import (
 // @return, the proxy account, a shimmer address
 func RegisterProxyFromPool(account string, signAcc string) (string, error) {
 	// 1. Check db that the shimmer proxy address is exist or not
-	row := db.QueryRow("select `smr`,`sign_acc` from `proxy` where `account`=?", account)
+	row := db.QueryRow("select `smr` from `proxy` where `account`=?", account)
 	var smr string
 	if err := row.Scan(&smr); err == nil {
 		// update the sign_acc
@@ -49,8 +45,8 @@ func RegisterProxyFromPool(account string, signAcc string) (string, error) {
 		return "", err
 	}
 
-	// 4. delete the proxy from proxy_pool
-	if res, err := tx.Exec("delete from `proxy` where `id`=?", id); err != nil {
+	// 4. change the proxy from proxy_pool
+	if res, err := tx.Exec("update `proxy_pool` set `state`=? where `id`=?", 1, id); err != nil {
 		tx.Rollback()
 		return "", err
 	} else {
@@ -84,10 +80,9 @@ func GetProxyAccount(signAcc string) (*ShimmerAccount, error) {
 }
 
 func getProxyAccount(signAcc string) (*ShimmerAccount, error) {
-	row := db.QueryRow("select `account`,`chain`,`smr`,`pk`,`state` from `proxy` where `sign_acc`=?", signAcc)
-	var acc, chain, smr, pk string
-	var state int
-	if err := row.Scan(&acc, &chain, &smr, &pk, &state); err != nil {
+	row := db.QueryRow("select `account`,`smr`,`pk` from `proxy` where `sign_acc`=?", signAcc)
+	var acc, smr, pk string
+	if err := row.Scan(&acc, &smr, &pk); err != nil {
 		if err != sql.ErrNoRows {
 			return nil, err
 		}
@@ -95,21 +90,39 @@ func getProxyAccount(signAcc string) (*ShimmerAccount, error) {
 	}
 	return &ShimmerAccount{
 		Account: acc,
-		Chain:   chain,
 		Smr:     smr,
 		EnPk:    pk,
-		State:   state,
 	}, nil
 }
 
-func EncryptByPublicKey(srcData, publicKeyBytes []byte) (string, error) {
-	publicKey, err := crypto.UnmarshalPubkey(publicKeyBytes)
-	if err != nil {
-		return "", err
+var signAccounts *SignAccountToSmrProxy = NewSignAccountToSmrProxy()
+
+type ShimmerAccount struct {
+	Account string // evm address
+	Smr     string // shimmer bech32 address
+	EnPk    string // encrypt private key
+	TempTs  int64  // temp account update timestamp
+}
+
+type SignAccountToSmrProxy struct {
+	users map[string]*ShimmerAccount // temp account -> proxy account
+	sync.RWMutex
+}
+
+func NewSignAccountToSmrProxy() *SignAccountToSmrProxy {
+	return &SignAccountToSmrProxy{
+		users: make(map[string]*ShimmerAccount),
 	}
-	encryptBytes, err := ecies.Encrypt(rand.Reader, ecies.ImportECDSAPublic(publicKey), srcData, nil, nil)
-	if err != nil {
-		return "", err
-	}
-	return hexutil.Encode(encryptBytes), nil
+}
+
+func (tasp *SignAccountToSmrProxy) Add(signAcc string, sa *ShimmerAccount) {
+	tasp.Lock()
+	defer tasp.Unlock()
+	tasp.users[signAcc] = sa
+}
+
+func (tasp *SignAccountToSmrProxy) Get(signAcc string) *ShimmerAccount {
+	tasp.RLock()
+	defer tasp.RUnlock()
+	return tasp.users[signAcc]
 }

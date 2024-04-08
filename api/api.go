@@ -229,9 +229,9 @@ func MintNFT(c *gin.Context) {
 
 func RegisterProxy(c *gin.Context) {
 	account := c.GetString("account")
-	data := strings.Split(c.GetString("data"), "_")
-	signAcc := hexutil.Encode(common.FromHex(data[0]))
-	if len(account) == 0 || len(signAcc) != 42 {
+	signAcc := hexutil.Encode(common.FromHex(c.GetString("sign_acc")))
+	meta := c.GetString("meta")
+	if len(account) == 0 || len(signAcc) != 66 {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.PARAMS_ERROR,
@@ -251,12 +251,16 @@ func RegisterProxy(c *gin.Context) {
 		return
 	}
 
-	if len(data) > 1 {
-		meta := common.FromHex(data[1])
-		if len(meta) > 0 {
-			id, err := service.MintSignAccPkNft(signAcc, meta)
-			gl.OutLogger.Info("pk nft mint. %s, %v", hexutil.Encode(id), err)
-		}
+	if id, err := service.MintSignAccPkNft(signAcc, common.FromHex(meta)); err != nil {
+		gl.OutLogger.Error("service.MintSignAccPkNft error. %s, %v", signAcc, err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.SYSTEM_ERROR,
+			"err-msg":  "mint pk nft error",
+		})
+		return
+	} else {
+		gl.OutLogger.Info("mint pk nft. 0x%s", hex.EncodeToString(id))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
