@@ -46,13 +46,15 @@ https://testapi.groupfi.ai
 #### params
 ```json
 {
-    "chain": "148",
+    "chain": 148,
     "addresses" : ["address1","address2"],
-    "group" : "group contract",
+    "contract" : "group contract address",
     "threshold" : 1,
-    "ts" : "current timestamp"
+    "erc" : 721,
+    "ts" : 1712647238
 }
 ```
+erc is 20 or 721.
 #### response
 ```json
 {
@@ -65,18 +67,20 @@ https://testapi.groupfi.ai
 #### params
 ```json
 {
-    "chain": "148",
+    "chain": 148,
     "adds" : ["address1","address2"],
     "subs" : ["address1","address2"],
-    "group" : "group contract",
+    "contract" : "group contract",
     "threshold" : 1,
-    "ts" : "current timestamp"
+    "erc" : 20,
+    "ts" : 1712647238
 }
 ```
 #### response
 ```json
 {
     "result": true,
+    "flag":   1,
     "sign": "sign hex string"
 }
 ```

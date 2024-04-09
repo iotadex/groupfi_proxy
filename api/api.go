@@ -16,7 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
 	iotago "github.com/iotaledger/iota.go/v3"
-	"golang.org/x/crypto/blake2b"
 )
 
 // Get the prices of smr on different evm chains
@@ -49,6 +48,7 @@ type Filter struct {
 	Contract  string   `json:"contract"`
 	Threshold int64    `json:"threshold"`
 	Erc       int      `json:"erc"`
+	Ts        int64    `json:"ts"`
 }
 
 func FilterGroup(c *gin.Context) {
@@ -99,6 +99,7 @@ type Verfiy struct {
 	Contract  string   `json:"contract"`
 	Threshold int64    `json:"threshold"`
 	Erc       int      `json:"erc"`
+	Ts        int64    `json:"ts"`
 }
 
 func VerifyGroup(c *gin.Context) {
@@ -140,22 +141,10 @@ func VerifyGroup(c *gin.Context) {
 	}
 
 	data, _ := json.Marshal(f)
-	dataBytes := blake2b.Sum256(data)
-	sign, err := service.SignEd25519Hash(dataBytes[:])
-	if err != nil {
-		gl.OutLogger.Error("service.SignEd25519Hash error. %d, %s, %v", f.Chain, f.Contract, err)
-		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
-		})
-		return
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"result": true,
 		"flag":   res,
-		"sign":   hexutil.Encode(sign),
+		"sign":   hexutil.Encode(service.SignEd25519Hash(data[:])),
 	})
 }
 

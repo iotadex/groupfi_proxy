@@ -63,6 +63,7 @@ func init() {
 		NameNftDays         int             `json:"name_nft_days"`
 		DefaultImg          string          `json:"default_img"`
 		MaxMsgLockDays      int64           `json:"max_msg_locked_days"`
+		SignEdPk            string          `json:"sign_ed_pk"`
 	}
 	all := &Config{}
 	if err = json.NewDecoder(file).Decode(all); err != nil {
