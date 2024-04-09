@@ -57,7 +57,7 @@ https://testapi.groupfi.ai
 ```json
 {
     "result": true,
-    "sign": "sign hex string"
+    "indexes": [],
 }
 ```
 
