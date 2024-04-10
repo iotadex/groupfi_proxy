@@ -209,7 +209,79 @@ func MintNFT(c *gin.Context) {
 	data["property"] = "groupfi-name"
 	meta, _ := json.Marshal(data)
 
-	service.MintNameNft(address, meta)
+	service.MintNameNft(address, meta, config.NameNftDays)
+
+	c.JSON(http.StatusOK, gin.H{
+		"result": true,
+	})
+}
+
+func MintNameNftForMM(c *gin.Context) {
+	signAcc := c.GetString("publickey")
+	name := c.GetString("data")
+
+	proxy, err := model.GetProxyAccount(signAcc)
+	if err != nil {
+		gl.OutLogger.Error("model.GetProxyAccount error. %s, %v", signAcc, err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.SYSTEM_ERROR,
+			"err-msg":  "system error",
+		})
+		return
+	}
+	if proxy == nil {
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.PROXY_NOT_EXIST,
+			"err-msg":  "proxy account is not exist",
+		})
+		return
+	}
+
+	if len(name) < 11 || len(name) > 20 || !isAlphaNumeric(name) {
+		gl.OutLogger.Warn("User's name error. %s", name)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.PARAMS_ERROR,
+			"err-msg":  "name invalid",
+		})
+		return
+	}
+
+	b, err := model.VerifyAndInsertName(proxy.Smr, name, config.NameNftId)
+	if err != nil {
+		gl.OutLogger.Error("model.VerifyAndInsertName error. %s, %s, %v", proxy.Smr, name, err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.SYSTEM_ERROR,
+			"err-msg":  "system error",
+		})
+		return
+	}
+	if !b {
+		gl.OutLogger.Warn("name used. %s, %s", proxy.Smr, name)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.PARAMS_ERROR,
+			"err-msg":  "name used",
+		})
+		return
+	}
+
+	data := make(map[string]string)
+	data["standard"] = "IRC27"
+	data["name"] = name + ".gf"
+	data["type"] = "image/png"
+	data["version"] = "v1.0"
+	data["uri"] = config.DefaultImg
+	data["collectionId"] = config.NameNftId
+	data["collectionName"] = "GroupFi OG Names"
+	data["profile"] = "# GroupFi Name System"
+	data["property"] = "groupfi-name"
+	meta, _ := json.Marshal(data)
+
+	service.MintNameNft(proxy.Smr, meta, 0)
 
 	c.JSON(http.StatusOK, gin.H{
 		"result": true,

@@ -83,12 +83,12 @@ func MintSignAccPkNft(signAcc string, metadata []byte) ([]byte, error) {
 	return id, nil
 }
 
-func MintNameNft(to string, meta []byte) {
+func MintNameNft(to string, meta []byte, expireDay int) {
 	mintNameNftQueue.pushBack(&MintMsg{
 		Addr:       to,
 		NftMeta:    meta,
 		NftTag:     []byte("group-id"),
-		ExpireDays: config.NameNftDays,
+		ExpireDays: expireDay,
 	})
 }
 

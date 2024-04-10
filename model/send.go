@@ -15,6 +15,7 @@ const (
 )
 
 const (
+	POP_SEND       = -1
 	INIT_SEND      = 0
 	PENDING_SEND   = 1
 	CONFIRMED_SEND = 2
@@ -81,7 +82,7 @@ func PopOnePendingSendSmrOrder() (*PendingSendSmrOrder, error) {
 		return nil, fmt.Errorf("sign error. %d", id)
 	}
 
-	if res, err := tx.Exec("update `send_smr` set `state`=? where `id`=?", PENDING_SEND, id); err != nil {
+	if res, err := tx.Exec("update `send_smr` set `state`=? where `id`=?", POP_SEND, id); err != nil {
 		tx.Rollback()
 		return nil, err
 	} else {

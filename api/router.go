@@ -69,6 +69,7 @@ func InitRouter() *gin.Engine {
 
 	proxy := api.Group("/proxy").Use(middleware.SignIpRateLimiterWare).Use(middleware.VerifyEd25519Sign)
 	{
+		proxy.POST("/mint_nicknft", MintNameNftForMM)
 		proxy.POST("/account", GetProxyAccount)
 		proxy.POST("/send", SendTxEssence)
 	}

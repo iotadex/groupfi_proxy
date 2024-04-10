@@ -4,6 +4,7 @@ import (
 	"crypto/ed25519"
 	"encoding/json"
 	"fmt"
+	"gproxy/api"
 	"gproxy/api/middleware"
 	"gproxy/tools"
 	"log"
@@ -72,6 +73,31 @@ func GetProxyAccount() {
 
 	url := URL + "/proxy/account"
 	postParams, _ := json.Marshal(sd)
+	header := make(map[string]string)
+	header["Content-Type"] = "application/json; charset=UTF-8"
+	res, err := tools.HttpRequest(url, "POST", postParams, header)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(res))
+}
+
+func FilterGroup() {
+	f := api.Filter{
+		Chain: 148,
+		Addresses: []string{
+			"0x1CB7B54AAB4283782b8aF70d07F88AD795c952E9",
+			"0x928100571464c900A2F53689353770455D78a200",
+			"0x504dF97f0e5425Eae1D32ACBE5B2E7Dc1f1Dd9cf",
+			"0xFf803bc4f2D0516101eB7Aa643299e1BAF5d78F2",
+			"0xd2Bae936E942115f1759631f6Ae5642D10B4824e",
+		},
+		Contract:  "0x544F353C02363D848dBAC8Dc3a818B36B7f9355e",
+		Threshold: 1,
+		Erc:       721,
+	}
+	url := URL + "/proxy/account"
+	postParams, _ := json.Marshal(f)
 	header := make(map[string]string)
 	header["Content-Type"] = "application/json; charset=UTF-8"
 	res, err := tools.HttpRequest(url, "POST", postParams, header)

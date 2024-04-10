@@ -160,13 +160,6 @@ func (w *IotaSmrWallet) SendBasic(bech32To string, amount uint64) ([]byte, error
 	return id[:], nil
 }
 
-func (w *IotaSmrWallet) MintNFT(bech32To string, days int, meta, tag []byte) ([]byte, error) {
-	if days == 0 {
-		return w.MintPkNFT(bech32To, meta, tag)
-	}
-	return w.MintNameNFT(bech32To, days, meta, tag)
-}
-
 func (w *IotaSmrWallet) MintNameNFT(bech32To string, days int, meta, tag []byte) ([]byte, error) {
 	prefix, toAddr, err := iotago.ParseBech32(bech32To)
 	if err != nil {
@@ -193,31 +186,12 @@ func (w *IotaSmrWallet) MintNameNFT(bech32To string, days int, meta, tag []byte)
 		return nil, fmt.Errorf("collectionInput nil. %s", w.nftID.String())
 	}
 
-	ts := time.Now().AddDate(0, 0, days).Unix()
-	mintOutput := iotago.NFTOutput{
-		Conditions: iotago.UnlockConditions{
-			&iotago.AddressUnlockCondition{Address: toAddr},
-			&iotago.StorageDepositReturnUnlockCondition{
-				ReturnAddress: addr,
-				Amount:        0,
-			},
-			&iotago.ExpirationUnlockCondition{
-				ReturnAddress: addr,
-				UnixTime:      uint32(ts),
-			},
-		},
-		ImmutableFeatures: iotago.Features{
-			&iotago.IssuerFeature{Address: w.nftID.ToAddress()},
-			&iotago.MetadataFeature{Data: meta},
-		},
+	var mintOutput iotago.NFTOutput
+	if days == 0 {
+		mintOutput = w.createBasicNFTOutput(toAddr, meta, tag, info)
+	} else {
+		mintOutput = w.createStorageDepositReturnNameNFTOutput(toAddr, addr, days, meta, tag, info)
 	}
-	if len(tag) > 0 {
-		mintOutput.Features = iotago.Features{
-			&iotago.TagFeature{Tag: tag},
-		}
-	}
-	mintOutput.Amount = uint64(info.Protocol.RentStructure.VByteCost) * uint64(mintOutput.VBytes(&info.Protocol.RentStructure, nil))
-	mintOutput.Conditions[1].(*iotago.StorageDepositReturnUnlockCondition).Amount = mintOutput.Amount
 
 	collectionOutput := iotago.NFTOutput{
 		NFTID: w.nftID,
@@ -265,6 +239,54 @@ func (w *IotaSmrWallet) MintNameNFT(bech32To string, days int, meta, tag []byte)
 	}
 
 	return id[:], nil
+}
+
+func (w *IotaSmrWallet) createStorageDepositReturnNameNFTOutput(toAddr, returnAddr iotago.Address, days int, meta, tag []byte, info *nodeclient.InfoResponse) iotago.NFTOutput {
+	ts := time.Now().AddDate(0, 0, days).Unix()
+	mintOutput := iotago.NFTOutput{
+		Conditions: iotago.UnlockConditions{
+			&iotago.AddressUnlockCondition{Address: toAddr},
+			&iotago.StorageDepositReturnUnlockCondition{
+				ReturnAddress: returnAddr,
+				Amount:        0,
+			},
+			&iotago.ExpirationUnlockCondition{
+				ReturnAddress: returnAddr,
+				UnixTime:      uint32(ts),
+			},
+		},
+		ImmutableFeatures: iotago.Features{
+			&iotago.IssuerFeature{Address: w.nftID.ToAddress()},
+			&iotago.MetadataFeature{Data: meta},
+		},
+	}
+	if len(tag) > 0 {
+		mintOutput.Features = iotago.Features{
+			&iotago.TagFeature{Tag: tag},
+		}
+	}
+	mintOutput.Amount = uint64(info.Protocol.RentStructure.VByteCost) * uint64(mintOutput.VBytes(&info.Protocol.RentStructure, nil))
+	mintOutput.Conditions[1].(*iotago.StorageDepositReturnUnlockCondition).Amount = mintOutput.Amount
+	return mintOutput
+}
+
+func (w *IotaSmrWallet) createBasicNFTOutput(toAddr iotago.Address, meta, tag []byte, info *nodeclient.InfoResponse) iotago.NFTOutput {
+	mintOutput := iotago.NFTOutput{
+		Conditions: iotago.UnlockConditions{
+			&iotago.AddressUnlockCondition{Address: toAddr},
+		},
+		ImmutableFeatures: iotago.Features{
+			&iotago.IssuerFeature{Address: w.nftID.ToAddress()},
+			&iotago.MetadataFeature{Data: meta},
+		},
+	}
+	if len(tag) > 0 {
+		mintOutput.Features = iotago.Features{
+			&iotago.TagFeature{Tag: tag},
+		}
+	}
+	mintOutput.Amount = uint64(info.Protocol.RentStructure.VByteCost) * uint64(mintOutput.VBytes(&info.Protocol.RentStructure, nil))
+	return mintOutput
 }
 
 func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte) ([]byte, error) {

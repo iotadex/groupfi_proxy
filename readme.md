@@ -106,6 +106,22 @@ erc is 20 or 721.
 }
 ```
 
+### POST /proxy/mint_nicknft, mint a nft which contains user's nick name for the proxy address
+#### params
+```json
+{
+    "data":"name string, letters and numbers, lowercase, 10 <= length <= 20",
+    "ts": 1711449778,
+    "sign": "0x0000000000000000000000, sign(ts), using the sign_account"
+}
+```
+#### response
+```json
+{
+    "result": true
+}
+```
+
 ### POST /proxy/account, get the proxy account for the user's evm account, using the sign_account to sign
 #### params
 ```json
