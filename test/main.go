@@ -25,7 +25,7 @@ func main() {
 	fmt.Println("4. verify group")
 	fmt.Println("5. accept owner")
 	fmt.Println("6. SetReward")
-	fmt.Println("7. Approve")
+	fmt.Println("7. Get proxy account")
 	fmt.Println("8. Wrap evm erc20 with out sign")
 	fmt.Println("9. Send Wrap Iota with out sign")
 	fmt.Println("10.Send iota or smr with multi to addresses")
@@ -50,13 +50,18 @@ func main() {
 			FilterGroup()
 		case 4:
 			VerifyGroup()
+		case 5:
+			Register()
+		case 6:
+			MintNameNftForMM()
+		case 7:
+			GetProxyAccount()
 		case 0:
 			return
 		}
 	}
 
 	// Register()
-	GetProxyAccount()
 }
 
 func MintNameNft() {
@@ -179,6 +184,29 @@ func VerifyGroup() {
 	}
 	url := URL + "/group/verify"
 	postParams, _ := json.Marshal(f)
+	header := make(map[string]string)
+	header["Content-Type"] = "application/json; charset=UTF-8"
+	res, err := tools.HttpRequest(url, "POST", postParams, header)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(res))
+}
+
+func MintNameNftForMM() {
+	name := "wangyi123457"
+	sd := middleware.SignData{
+		PublicKey: "0x5bcae1495b358f1b0968588745c5f92afa2ea40d0a3951d9a6d133d6550c1e27",
+		Data:      name,
+		Ts:        time.Now().Unix(),
+	}
+
+	pk := common.FromHex("0xef87a8bd0430990a943ee8f6eac40e1529eff40a7f0f3bf25e901a0eced63c455bcae1495b358f1b0968588745c5f92afa2ea40d0a3951d9a6d133d6550c1e27")
+	sign := ed25519.Sign(pk, []byte(sd.Data+strconv.FormatInt(sd.Ts, 10)))
+	sd.Sign = hexutil.Encode(sign)
+
+	url := URL + "/proxy/mint_nicknft"
+	postParams, _ := json.Marshal(sd)
 	header := make(map[string]string)
 	header["Content-Type"] = "application/json; charset=UTF-8"
 	res, err := tools.HttpRequest(url, "POST", postParams, header)

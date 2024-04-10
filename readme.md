@@ -110,7 +110,8 @@ erc is 20 or 721.
 #### params
 ```json
 {
-    "data":"name string, letters and numbers, lowercase, 10 <= length <= 20",
+    "publickey": "0x5bcae1495b358f1b0968588745c5f92afa2ea40d0a3951d9a6d133d6550c1e27",
+    "data": "name string, letters and numbers, lowercase, 10 <= length <= 20",
     "ts": 1711449778,
     "sign": "0x0000000000000000000000, sign(ts), using the sign_account"
 }
@@ -126,6 +127,7 @@ erc is 20 or 721.
 #### params
 ```json
 {
+    "publickey": "0x5bcae1495b358f1b0968588745c5f92afa2ea40d0a3951d9a6d133d6550c1e27",
     "ts": 1711449778,
     "sign": "0x0000000000000000000000, sign(ts), using the sign_account"
 }
@@ -142,6 +144,7 @@ erc is 20 or 721.
 #### params
 ```json
 {
+    "publickey": "0x5bcae1495b358f1b0968588745c5f92afa2ea40d0a3951d9a6d133d6550c1e27",
     "data":"0x0, TransactionEssence, bytes",
     "ts": 1711449778,
     "sign": "0x0000000000000000000000, sign(data+ts), using the sign_account"
