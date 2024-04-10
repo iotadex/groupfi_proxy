@@ -141,10 +141,21 @@ func VerifyGroup(c *gin.Context) {
 	}
 
 	data, _ := json.Marshal(f)
+	sign, err := model.SignEd25519Hash(data[:])
+	if err != nil {
+		gl.OutLogger.Error("service.SignEd25519Hash error. %v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.SYSTEM_ERROR,
+			"err-msg":  "system error",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"result": true,
 		"flag":   res,
-		"sign":   hexutil.Encode(service.SignEd25519Hash(data[:])),
+		"sign":   hexutil.Encode(sign),
 	})
 }
 

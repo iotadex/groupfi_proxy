@@ -1,7 +1,6 @@
 package service
 
 import (
-	"crypto/ed25519"
 	"encoding/hex"
 	"fmt"
 	"gproxy/config"
@@ -11,7 +10,6 @@ import (
 	"gproxy/wallet"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/iotaledger/hive.go/serializer/v2"
 	iotago "github.com/iotaledger/iota.go/v3"
 )
@@ -81,12 +79,6 @@ func MintSignAccPkNft(signAcc string, metadata []byte) ([]byte, error) {
 		return nil, err
 	}
 	return id, nil
-}
-
-func SignEd25519Hash(msg []byte) []byte {
-	pk := common.FromHex(string(tools.Aes.GetDecryptString(config.SignEdPk, seeds)))
-	signature := ed25519.Sign(pk, msg)
-	return signature
 }
 
 func verifyMsgOutput(to string, op iotago.Output) bool {

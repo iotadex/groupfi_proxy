@@ -22,7 +22,7 @@ func main() {
 	fmt.Println("1. mint name nft")
 	fmt.Println("2. get smr price")
 	fmt.Println("3. filter group")
-	fmt.Println("4. TransferOwner")
+	fmt.Println("4. verify group")
 	fmt.Println("5. accept owner")
 	fmt.Println("6. SetReward")
 	fmt.Println("7. Approve")
@@ -48,6 +48,8 @@ func main() {
 			GetSmrPrice()
 		case 3:
 			FilterGroup()
+		case 4:
+			VerifyGroup()
 		case 0:
 			return
 		}
@@ -147,8 +149,35 @@ func FilterGroup() {
 		Contract:  "0x544F353C02363D848dBAC8Dc3a818B36B7f9355e",
 		Threshold: 1,
 		Erc:       721,
+		Ts:        time.Now().Unix(),
 	}
 	url := URL + "/group/filter"
+	postParams, _ := json.Marshal(f)
+	header := make(map[string]string)
+	header["Content-Type"] = "application/json; charset=UTF-8"
+	res, err := tools.HttpRequest(url, "POST", postParams, header)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(res))
+}
+
+func VerifyGroup() {
+	f := api.Verfiy{
+		Chain: 148,
+		Adds: []string{
+			"0x1CB7B54AAB4283782b8aF70d07F88AD795c952E9",
+			"0x504dF97f0e5425Eae1D32ACBE5B2E7Dc1f1Dd9cf",
+			"0xFf803bc4f2D0516101eB7Aa643299e1BAF5d78F2",
+			"0xd2Bae936E942115f1759631f6Ae5642D10B4824e",
+		},
+		Subs:      []string{},
+		Contract:  "0x544F353C02363D848dBAC8Dc3a818B36B7f9355e",
+		Threshold: 1,
+		Erc:       721,
+		Ts:        time.Now().Unix(),
+	}
+	url := URL + "/group/verify"
 	postParams, _ := json.Marshal(f)
 	header := make(map[string]string)
 	header["Content-Type"] = "application/json; charset=UTF-8"
