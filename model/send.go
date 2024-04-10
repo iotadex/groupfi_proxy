@@ -46,6 +46,14 @@ func InsertPendingSendSmrOrder(tx *sql.Tx, to string, amount uint64, _t int) err
 	return err
 }
 
+func InsertSendSmrOrder(to string, amount uint64, _t int) error {
+	ts := time.Now().UnixMilli()
+	data := to + strconv.FormatUint(amount, 10) + strconv.Itoa(int(_t)) + "0" + strconv.FormatInt(ts, 10)
+	sign, _ := tools.Aes.SignDataByECDSA(data, seeds)
+	_, err := db.Exec("INSERT INTO `send_smr`(`to`,`amount`,`type`,`state`,`ts`,`sign`) VALUES (?,?,?,0,?,?)", to, amount, _t, ts, hex.EncodeToString(sign))
+	return err
+}
+
 func StoreBackPendingSendSmrOrder(to string, amount uint64, _t int) error {
 	ts := time.Now().UnixMilli()
 	data := to + strconv.FormatUint(amount, 10) + strconv.Itoa(_t) + strconv.Itoa(INIT_SEND) + strconv.FormatInt(ts, 10)

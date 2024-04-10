@@ -83,15 +83,6 @@ func MintSignAccPkNft(signAcc string, metadata []byte) ([]byte, error) {
 	return id, nil
 }
 
-func MintNameNft(to string, meta []byte, expireDay int) {
-	mintNameNftQueue.pushBack(&MintMsg{
-		Addr:       to,
-		NftMeta:    meta,
-		NftTag:     []byte("group-id"),
-		ExpireDays: expireDay,
-	})
-}
-
 func SignEd25519Hash(msg []byte) []byte {
 	pk := common.FromHex(string(tools.Aes.GetDecryptString(config.SignEdPk, seeds)))
 	signature := ed25519.Sign(pk, msg)

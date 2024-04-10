@@ -23,7 +23,7 @@ func CreateProxyToPool(amount uint64, minCount int) error {
 	}
 
 	// 2. Get the count of proxy pool; check the count smaller than required or not
-	row := tx.QueryRow("select count(`address`) from `proxy_pool`")
+	row := tx.QueryRow("select count(`address`) from `proxy_pool` where `state`=?", CONFIRMED_SEND)
 	var count int
 	if err := row.Scan(&count); err != nil {
 		tx.Rollback()
@@ -55,32 +55,21 @@ func UpdateProxyPoolState(address string, state int) error {
 	return err
 }
 
-// get the proxies which state are 0 in the proxy pool
-func GetUninitializedProxiesFromPool() ([]string, error) {
-	rows, err := db.Query("select `address` from `proxy_pool` where `state`=0")
+func GetUsedProxyPool() (map[string]string, error) {
+	rows, err := db.Query("SELECT `address`,`enpk` FROM `proxy_pool` where `state`=?", 1)
 	if err != nil {
 		return nil, err
 	}
-	proxies := make([]string, 0)
+
+	addrs := make(map[string]string)
 	for rows.Next() {
-		var proxy string
-		if err := rows.Scan(&proxy); err != nil {
+		var addr, pk string
+		if err := rows.Scan(&addr, &pk); err != nil {
 			return nil, err
 		}
-		proxies = append(proxies, proxy)
+		addrs[addr] = pk
 	}
-
-	return proxies, nil
-}
-
-// count the total proxies in the  pool
-func CountPoolProxies() (int, error) {
-	row := db.QueryRow("select count(`address`) from `proxy`")
-	var count int
-	if err := row.Scan(&count); err != nil {
-		return 0, err
-	}
-	return count, nil
+	return addrs, nil
 }
 
 // get private key of ed25519 type

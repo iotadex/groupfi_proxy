@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"gproxy/config"
 	"gproxy/gl"
 	"gproxy/model"
@@ -18,41 +17,36 @@ func RunMintNameNft() {
 		log.Panicf("model.GetIssuerByNftid error. %s, %v", config.NameNftId, err)
 	}
 	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, addr, pk, config.NameNftId)
-	mintNameNftQueue = NewSendQueue()
-	q := mintNameNftQueue
 	ticker := time.NewTicker(time.Second * time.Duration(config.SendIntervalTime))
-	q.status.Store(true)
 	for range ticker.C {
-		if !q.status.Load() {
-			return
-		}
-		msg := q.pop()
-		if msg == nil {
+		r, err := model.PopOneNameNftRecord()
+		if err != nil {
+			gl.OutLogger.Error("model.PopOneNftNameRecord error. %v", err)
 			continue
 		}
-		if id, err := w.MintNameNFT(msg.Addr, msg.ExpireDays, msg.NftMeta, msg.NftTag); err != nil {
-			gl.OutLogger.Error("sq.w.MintNameNFT error. %s, %v", msg.Addr, err)
-			//push the meta to the queue's front position
-			q.pushFront(msg)
+
+		if id, err := w.MintNameNFT(r.To, r.Expire, r.Meta, []byte(config.NameNftTag)); err != nil {
+			gl.OutLogger.Error("sq.w.MintNameNFT error. %s, %v", r.To, err)
 		} else {
-			data := make(map[string]string)
-			json.Unmarshal(msg.NftMeta, &data)
-			go checkNameNft(w, msg.Addr, data["name"], id)
+			if err = model.UpdateBlockIdToNameNftRecord(r.Nftid, hexutil.Encode(id)); err != nil {
+				gl.OutLogger.Error("model.UpdateBlockIdToNameNftRecord error.%s : %s : %v", r.Nftid, hexutil.Encode(id), err)
+			}
+			go checkNameNft(w, r.Nftid, r.To, id)
 			time.Sleep(time.Second * 30)
 		}
 	}
 }
 
-func checkNameNft(w *wallet.IotaSmrWallet, addr, name string, blockId []byte) {
+func checkNameNft(w *wallet.IotaSmrWallet, id, addr string, blockId []byte) {
 	time.Sleep(time.Minute)
 	nftid, err := w.GetNftOutputFromBlockID(blockId)
 	if err != nil {
 		gl.OutLogger.Error("w.GetNftOutputFromBlockID error. %s, %v", hexutil.Encode(blockId), err)
 		return
 	}
-	gl.OutLogger.Info("Mint name nft %s, %s, %s", nftid, addr, name)
+	gl.OutLogger.Info("Mint name nft %s, %s", nftid, addr)
 
-	if err := model.UpdateNameNft(nftid, hexutil.Encode(blockId), name); err != nil {
-		gl.OutLogger.Error("model.StoreNameNft error. %s, %s, %s, %v", nftid, hexutil.Encode(blockId), name, err)
+	if err := model.UpdateNameNft(id, nftid); err != nil {
+		gl.OutLogger.Error("model.StoreNameNft error. %s, %s, %v", nftid, hexutil.Encode(blockId), err)
 	}
 }

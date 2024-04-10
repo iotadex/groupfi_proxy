@@ -529,6 +529,42 @@ func (w *IotaSmrWallet) SendSignedTxData(tx *iotago.Transaction) ([]byte, error)
 	return id[:], err
 }
 
+func (w *IotaSmrWallet) Balance(bech32TAddr string) (uint64, error) {
+	indexer, err := w.nodeAPI.Indexer(context.Background())
+	if err != nil {
+		return 0, err
+	}
+
+	notHas := false
+	query := nodeclient.BasicOutputsQuery{
+		AddressBech32: bech32TAddr,
+		IndexerNativeTokenParas: nodeclient.IndexerNativeTokenParas{
+			HasNativeTokens: &notHas,
+		},
+		IndexerTimelockParas: nodeclient.IndexerTimelockParas{
+			HasTimelock: &notHas,
+		},
+		IndexerExpirationParas: nodeclient.IndexerExpirationParas{
+			HasExpiration: &notHas,
+		},
+		IndexerStorageDepositParas: nodeclient.IndexerStorageDepositParas{
+			HasStorageDepositReturn: &notHas,
+		},
+	}
+	res, err := indexer.Outputs(context.Background(), &query)
+	if err != nil {
+		return 0, err
+	}
+	sum := uint64(0)
+	for res.Next() {
+		outputs, _ := res.Outputs()
+		for _, output := range outputs {
+			sum += output.Deposit()
+		}
+	}
+	return sum, nil
+}
+
 func (w *IotaSmrWallet) getWalletAddress() (iotago.Address, iotago.AddressSigner, error) {
 	pk, err := hex.DecodeString(string(tools.Aes.GetDecryptString(w.pk, seeds)))
 	if len(pk) != 64 || err != nil {

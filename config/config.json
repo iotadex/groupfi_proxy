@@ -19,7 +19,7 @@
     "shimmer_rpc": "https://api.shimmer.network",
     "send_interval_time": 60,
     "proxy_pool_check_hours": 1,
-    "min_proxy_pool_count": 10,
+    "min_proxy_pool_count": 5,
     "proxy_wallet": "1",
     "proxy_pk_nft_tag": "GROUPFIPAIRXV1",
     "proxy_send_amount": 10000000,
@@ -27,5 +27,11 @@
     "name_nft_days": 7,
     "default_img": "https:npfs",
     "max_msg_locked_days": 30,
+    "services": {
+        "buy_smr": true,
+        "keep_proxy_pool": true,
+        "check_proxy_balance": true,
+        "send_smr": true
+    },
     "sign_ed_pk": "9045bcf63f9dea84b0faeb83eef7f4be60b9d4317d417bb0f5a04bea4007aca9054b2a3d0106b2c82c467ea05472b72db35c2c96ffded60f5bc8639032dfc62f14f81fd9eb9dd5f3687c051df26a98898b576a9b87271af91fc6d1e95d3dd194c1fcadc2381759a3d6feb14ad01c3f2f0fb47707d330c3de99dfd4e6396eb14199bafc5e1d1c1e450900ae7e10fe1807"
 }

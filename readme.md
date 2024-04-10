@@ -144,7 +144,7 @@ erc is 20 or 721.
 {
     "data":"0x0, TransactionEssence, bytes",
     "ts": 1711449778,
-    "sign": "0x0000000000000000000000, sign(ts), using the sign_account"
+    "sign": "0x0000000000000000000000, sign(data+ts), using the sign_account"
 }
 ```
 #### response

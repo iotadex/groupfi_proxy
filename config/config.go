@@ -22,6 +22,15 @@ type node struct {
 	ListenType int    `json:"listen_type"` // 0: listen event log, 1: scan event log
 }
 
+const (
+	BuySmr            = 1
+	KeepProxyPool     = 2
+	CheckProxyBalance = 3
+	SendSmr           = 4
+)
+
+var serviceType map[string]int = map[string]int{"buy_smr": BuySmr, "keep_proxy_pool": KeepProxyPool, "check_proxy_balance": CheckProxyBalance, "send_smr": SendSmr}
+
 var (
 	HttpPort            int             // http service port
 	Db                  db              // database config
@@ -36,7 +45,9 @@ var (
 	NameNftId           string          // name nft id
 	NameNftDays         int             // the expired time of the name nft, days
 	DefaultImg          string          // default_image url of name nft
+	NameNftTag          string          // name nft tag, string
 	MaxMsgLockTime      int64           // max lock time of msg output, seconds
+	Services            map[int]bool    // service runs or not
 
 	SignEdPk string // use it to sign the group addresses data, send back to user
 )
@@ -63,6 +74,7 @@ func init() {
 		NameNftDays         int             `json:"name_nft_days"`
 		DefaultImg          string          `json:"default_img"`
 		MaxMsgLockDays      int64           `json:"max_msg_locked_days"`
+		Services            map[string]bool `json:"services"`
 		SignEdPk            string          `json:"sign_ed_pk"`
 	}
 	all := &Config{}
@@ -87,4 +99,9 @@ func init() {
 	NameNftDays = all.NameNftDays
 	DefaultImg = all.DefaultImg
 	MaxMsgLockTime = all.MaxMsgLockDays * 3600 * 24
+	Services = make(map[int]bool)
+	for s, b := range all.Services {
+		Services[serviceType[s]] = b
+	}
+	SignEdPk = all.SignEdPk
 }

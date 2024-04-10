@@ -149,16 +149,16 @@ func VerifyGroup(c *gin.Context) {
 }
 
 func MintNFT(c *gin.Context) {
-	address := c.Query("address")
+	to := c.Query("address")
 	name := strings.ToLower(c.Query("name"))
 	img := c.Query("image")
 	if len(img) == 0 {
 		img = config.DefaultImg
 	}
 
-	prefix, _, err := iotago.ParseBech32(address)
+	prefix, _, err := iotago.ParseBech32(to)
 	if prefix != iotago.PrefixShimmer && err != nil {
-		gl.OutLogger.Warn("User's address error. %s", address)
+		gl.OutLogger.Warn("User's address error. %s", to)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.PARAMS_ERROR,
@@ -177,26 +177,6 @@ func MintNFT(c *gin.Context) {
 		return
 	}
 
-	b, err := model.VerifyAndInsertName(address, name, config.NameNftId)
-	if err != nil {
-		gl.OutLogger.Error("model.VerifyAndInsertName error. %s, %s, %v", address, name, err)
-		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
-		})
-		return
-	}
-	if !b {
-		gl.OutLogger.Warn("name used. %s, %s", address, name)
-		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "name used",
-		})
-		return
-	}
-
 	data := make(map[string]string)
 	data["standard"] = "IRC27"
 	data["name"] = name + ".gf"
@@ -209,7 +189,25 @@ func MintNFT(c *gin.Context) {
 	data["property"] = "groupfi-name"
 	meta, _ := json.Marshal(data)
 
-	service.MintNameNft(address, meta, config.NameNftDays)
+	b, err := model.InsertNameNftRecord(to, name, hexutil.Encode(meta), config.NameNftId, config.NameNftDays)
+	if err != nil {
+		gl.OutLogger.Error("model.VerifyAndInsertName error. %s, %s, %v", to, name, err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.SYSTEM_ERROR,
+			"err-msg":  "system error",
+		})
+		return
+	}
+	if !b {
+		gl.OutLogger.Warn("name used. %s, %s", to, name)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.PARAMS_ERROR,
+			"err-msg":  "name used",
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"result": true,
@@ -249,7 +247,19 @@ func MintNameNftForMM(c *gin.Context) {
 		return
 	}
 
-	b, err := model.VerifyAndInsertName(proxy.Smr, name, config.NameNftId)
+	data := make(map[string]string)
+	data["standard"] = "IRC27"
+	data["name"] = name + ".gf"
+	data["type"] = "image/png"
+	data["version"] = "v1.0"
+	data["uri"] = config.DefaultImg
+	data["collectionId"] = config.NameNftId
+	data["collectionName"] = "GroupFi OG Names"
+	data["profile"] = "# GroupFi Name System"
+	data["property"] = "groupfi-name"
+	meta, _ := json.Marshal(data)
+
+	b, err := model.InsertNameNftRecord(proxy.Smr, name, hexutil.Encode(meta), config.NameNftId, 0)
 	if err != nil {
 		gl.OutLogger.Error("model.VerifyAndInsertName error. %s, %s, %v", proxy.Smr, name, err)
 		c.JSON(http.StatusOK, gin.H{
@@ -268,20 +278,6 @@ func MintNameNftForMM(c *gin.Context) {
 		})
 		return
 	}
-
-	data := make(map[string]string)
-	data["standard"] = "IRC27"
-	data["name"] = name + ".gf"
-	data["type"] = "image/png"
-	data["version"] = "v1.0"
-	data["uri"] = config.DefaultImg
-	data["collectionId"] = config.NameNftId
-	data["collectionName"] = "GroupFi OG Names"
-	data["profile"] = "# GroupFi Name System"
-	data["property"] = "groupfi-name"
-	meta, _ := json.Marshal(data)
-
-	service.MintNameNft(proxy.Smr, meta, 0)
 
 	c.JSON(http.StatusOK, gin.H{
 		"result": true,
