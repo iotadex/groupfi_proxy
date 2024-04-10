@@ -24,6 +24,9 @@ func RunMintNameNft() {
 			gl.OutLogger.Error("model.PopOneNftNameRecord error. %v", err)
 			continue
 		}
+		if r == nil {
+			continue
+		}
 
 		if id, err := w.MintNameNFT(r.To, r.Expire, r.Meta, []byte(config.NameNftTag)); err != nil {
 			gl.OutLogger.Error("sq.w.MintNameNFT error. %s, %v", r.To, err)

@@ -58,7 +58,7 @@ var (
 )
 
 // Load load config file
-func init() {
+func Load() {
 	file, err := os.Open("config/config.json")
 	if err != nil {
 		log.Panic(err)

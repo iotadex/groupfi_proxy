@@ -20,7 +20,7 @@ func InsertNameNftRecord(to, name, meta, collectionid string, expireDays int) (b
 	}
 
 	tempNftid := to + strconv.FormatInt(time.Now().UnixNano(), 10)
-	if _, err := tx.Exec("INSERT INTO `nft_name_record`(`nftid`,`name`,`to`,`meta`,`expire`,`collectionid`) VALUES(?,?,?,?,?,?)", tempNftid, name, to, meta, expireDays, INIT_SEND, collectionid); err != nil {
+	if _, err := tx.Exec("INSERT INTO `nft_name_record`(`nftid`,`name`,`to`,`meta`,`expire`,`collectionid`) VALUES(?,?,?,?,?,?)", tempNftid, name, to, meta, expireDays, collectionid); err != nil {
 		tx.Rollback()
 		if strings.HasPrefix(err.Error(), "Error 1062") {
 			return false, nil
@@ -75,11 +75,11 @@ func PopOneNameNftRecord() (*NameNftRecord, error) {
 }
 
 func UpdateBlockIdToNameNftRecord(nftid, blockid string) error {
-	_, err := db.Exec("update `nft_record` set `blockid`=?,`state`=? where `nftid`=?", blockid, PENDING_SEND, nftid)
+	_, err := db.Exec("update `nft_name_record` set `blockid`=?,`state`=? where `nftid`=?", blockid, PENDING_SEND, nftid)
 	return err
 }
 
 func UpdateNameNft(id, nftid string) error {
-	_, err := db.Exec("update `nft_record` set `nftid`=?,`state`=? where `nftid`=?", nftid, CONFIRMED_SEND, id)
+	_, err := db.Exec("update `nft_name_record` set `nftid`=?,`meta`=?,`state`=? where `nftid`=?", nftid, "0", CONFIRMED_SEND, id)
 	return err
 }

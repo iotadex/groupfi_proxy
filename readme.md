@@ -42,7 +42,7 @@ https://testapi.groupfi.ai
 }
 ```
 
-### POST /filter, filter the addresses, remove ones don't belong to the group
+### POST /group/filter, filter the addresses, remove ones don't belong to the group
 #### params
 ```json
 {
@@ -63,7 +63,7 @@ erc is 20 or 721.
 }
 ```
 
-### POST /verify, verify the addresses that belong to one group or not
+### POST /group/verify, verify the addresses that belong to one group or not
 #### params
 ```json
 {

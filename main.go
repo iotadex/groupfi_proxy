@@ -19,6 +19,7 @@ func main() {
 	}
 	daemon.Background("./out.log", true)
 
+	config.Load()
 	setSeeds()
 
 	gl.CreateLogFiles()

@@ -191,7 +191,7 @@ func MintNFT(c *gin.Context) {
 
 	b, err := model.InsertNameNftRecord(to, name, hexutil.Encode(meta), config.NameNftId, config.NameNftDays)
 	if err != nil {
-		gl.OutLogger.Error("model.VerifyAndInsertName error. %s, %s, %v", to, name, err)
+		gl.OutLogger.Error("model.InsertNameNftRecord error. %s, %s, %v", to, name, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.SYSTEM_ERROR,

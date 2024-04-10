@@ -59,8 +59,12 @@ func InitRouter() *gin.Engine {
 	api.GET("/mint_nicknft", MintNFT)
 
 	api.GET("/smr_price", SmrPrice)
-	api.POST("/filter", FilterGroup)
-	api.POST("/verify", VerifyGroup)
+
+	group := api.Group("/group").Use(middleware.SignIpRateLimiterWare)
+	{
+		group.POST("/filter", FilterGroup)
+		group.POST("/verify", VerifyGroup)
+	}
 
 	mainAcc := api.Group("/proxy").Use(middleware.SignIpRateLimiterWare).Use(middleware.VerifyEvmSign)
 	{

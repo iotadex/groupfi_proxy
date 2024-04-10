@@ -19,10 +19,62 @@ import (
 var URL string = "http://localhost:8080"
 
 func main() {
-	fmt.Println("Hello")
+	fmt.Println("1. mint name nft")
+	fmt.Println("2. get smr price")
+	fmt.Println("3. filter group")
+	fmt.Println("4. TransferOwner")
+	fmt.Println("5. accept owner")
+	fmt.Println("6. SetReward")
+	fmt.Println("7. Approve")
+	fmt.Println("8. Wrap evm erc20 with out sign")
+	fmt.Println("9. Send Wrap Iota with out sign")
+	fmt.Println("10.Send iota or smr with multi to addresses")
+	fmt.Println("11.Set FeeProtocol")
+	fmt.Println("12.Unwrap sSOON to SOON")
+	fmt.Println("13.Set Gas Fee to Bridge Contract")
+	fmt.Println("14.Unwrap fee from Bridge Contract")
+	fmt.Println("15.Mint Name NFT Collection")
+	fmt.Println("16.Mint Name NFT for NFT ID")
+	fmt.Println("17.Mint PrivateKey NFT Collection")
+	fmt.Println("18.Mint PrivateKey NFT for NFT ID")
+	for {
+		fmt.Print("Key your choice (0 quit): ")
+		s := int(0)
+		fmt.Scanf("%d", &s)
+		switch s {
+		case 1:
+			MintNameNft()
+		case 2:
+			GetSmrPrice()
+		case 3:
+			FilterGroup()
+		case 0:
+			return
+		}
+	}
 
 	// Register()
 	GetProxyAccount()
+}
+
+func MintNameNft() {
+	to := "smr1qrgk26r86pntdsav5rpz638vyl3dzmjl7qqmxdf34rdsl8pjqn0qzf8f7ms"
+	name := "wangyi123456"
+	url := URL + "/mint_nicknft?address=" + to + "&name=" + name
+	res, err := tools.HttpGet(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(res))
+}
+
+func GetSmrPrice() {
+	url := URL + "/smr_price"
+	res, err := tools.HttpGet(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(res))
 }
 
 func Register() {
@@ -96,7 +148,7 @@ func FilterGroup() {
 		Threshold: 1,
 		Erc:       721,
 	}
-	url := URL + "/proxy/account"
+	url := URL + "/group/filter"
 	postParams, _ := json.Marshal(f)
 	header := make(map[string]string)
 	header["Content-Type"] = "application/json; charset=UTF-8"
