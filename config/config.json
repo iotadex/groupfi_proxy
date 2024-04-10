@@ -26,6 +26,7 @@
     "name_nftid": "0x6997ba8a3c9db0daa0ebbfe73ad253b34e9c6628ae94d906f707e48bbb5e6f51",
     "name_nft_days": 7,
     "default_img": "https:npfs",
+    "name_nft_tag": "groupfi-id",
     "max_msg_locked_days": 30,
     "services": {
         "buy_smr": true,

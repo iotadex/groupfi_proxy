@@ -29,7 +29,12 @@ const (
 	SendSmr           = 4
 )
 
-var serviceType map[string]int = map[string]int{"buy_smr": BuySmr, "keep_proxy_pool": KeepProxyPool, "check_proxy_balance": CheckProxyBalance, "send_smr": SendSmr}
+var serviceType map[string]int = map[string]int{
+	"buy_smr":             BuySmr,
+	"keep_proxy_pool":     KeepProxyPool,
+	"check_proxy_balance": CheckProxyBalance,
+	"send_smr":            SendSmr,
+}
 
 var (
 	HttpPort            int             // http service port
@@ -73,6 +78,7 @@ func init() {
 		NameNftId           string          `json:"name_nftid"`
 		NameNftDays         int             `json:"name_nft_days"`
 		DefaultImg          string          `json:"default_img"`
+		NameNftTag          string          `json:"name_nft_tag"`
 		MaxMsgLockDays      int64           `json:"max_msg_locked_days"`
 		Services            map[string]bool `json:"services"`
 		SignEdPk            string          `json:"sign_ed_pk"`
@@ -98,6 +104,7 @@ func init() {
 	NameNftId = all.NameNftId
 	NameNftDays = all.NameNftDays
 	DefaultImg = all.DefaultImg
+	NameNftTag = all.NameNftTag
 	MaxMsgLockTime = all.MaxMsgLockDays * 3600 * 24
 	Services = make(map[int]bool)
 	for s, b := range all.Services {

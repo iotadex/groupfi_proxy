@@ -10,7 +10,7 @@ https://testapi.groupfi.ai
 #### params
 |  name  |  type  |  description  |
 | ------ | :---- | ---------- |
-|address|string| user's address, smr address or evm address|
+|address|string| user's address, smr address|
 |name|string|letters and numbers, lowercase, 10 <= length <= 20|
 |image| string, optional|image url|
 #### response

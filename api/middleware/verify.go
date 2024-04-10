@@ -100,7 +100,18 @@ func VerifyEd25519Sign(c *gin.Context) {
 		return
 	}
 
-	if !ed25519.Verify(common.FromHex(sd.PublicKey), []byte(sd.Data+strconv.FormatInt(sd.Ts, 10)), signature) {
+	publicKey := common.FromHex(sd.PublicKey)
+	if len(publicKey) != ed25519.PublicKeySize {
+		c.Abort()
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.PARAMS_ERROR,
+			"err-msg":  "public key error",
+		})
+		return
+	}
+
+	if !ed25519.Verify(publicKey, []byte(sd.Data+strconv.FormatInt(sd.Ts, 10)), signature) {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
