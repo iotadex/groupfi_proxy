@@ -8,6 +8,7 @@ import (
 	"gproxy/model"
 	"gproxy/service"
 	"gproxy/tokens"
+	"gproxy/wallet"
 	"math/big"
 	"net/http"
 	"strings"
@@ -141,7 +142,7 @@ func VerifyGroup(c *gin.Context) {
 	}
 
 	data, _ := json.Marshal(f)
-	sign, err := model.SignEd25519Hash(data[:])
+	sign, err := wallet.SignEd25519Hash(data[:])
 	if err != nil {
 		gl.OutLogger.Error("service.SignEd25519Hash error. %v", err)
 		c.JSON(http.StatusOK, gin.H{

@@ -4,12 +4,8 @@ import (
 	"gproxy/config"
 	"gproxy/gl"
 	"gproxy/model"
-	"gproxy/tools"
 	"gproxy/wallet"
 	"time"
-
-	"github.com/ethereum/go-ethereum/common"
-	iotago "github.com/iotaledger/iota.go/v3"
 )
 
 func RunKeepProxyPoolFull() {
@@ -36,9 +32,7 @@ func RunCheckProxyPoolBalance() {
 
 		for bech32Addr, enpk := range addrs {
 			time.Sleep(time.Second)
-			pk := common.FromHex(string(tools.Aes.GetDecryptString(enpk, seeds)))
-			addr := iotago.Ed25519AddressFromPubKey(pk[32:])
-			if bech32Addr != addr.Bech32(iotago.PrefixShimmer) {
+			if !wallet.ChecKEd25519Addr(enpk, bech32Addr) {
 				continue
 			}
 

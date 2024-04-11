@@ -6,7 +6,6 @@ import (
 	"gproxy/config"
 	"gproxy/gl"
 	"gproxy/model"
-	"gproxy/tools"
 	"gproxy/wallet"
 	"time"
 
@@ -44,8 +43,7 @@ func SendTxEssence(signAcc string, txEssenceBytes []byte) ([]byte, error) {
 	}
 
 	// sign the transaction essence
-	pk := tools.Aes.GetDecryptString(proxy.EnPk, seeds)
-	signature, err := signIotaSmrHashWithPK(essence, pk)
+	signature, err := wallet.SignIotaSmrHashWithPK(essence, proxy.EnPk)
 	if err != nil {
 		return nil, fmt.Errorf("signIotaSmrHashWithPK error. %v", err)
 	}
@@ -114,21 +112,6 @@ func verifyBalanceOutput(to string, op iotago.Output) bool {
 		return false
 	}
 	return true
-}
-
-func signIotaSmrHashWithPK(essence *iotago.TransactionEssence, pk []byte) (*iotago.Ed25519Signature, error) {
-	hash, err := essence.SigningMessage()
-	if err != nil {
-		return nil, err
-	}
-	addr := iotago.Ed25519AddressFromPubKey(pk[32:])
-	addrKeys := iotago.NewAddressKeysForEd25519Address(&addr, pk)
-	signer := iotago.NewInMemoryAddressSigner(addrKeys)
-	signature, err := signer.Sign(&addr, hash)
-	if err != nil {
-		return nil, err
-	}
-	return signature.(*iotago.Ed25519Signature), nil
 }
 
 func newTransaction(txEssence *iotago.TransactionEssence, signature iotago.Signature) *iotago.Transaction {

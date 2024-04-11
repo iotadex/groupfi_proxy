@@ -2,9 +2,7 @@ package model
 
 import (
 	"bytes"
-	"crypto/ed25519"
 	"fmt"
-	"gproxy/config"
 	"gproxy/tools"
 	"math/big"
 	"strconv"
@@ -86,13 +84,4 @@ func GetSmrPrice(chain uint64) (*SmrPrice, error) {
 		return nil, fmt.Errorf("price error, %s", sp.Price)
 	}
 	return sp, nil
-}
-
-func SignEd25519Hash(msg []byte) ([]byte, error) {
-	pk := common.FromHex(string(tools.Aes.GetDecryptString(config.SignEdPk, seeds)))
-	if len(pk) != ed25519.PrivateKeySize {
-		return nil, fmt.Errorf("error private key. length(%d)", len(pk))
-	}
-	signature := ed25519.Sign(pk, msg)
-	return signature, nil
 }
