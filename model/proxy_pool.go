@@ -51,7 +51,7 @@ func CreateProxyToPool(amount uint64, minCount int) error {
 
 // set the proxy's state to 1 after add balance to it
 func UpdateProxyPoolState(address string, state int) error {
-	_, err := db.Exec("update `proxy_pool` set `state`=? where `address`=?", state, address)
+	_, err := db.Exec("update `proxy_pool` set `state`=? where `address`=? and state!=?", state, address, PENDING_SEND)
 	return err
 }
 

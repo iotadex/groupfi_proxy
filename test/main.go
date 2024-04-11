@@ -16,7 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-var URL string = "http://localhost:8080"
+var URL string = "https://testapi.groupfi.ai"
 
 func main() {
 	fmt.Println("1. mint name nft")
@@ -26,17 +26,6 @@ func main() {
 	fmt.Println("5. accept owner")
 	fmt.Println("6. SetReward")
 	fmt.Println("7. Get proxy account")
-	fmt.Println("8. Wrap evm erc20 with out sign")
-	fmt.Println("9. Send Wrap Iota with out sign")
-	fmt.Println("10.Send iota or smr with multi to addresses")
-	fmt.Println("11.Set FeeProtocol")
-	fmt.Println("12.Unwrap sSOON to SOON")
-	fmt.Println("13.Set Gas Fee to Bridge Contract")
-	fmt.Println("14.Unwrap fee from Bridge Contract")
-	fmt.Println("15.Mint Name NFT Collection")
-	fmt.Println("16.Mint Name NFT for NFT ID")
-	fmt.Println("17.Mint PrivateKey NFT Collection")
-	fmt.Println("18.Mint PrivateKey NFT for NFT ID")
 	for {
 		fmt.Print("Key your choice (0 quit): ")
 		s := int(0)
