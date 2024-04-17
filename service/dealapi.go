@@ -85,10 +85,11 @@ func verifyMsgOutput(to string, op iotago.Output) bool {
 	if !verifyBalanceOutput(to, op) {
 		return false
 	}
-	if tl := op.UnlockConditionSet().Timelock(); tl == nil || (int64(tl.UnixTime)-time.Now().Unix()) > config.MaxMsgLockTime {
-		return false
+	tl := op.UnlockConditionSet().Timelock()
+	if tl == nil {
+		return true
 	}
-	if meta := op.FeatureSet().MetadataFeature(); meta == nil || len(meta.Data) == 0 {
+	if (int64(tl.UnixTime) - time.Now().Unix()) > config.MaxMsgLockTime {
 		return false
 	}
 	return true
