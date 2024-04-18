@@ -11,33 +11,32 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+var buySmrSignal chan bool
+
 func RunSendSmr() {
-	go runCheckPendingOrders()
-	CurrentSentTs := int64(-1)
-	ticker := time.NewTicker(time.Second * 10)
-	for range ticker.C {
+	f := func(CurrentSentTs *int64) {
 		// Get a record from database
 		o, err := model.PopOnePendingSendSmrOrder()
 		if err != nil {
 			gl.OutLogger.Error("model.PopOnePendingSendSmrOrder error. %v", err)
-			continue
+			return
 		}
 		if o == nil {
-			continue
+			return
 		}
 
 		// check the ts
-		if o.Ts <= CurrentSentTs {
+		if o.Ts <= *CurrentSentTs {
 			gl.OutLogger.Error("send_coin_pending id error. %d : %v", CurrentSentTs, *o)
-			continue
+			return
 		}
-		CurrentSentTs = o.Ts
+		*CurrentSentTs = o.Ts
 
 		// get the wallet
 		w, err := getWallet(config.ProxyWallet)
 		if err != nil {
 			gl.OutLogger.Error("getWallet error. %v, %v", *o, err)
-			continue
+			return
 		}
 
 		blockId, err := w.SendBasic(o.To, o.Amount)
@@ -47,16 +46,28 @@ func RunSendSmr() {
 			if err = model.StoreBackPendingSendSmrOrder(o.To, o.Amount, o.Type); err != nil {
 				gl.OutLogger.Error("model.StoreBackPendingSendSmrOrder error. %v, %v", *o, err)
 			}
-			continue
+			return
 		}
 
 		// updata blockid and state
 		if err = model.UpdatePendingOrderblockId(o.Id, hexutil.Encode(blockId)); err != nil {
 			gl.OutLogger.Error("model.UpdatePendingOrderblockId error. %v, %v", *o, err)
-			continue
+			return
 		}
 
 		time.Sleep(time.Second * 30)
+	}
+	buySmrSignal = make(chan bool, 10)
+	go runCheckPendingOrders()
+	CurrentSentTs := int64(-1)
+	ticker := time.NewTicker(time.Second * 10)
+	for {
+		select {
+		case <-buySmrSignal:
+			f(&CurrentSentTs)
+		case <-ticker.C:
+			f(&CurrentSentTs)
+		}
 	}
 }
 

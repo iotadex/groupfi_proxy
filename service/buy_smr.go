@@ -73,6 +73,7 @@ func dealOrder(order tokens.Order) {
 		}
 		return
 	}
+	buySmrSignal <- true
 }
 
 func StopListen() {
