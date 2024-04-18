@@ -20,7 +20,7 @@ func SignEd25519Hash(msg []byte) ([]byte, error) {
 }
 
 func SignIotaSmrHashWithPK(essence *iotago.TransactionEssence, enpk string) (*iotago.Ed25519Signature, error) {
-	pk := tools.Aes.GetDecryptString(enpk, seeds)
+	pk := common.FromHex(string(tools.Aes.GetDecryptString(enpk, seeds)))
 	if len(pk) != ed25519.PrivateKeySize {
 		return nil, fmt.Errorf("pk len error. %d", len(pk))
 	}
