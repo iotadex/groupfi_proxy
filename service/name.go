@@ -14,6 +14,7 @@ import (
 var mintNameSignal chan bool
 
 func RunMintNameNft() {
+	mintNameSignal = make(chan bool, 1)
 	f := func(w *wallet.IotaSmrWallet, preMintTs *int64) {
 		if (time.Now().Unix() - *preMintTs) < config.SendIntervalTime {
 			return
@@ -35,7 +36,6 @@ func RunMintNameNft() {
 			}
 			*preMintTs = time.Now().Unix()
 			go checkNameNft(w, r.Nftid, r.To, id)
-			time.Sleep(time.Second * 30)
 		}
 	}
 
