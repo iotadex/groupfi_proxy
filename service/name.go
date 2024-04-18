@@ -11,21 +11,20 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+var mintNameSignal chan bool
+
 func RunMintNameNft() {
-	addr, pk, err := model.GetIssuerByNftid(config.NameNftId)
-	if err != nil {
-		log.Panicf("model.GetIssuerByNftid error. %s, %v", config.NameNftId, err)
-	}
-	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, addr, pk, config.NameNftId)
-	ticker := time.NewTicker(time.Second * time.Duration(config.SendIntervalTime))
-	for range ticker.C {
+	f := func(w *wallet.IotaSmrWallet, preMintTs *int64) {
+		if (time.Now().Unix() - *preMintTs) < config.SendIntervalTime {
+			return
+		}
 		r, err := model.PopOneNameNftRecord()
 		if err != nil {
 			gl.OutLogger.Error("model.PopOneNftNameRecord error. %v", err)
-			continue
+			return
 		}
 		if r == nil {
-			continue
+			return
 		}
 
 		if id, err := w.MintNameNFT(r.To, r.Expire, r.Meta, []byte(config.NameNftTag)); err != nil {
@@ -34,10 +33,31 @@ func RunMintNameNft() {
 			if err = model.UpdateBlockIdToNameNftRecord(r.Nftid, hexutil.Encode(id)); err != nil {
 				gl.OutLogger.Error("model.UpdateBlockIdToNameNftRecord error.%s : %s : %v", r.Nftid, hexutil.Encode(id), err)
 			}
+			*preMintTs = time.Now().Unix()
 			go checkNameNft(w, r.Nftid, r.To, id)
 			time.Sleep(time.Second * 30)
 		}
 	}
+
+	addr, pk, err := model.GetIssuerByNftid(config.NameNftId)
+	if err != nil {
+		log.Panicf("model.GetIssuerByNftid error. %s, %v", config.NameNftId, err)
+	}
+	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, addr, pk, config.NameNftId)
+	ticker := time.NewTicker(time.Second * time.Duration(config.SendIntervalTime))
+	preMintTs := int64(0)
+	for {
+		select {
+		case <-mintNameSignal:
+			f(w, &preMintTs)
+		case <-ticker.C:
+			f(w, &preMintTs)
+		}
+	}
+}
+
+func MintNameNftSignal() {
+	mintNameSignal <- true
 }
 
 func checkNameNft(w *wallet.IotaSmrWallet, id, addr string, blockId []byte) {

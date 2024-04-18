@@ -221,6 +221,8 @@ func MintNFT(c *gin.Context) {
 		return
 	}
 
+	service.MintNameNftSignal()
+
 	c.JSON(http.StatusOK, gin.H{
 		"result": true,
 	})
@@ -290,6 +292,8 @@ func MintNameNftForMM(c *gin.Context) {
 		})
 		return
 	}
+
+	service.MintNameNftSignal()
 
 	c.JSON(http.StatusOK, gin.H{
 		"result": true,
