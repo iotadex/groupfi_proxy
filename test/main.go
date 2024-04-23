@@ -141,7 +141,7 @@ func FilterGroup() {
 			"0xd2Bae936E942115f1759631f6Ae5642D10B4824e",
 		},
 		Contract:  "0x544F353C02363D848dBAC8Dc3a818B36B7f9355e",
-		Threshold: "1",
+		Threshold: 1,
 		Erc:       721,
 		Ts:        time.Now().Unix(),
 	}
@@ -167,7 +167,7 @@ func VerifyGroup() {
 		},
 		Subs:      []string{},
 		Contract:  "0x544F353C02363D848dBAC8Dc3a818B36B7f9355e",
-		Threshold: "1",
+		Threshold: 1,
 		Erc:       721,
 		Ts:        time.Now().Unix(),
 	}

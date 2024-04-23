@@ -49,7 +49,7 @@ https://testapi.groupfi.ai
     "chain": 148,
     "addresses" : ["address1","address2"],
     "contract" : "group contract address",
-    "threshold" : "1",
+    "threshold" : 1,
     "erc" : 721,
     "ts" : 1712647238
 }
@@ -71,7 +71,7 @@ erc is 20 or 721.
     "adds" : ["address1","address2"],
     "subs" : ["address1","address2"],
     "contract" : "group contract",
-    "threshold" : "1",
+    "threshold" : 1,
     "erc" : 20,
     "ts" : 1712647238
 }
