@@ -372,7 +372,7 @@ func SendTxEssence(c *gin.Context) {
 	signAcc := c.GetString("publickey")
 	txEssenceBytes := common.FromHex(c.GetString("data"))
 
-	txid, err := service.SendTxEssence(signAcc, txEssenceBytes)
+	txid, bid, err := service.SendTxEssence(signAcc, txEssenceBytes)
 	if err != nil {
 		gl.OutLogger.Error("service.SendTxEssence error. %s, %v", signAcc, err)
 		c.JSON(http.StatusOK, gin.H{
@@ -386,6 +386,7 @@ func SendTxEssence(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"result":        true,
 		"transactionid": "0x" + hex.EncodeToString(txid),
+		"blockid":       "0x" + hex.EncodeToString(bid),
 	})
 }
 

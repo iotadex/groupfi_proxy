@@ -13,50 +13,50 @@ import (
 	iotago "github.com/iotaledger/iota.go/v3"
 )
 
-func SendTxEssence(signAcc string, txEssenceBytes []byte) ([]byte, error) {
+func SendTxEssence(signAcc string, txEssenceBytes []byte) ([]byte, []byte, error) {
 	// get proxy from signAcc
 	proxy, err := model.GetProxyAccount(signAcc)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if proxy == nil {
-		return nil, fmt.Errorf("proxy account is not exist")
+		return nil, nil, fmt.Errorf("proxy account is not exist")
 	}
 
 	// deserialize the transaction essence bytes
 	essence := &iotago.TransactionEssence{}
 	if _, err := essence.Deserialize(txEssenceBytes, serializer.DeSeriModeNoValidation, nil); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// verify the outputs
 	if len(essence.Outputs) < 1 {
-		return nil, fmt.Errorf("illegal essence outputs(%d)", len(essence.Outputs))
+		return nil, nil, fmt.Errorf("illegal essence outputs(%d)", len(essence.Outputs))
 	}
 	for i := 0; i < len(essence.Outputs); i++ {
 		if !verifyMsgOutput(proxy.Smr, essence.Outputs[i]) {
-			return nil, fmt.Errorf("illegal essence output(%d)", i)
+			return nil, nil, fmt.Errorf("illegal essence output(%d)", i)
 		}
 	}
 
 	// sign the transaction essence
 	signature, err := wallet.SignIotaSmrHashWithPK(essence, proxy.EnPk)
 	if err != nil {
-		return nil, fmt.Errorf("signIotaSmrHashWithPK error. %v", err)
+		return nil, nil, fmt.Errorf("signIotaSmrHashWithPK error. %v", err)
 	}
 	tx := newTransaction(essence, signature)
-	// send the tx to network
-	go func(tx *iotago.Transaction) {
-		w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", "0x00")
-		if id, err := w.SendSignedTxData(tx); err != nil {
-			gl.OutLogger.Error("w.SendSignedTxData error. %s, %v", proxy.Smr, err)
-		} else {
-			gl.OutLogger.Info("send msg meta output. 0x%s", hex.EncodeToString(id))
-		}
-	}(tx)
 
-	id, _ := tx.ID()
-	return id[:], nil
+	// send the tx to network
+	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", "0x00")
+	blockId, err := w.SendSignedTxData(tx)
+	if err != nil {
+		gl.OutLogger.Error("w.SendSignedTxData error. %s, %v", proxy.Smr, err)
+	} else {
+		gl.OutLogger.Info("send msg meta output. 0x%s", hex.EncodeToString(blockId))
+	}
+
+	txid, _ := tx.ID()
+	return txid[:], blockId[:], nil
 }
 
 func MintSignAccPkNft(signAcc string, metadata []byte) ([]byte, error) {
