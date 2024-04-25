@@ -378,7 +378,7 @@ func SendTxEssence(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.MSG_OUTPUT_ILLEGAL,
-			"err-msg":  "output illegal",
+			"err-msg":  "output illegal or proxy not exist",
 		})
 		return
 	}

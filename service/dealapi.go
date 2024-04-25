@@ -45,6 +45,7 @@ func SendTxEssence(signAcc string, txEssenceBytes []byte) ([]byte, []byte, error
 		return nil, nil, fmt.Errorf("signIotaSmrHashWithPK error. %v", err)
 	}
 	tx := newTransaction(essence, signature)
+	txid, _ := tx.ID()
 
 	// send the tx to network
 	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", "0x00")
@@ -55,7 +56,6 @@ func SendTxEssence(signAcc string, txEssenceBytes []byte) ([]byte, []byte, error
 		gl.OutLogger.Info("send msg meta output. 0x%s", hex.EncodeToString(blockId))
 	}
 
-	txid, _ := tx.ID()
 	return txid[:], blockId[:], nil
 }
 
