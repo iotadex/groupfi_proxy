@@ -13,7 +13,7 @@ import (
 	iotago "github.com/iotaledger/iota.go/v3"
 )
 
-func SendTxEssence(signAcc string, txEssenceBytes []byte) ([]byte, []byte, error) {
+func SendTxEssence(signAcc string, txEssenceBytes []byte, asyn bool) ([]byte, []byte, error) {
 	// get proxy from signAcc
 	proxy, err := model.GetProxyAccount(signAcc)
 	if err != nil {
@@ -49,11 +49,21 @@ func SendTxEssence(signAcc string, txEssenceBytes []byte) ([]byte, []byte, error
 
 	// send the tx to network
 	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", "0x00")
-	blockId, err := w.SendSignedTxData(tx)
-	if err != nil {
-		gl.OutLogger.Error("w.SendSignedTxData error. %s, %v", proxy.Smr, err)
+	var blockId []byte
+	if asyn {
+		go func() {
+			if blockId, err = w.SendSignedTxData(tx); err != nil {
+				gl.OutLogger.Error("w.SendSignedTxData error. %s, %v", proxy.Smr, err)
+			} else {
+				gl.OutLogger.Info("send msg meta output. 0x%s", hex.EncodeToString(blockId))
+			}
+		}()
 	} else {
-		gl.OutLogger.Info("send msg meta output. 0x%s", hex.EncodeToString(blockId))
+		if blockId, err = w.SendSignedTxData(tx); err != nil {
+			gl.OutLogger.Error("w.SendSignedTxData error. %s, %v", proxy.Smr, err)
+		} else {
+			gl.OutLogger.Info("send msg meta output. 0x%s", hex.EncodeToString(blockId))
+		}
 	}
 
 	return txid[:], blockId[:], nil

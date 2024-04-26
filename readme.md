@@ -154,7 +154,27 @@ erc is 20 or 721.
 ```json
 {
     "result": true,
-    "transactionid": "transaction id"
+    "transactionid": "transaction id",
+    "blockid": "bock id"
+}
+```
+
+### POST /proxy/send/asyn, send the TransactionEssence which contains a msg as metadata on shimmer L1 network, asynchronization
+#### params
+```json
+{
+    "publickey": "0x5bcae1495b358f1b0968588745c5f92afa2ea40d0a3951d9a6d133d6550c1e27",
+    "data":"0x0, TransactionEssence, bytes",
+    "ts": 1711449778,
+    "sign": "0x0000000000000000000000, sign(data+ts), using the sign_account"
+}
+```
+#### response
+```json
+{
+    "result": true,
+    "transactionid": "transaction id",
+    "blockid": "bock id"
 }
 ```
 

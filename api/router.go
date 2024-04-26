@@ -76,6 +76,7 @@ func InitRouter() *gin.Engine {
 		proxy.POST("/mint_nicknft", MintNameNftForMM)
 		proxy.POST("/account", GetProxyAccount)
 		proxy.POST("/send", SendTxEssence)
+		proxy.POST("/send/asyn", SendTxEssenceAsyn)
 	}
 
 	return api

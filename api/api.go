@@ -372,7 +372,29 @@ func SendTxEssence(c *gin.Context) {
 	signAcc := c.GetString("publickey")
 	txEssenceBytes := common.FromHex(c.GetString("data"))
 
-	txid, bid, err := service.SendTxEssence(signAcc, txEssenceBytes)
+	txid, bid, err := service.SendTxEssence(signAcc, txEssenceBytes, false)
+	if err != nil {
+		gl.OutLogger.Error("service.SendTxEssence error. %s, %v", signAcc, err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.MSG_OUTPUT_ILLEGAL,
+			"err-msg":  "output illegal or proxy not exist",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"result":        true,
+		"transactionid": "0x" + hex.EncodeToString(txid),
+		"blockid":       "0x" + hex.EncodeToString(bid),
+	})
+}
+
+func SendTxEssenceAsyn(c *gin.Context) {
+	signAcc := c.GetString("publickey")
+	txEssenceBytes := common.FromHex(c.GetString("data"))
+
+	txid, bid, err := service.SendTxEssence(signAcc, txEssenceBytes, true)
 	if err != nil {
 		gl.OutLogger.Error("service.SendTxEssence error. %s, %v", signAcc, err)
 		c.JSON(http.StatusOK, gin.H{
