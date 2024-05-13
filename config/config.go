@@ -41,6 +41,7 @@ var (
 	Db                  db              // database config
 	EvmNodes            map[uint64]node // evm node config of groupfi
 	ShimmerRpc          string          // shimmer L1 network rpc url
+	UpdateProtocolTime  int64           // update protocol parameters of shimmer node, time as seconds
 	SendIntervalTime    int64           // the interval time of sending smr, seconds
 	ProxyPoolCheckHours int64           // the interval time of checking proxy pool's count, hours
 	MinProxyPoolCount   int             // the min proxy pool's count
@@ -70,6 +71,7 @@ func Load() {
 		EvmNodes            map[string]node `json:"evm_node"`
 		ShimmerRpc          string          `json:"shimmer_rpc"`
 		SendIntervalTime    int64           `json:"send_interval_time"`
+		UpdateProtocolTime  int64           `json:"update_protocol_time"`
 		ProxyPoolCheckHours int64           `json:"proxy_pool_check_hours"`
 		MinProxyPoolCount   int             `json:"min_proxy_pool_count"`
 		ProxySendAmount     uint64          `json:"proxy_send_amount"`
@@ -95,6 +97,7 @@ func Load() {
 		EvmNodes[chainid] = node
 	}
 	ShimmerRpc = all.ShimmerRpc
+	UpdateProtocolTime = all.UpdateProtocolTime
 	SendIntervalTime = all.SendIntervalTime
 	ProxyPoolCheckHours = all.ProxyPoolCheckHours
 	MinProxyPoolCount = all.MinProxyPoolCount

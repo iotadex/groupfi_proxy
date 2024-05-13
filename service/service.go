@@ -3,6 +3,8 @@ package service
 import "gproxy/config"
 
 func Start() {
+	go UpateShimmerNodeProtocol()
+
 	if config.Services[config.KeepProxyPool] {
 		go RunKeepProxyPoolFull()
 	}

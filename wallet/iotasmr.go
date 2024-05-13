@@ -289,15 +289,10 @@ func (w *IotaSmrWallet) createBasicNFTOutput(toAddr iotago.Address, meta, tag []
 	return mintOutput
 }
 
-func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte) ([]byte, error) {
+func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte, protocol *iotago.ProtocolParameters) ([]byte, error) {
 	prefix, toAddr, err := iotago.ParseBech32(bech32To)
 	if err != nil {
 		return nil, fmt.Errorf("toAddress error. %s, %v", bech32To, err)
-	}
-
-	info, err := w.nodeAPI.Info(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("get iotasmr node info error. %v", err)
 	}
 
 	addr, signer, err := w.getWalletAddress()
@@ -314,9 +309,9 @@ func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte) ([
 		},
 		Features: iotago.Features{&iotago.TagFeature{Tag: tag}},
 	}
-	collectionOutput.Amount = uint64(info.Protocol.RentStructure.VByteCost) * uint64(collectionOutput.VBytes(&info.Protocol.RentStructure, nil))
+	collectionOutput.Amount = uint64(protocol.RentStructure.VByteCost) * uint64(collectionOutput.VBytes(&protocol.RentStructure, nil))
 
-	txBuilder := builder.NewTransactionBuilder(info.Protocol.NetworkID())
+	txBuilder := builder.NewTransactionBuilder(protocol.NetworkID())
 	txBuilder.AddOutput(&collectionOutput)
 
 	left, err := w.getBasiceUnSpentOutputs(txBuilder, collectionOutput.Amount, prefix, addr)
@@ -333,13 +328,13 @@ func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte) ([
 		txBuilder.AddOutput(smrOutput)
 	}
 
-	blockBuilder := txBuilder.BuildAndSwapToBlockBuilder(&info.Protocol, signer, nil)
+	blockBuilder := txBuilder.BuildAndSwapToBlockBuilder(protocol, signer, nil)
 
 	block, err := blockBuilder.Build()
 	if err != nil {
 		return nil, fmt.Errorf("build block error. %v", err)
 	}
-	id, err := w.nodeAPI.SubmitBlock(context.Background(), block, &info.Protocol)
+	id, err := w.nodeAPI.SubmitBlock(context.Background(), block, protocol)
 	if err != nil {
 		return nil, fmt.Errorf("send block to node error. %v", err)
 	}
@@ -527,13 +522,8 @@ func (w *IotaSmrWallet) SendSignedTxData(tx *iotago.Transaction) ([]byte, error)
 	return id[:], err
 }
 
-func (w *IotaSmrWallet) SendSignedTxDataWithoutPow(tx *iotago.Transaction) ([]byte, error) {
-	info, err := w.nodeAPI.Info(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	blockBuilder, err := NewBlockBuilder(&info.Protocol, tx)
+func (w *IotaSmrWallet) SendSignedTxDataWithoutPow(tx *iotago.Transaction, protocol *iotago.ProtocolParameters) ([]byte, error) {
+	blockBuilder, err := NewBlockBuilder(protocol, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -542,7 +532,7 @@ func (w *IotaSmrWallet) SendSignedTxDataWithoutPow(tx *iotago.Transaction) ([]by
 	if err != nil {
 		return nil, err
 	}
-	id, err := w.nodeAPI.SubmitBlock(context.Background(), block, &info.Protocol)
+	id, err := w.nodeAPI.SubmitBlock(context.Background(), block, protocol)
 	if err != nil {
 		return nil, err
 	}

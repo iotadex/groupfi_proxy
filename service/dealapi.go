@@ -52,14 +52,14 @@ func SendTxEssence(signAcc string, txEssenceBytes []byte, asyn bool) ([]byte, []
 	var blockId []byte
 	if asyn {
 		go func() {
-			if blockId, err = w.SendSignedTxDataWithoutPow(tx); err != nil {
+			if blockId, err = w.SendSignedTxDataWithoutPow(tx, GetShimmerNodeProtocol()); err != nil {
 				gl.OutLogger.Error("w.SendSignedTxDataWithoutPow error. %s, %v", proxy.Smr, err)
 			} else {
 				gl.OutLogger.Info("send msg meta output. 0x%s", hex.EncodeToString(blockId))
 			}
 		}()
 	} else {
-		if blockId, err = w.SendSignedTxDataWithoutPow(tx); err != nil {
+		if blockId, err = w.SendSignedTxDataWithoutPow(tx, GetShimmerNodeProtocol()); err != nil {
 			gl.OutLogger.Error("w.SendSignedTxDataWithoutPow error. %s, %v", proxy.Smr, err)
 		} else {
 			gl.OutLogger.Info("send msg meta output. 0x%s", hex.EncodeToString(blockId))
@@ -79,7 +79,7 @@ func MintSignAccPkNft(signAcc string, metadata []byte) ([]byte, error) {
 	}
 
 	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, proxy.Smr, proxy.EnPk, "")
-	id, err := w.MinPkCollectionNft(proxy.Smr, metadata, []byte(config.ProxyPkNftTag))
+	id, err := w.MinPkCollectionNft(proxy.Smr, metadata, []byte(config.ProxyPkNftTag), GetShimmerNodeProtocol())
 	if err != nil {
 		return nil, err
 	}
