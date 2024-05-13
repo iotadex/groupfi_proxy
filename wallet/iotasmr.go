@@ -335,9 +335,7 @@ func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte) ([
 
 	blockBuilder := txBuilder.BuildAndSwapToBlockBuilder(&info.Protocol, signer, nil)
 
-	block, err := blockBuilder.Tips(context.Background(), w.nodeAPI).
-		ProofOfWork(context.Background(), &info.Protocol, float64(info.Protocol.MinPoWScore)).
-		Build()
+	block, err := blockBuilder.Build()
 	if err != nil {
 		return nil, fmt.Errorf("build block error. %v", err)
 	}
@@ -529,6 +527,28 @@ func (w *IotaSmrWallet) SendSignedTxData(tx *iotago.Transaction) ([]byte, error)
 	return id[:], err
 }
 
+func (w *IotaSmrWallet) SendSignedTxDataWithoutPow(tx *iotago.Transaction) ([]byte, error) {
+	info, err := w.nodeAPI.Info(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	blockBuilder, err := NewBlockBuilder(&info.Protocol, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	block, err := blockBuilder.Build()
+	if err != nil {
+		return nil, err
+	}
+	id, err := w.nodeAPI.SubmitBlock(context.Background(), block, &info.Protocol)
+	if err != nil {
+		return nil, err
+	}
+	return id[:], err
+}
+
 func (w *IotaSmrWallet) Balance(bech32TAddr string) (uint64, error) {
 	indexer, err := w.nodeAPI.Indexer(context.Background())
 	if err != nil {
@@ -603,7 +623,6 @@ func (w *IotaSmrWallet) getBasiceUnSpentOutputs(b *builder.TransactionBuilder, a
 		return 0, err
 	}
 	sum := uint64(0)
-	count := 0
 	for res.Next() {
 		ids, err := res.Response.Items.OutputIDs()
 		if err != nil {
@@ -616,8 +635,7 @@ func (w *IotaSmrWallet) getBasiceUnSpentOutputs(b *builder.TransactionBuilder, a
 			}
 			b.AddInput(&builder.TxInput{UnlockTarget: addr, Input: output, InputID: ids[i]})
 			sum += output.Deposit()
-			count++
-			if count >= 64 {
+			if sum >= amount {
 				break
 			}
 		}

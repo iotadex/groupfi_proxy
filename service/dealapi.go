@@ -52,15 +52,15 @@ func SendTxEssence(signAcc string, txEssenceBytes []byte, asyn bool) ([]byte, []
 	var blockId []byte
 	if asyn {
 		go func() {
-			if blockId, err = w.SendSignedTxData(tx); err != nil {
-				gl.OutLogger.Error("w.SendSignedTxData error. %s, %v", proxy.Smr, err)
+			if blockId, err = w.SendSignedTxDataWithoutPow(tx); err != nil {
+				gl.OutLogger.Error("w.SendSignedTxDataWithoutPow error. %s, %v", proxy.Smr, err)
 			} else {
 				gl.OutLogger.Info("send msg meta output. 0x%s", hex.EncodeToString(blockId))
 			}
 		}()
 	} else {
-		if blockId, err = w.SendSignedTxData(tx); err != nil {
-			gl.OutLogger.Error("w.SendSignedTxData error. %s, %v", proxy.Smr, err)
+		if blockId, err = w.SendSignedTxDataWithoutPow(tx); err != nil {
+			gl.OutLogger.Error("w.SendSignedTxDataWithoutPow error. %s, %v", proxy.Smr, err)
 		} else {
 			gl.OutLogger.Info("send msg meta output. 0x%s", hex.EncodeToString(blockId))
 		}
