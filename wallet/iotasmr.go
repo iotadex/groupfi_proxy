@@ -160,15 +160,10 @@ func (w *IotaSmrWallet) SendBasic(bech32To string, amount uint64) ([]byte, error
 	return id[:], nil
 }
 
-func (w *IotaSmrWallet) MintNameNFT(bech32To string, days int, meta, tag []byte) ([]byte, error) {
+func (w *IotaSmrWallet) MintNameNFT(bech32To string, days int, meta, tag []byte, protocol *iotago.ProtocolParameters) ([]byte, error) {
 	prefix, toAddr, err := iotago.ParseBech32(bech32To)
 	if err != nil {
 		return nil, fmt.Errorf("toAddress error. %s, %v", bech32To, err)
-	}
-
-	info, err := w.nodeAPI.Info(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("get iotasmr node info error. %v", err)
 	}
 
 	addr, signer, err := w.getWalletAddress()
@@ -176,7 +171,7 @@ func (w *IotaSmrWallet) MintNameNFT(bech32To string, days int, meta, tag []byte)
 		return nil, err
 	}
 
-	txBuilder := builder.NewTransactionBuilder(info.Protocol.NetworkID())
+	txBuilder := builder.NewTransactionBuilder(protocol.NetworkID())
 
 	collectionInput, err := w.getNFTOutput(txBuilder, addr)
 	if err != nil {
@@ -188,9 +183,9 @@ func (w *IotaSmrWallet) MintNameNFT(bech32To string, days int, meta, tag []byte)
 
 	var mintOutput iotago.NFTOutput
 	if days == 0 {
-		mintOutput = w.createBasicNFTOutput(toAddr, meta, tag, info)
+		mintOutput = w.createBasicNFTOutput(toAddr, meta, tag, protocol)
 	} else {
-		mintOutput = w.createStorageDepositReturnNameNFTOutput(toAddr, addr, days, meta, tag, info)
+		mintOutput = w.createStorageDepositReturnNameNFTOutput(toAddr, addr, days, meta, tag, protocol)
 	}
 
 	collectionOutput := iotago.NFTOutput{
@@ -202,7 +197,7 @@ func (w *IotaSmrWallet) MintNameNFT(bech32To string, days int, meta, tag []byte)
 			&iotago.MetadataFeature{Data: collectionInput.ImmutableFeatureSet().MetadataFeature().Data},
 		},
 	}
-	collectionOutput.Amount = uint64(info.Protocol.RentStructure.VByteCost) * uint64(collectionOutput.VBytes(&info.Protocol.RentStructure, nil))
+	collectionOutput.Amount = uint64(protocol.RentStructure.VByteCost) * uint64(collectionOutput.VBytes(&protocol.RentStructure, nil))
 	txBuilder.AddOutput(&mintOutput).AddOutput(&collectionOutput)
 
 	needSmrAmount := mintOutput.Amount + collectionOutput.Amount
@@ -217,7 +212,7 @@ func (w *IotaSmrWallet) MintNameNFT(bech32To string, days int, meta, tag []byte)
 				Address: addr,
 			}},
 		}
-		smrOutput.Amount = uint64(info.Protocol.RentStructure.VByteCost) * uint64(smrOutput.VBytes(&info.Protocol.RentStructure, nil))
+		smrOutput.Amount = uint64(protocol.RentStructure.VByteCost) * uint64(smrOutput.VBytes(&protocol.RentStructure, nil))
 		if left < (needSmrAmount + smrOutput.Amount) {
 			return nil, fmt.Errorf("balance amount is not enough. %d : %d", needSmrAmount+smrOutput.Amount, left)
 		}
@@ -225,15 +220,13 @@ func (w *IotaSmrWallet) MintNameNFT(bech32To string, days int, meta, tag []byte)
 		txBuilder.AddOutput(smrOutput)
 	}
 
-	blockBuilder := txBuilder.BuildAndSwapToBlockBuilder(&info.Protocol, signer, nil)
+	blockBuilder := txBuilder.BuildAndSwapToBlockBuilder(protocol, signer, nil)
 
-	block, err := blockBuilder.Tips(context.Background(), w.nodeAPI).
-		ProofOfWork(context.Background(), &info.Protocol, float64(info.Protocol.MinPoWScore)).
-		Build()
+	block, err := blockBuilder.Build()
 	if err != nil {
 		return nil, fmt.Errorf("build block error. %v", err)
 	}
-	id, err := w.nodeAPI.SubmitBlock(context.Background(), block, &info.Protocol)
+	id, err := w.nodeAPI.SubmitBlock(context.Background(), block, protocol)
 	if err != nil {
 		return nil, fmt.Errorf("send block to node error. %v", err)
 	}
@@ -241,7 +234,7 @@ func (w *IotaSmrWallet) MintNameNFT(bech32To string, days int, meta, tag []byte)
 	return id[:], nil
 }
 
-func (w *IotaSmrWallet) createStorageDepositReturnNameNFTOutput(toAddr, returnAddr iotago.Address, days int, meta, tag []byte, info *nodeclient.InfoResponse) iotago.NFTOutput {
+func (w *IotaSmrWallet) createStorageDepositReturnNameNFTOutput(toAddr, returnAddr iotago.Address, days int, meta, tag []byte, protocol *iotago.ProtocolParameters) iotago.NFTOutput {
 	ts := time.Now().AddDate(0, 0, days).Unix()
 	mintOutput := iotago.NFTOutput{
 		Conditions: iotago.UnlockConditions{
@@ -265,12 +258,12 @@ func (w *IotaSmrWallet) createStorageDepositReturnNameNFTOutput(toAddr, returnAd
 			&iotago.TagFeature{Tag: tag},
 		}
 	}
-	mintOutput.Amount = uint64(info.Protocol.RentStructure.VByteCost) * uint64(mintOutput.VBytes(&info.Protocol.RentStructure, nil))
+	mintOutput.Amount = uint64(protocol.RentStructure.VByteCost) * uint64(mintOutput.VBytes(&protocol.RentStructure, nil))
 	mintOutput.Conditions[1].(*iotago.StorageDepositReturnUnlockCondition).Amount = mintOutput.Amount
 	return mintOutput
 }
 
-func (w *IotaSmrWallet) createBasicNFTOutput(toAddr iotago.Address, meta, tag []byte, info *nodeclient.InfoResponse) iotago.NFTOutput {
+func (w *IotaSmrWallet) createBasicNFTOutput(toAddr iotago.Address, meta, tag []byte, protocol *iotago.ProtocolParameters) iotago.NFTOutput {
 	mintOutput := iotago.NFTOutput{
 		Conditions: iotago.UnlockConditions{
 			&iotago.AddressUnlockCondition{Address: toAddr},
@@ -285,7 +278,7 @@ func (w *IotaSmrWallet) createBasicNFTOutput(toAddr iotago.Address, meta, tag []
 			&iotago.TagFeature{Tag: tag},
 		}
 	}
-	mintOutput.Amount = uint64(info.Protocol.RentStructure.VByteCost) * uint64(mintOutput.VBytes(&info.Protocol.RentStructure, nil))
+	mintOutput.Amount = uint64(protocol.RentStructure.VByteCost) * uint64(mintOutput.VBytes(&protocol.RentStructure, nil))
 	return mintOutput
 }
 

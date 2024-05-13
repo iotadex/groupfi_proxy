@@ -28,7 +28,7 @@ func RunMintNameNft() {
 			return
 		}
 
-		if id, err := w.MintNameNFT(r.To, r.Expire, r.Meta, []byte(config.NameNftTag)); err != nil {
+		if id, err := w.MintNameNFT(r.To, r.Expire, r.Meta, []byte(config.NameNftTag), GetShimmerNodeProtocol()); err != nil {
 			gl.OutLogger.Error("sq.w.MintNameNFT error. %s, %v", r.To, err)
 		} else {
 			if err = model.UpdateBlockIdToNameNftRecord(r.Nftid, hexutil.Encode(id)); err != nil {
