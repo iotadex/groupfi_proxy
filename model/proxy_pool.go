@@ -12,22 +12,22 @@ import (
 )
 
 // create a proxy and store it to db, the init state is 0 which cannot be used
-func CreateProxyToPool(amount uint64, minCount int) error {
+func CreateProxyToPool(amount uint64, minCount int) (int, error) {
 	// 1. begin a transaction of mysql
 	tx, err := db.Begin()
 	if err != nil {
 		if tx != nil {
 			tx.Rollback()
 		}
-		return err
+		return 0, err
 	}
 
 	// 2. Get the count of proxy pool; check the count smaller than required or not
-	row := tx.QueryRow("select count(`address`) from `proxy_pool` where `state`=?", CONFIRMED_SEND)
+	row := tx.QueryRow("select count(`address`) from `proxy_pool` where `state`=? for update", CONFIRMED_SEND)
 	var count int
 	if err := row.Scan(&count); err != nil {
 		tx.Rollback()
-		return err
+		return 0, err
 	}
 	if count < minCount {
 		for i := minCount - count; i > 0; i-- {
@@ -35,18 +35,18 @@ func CreateProxyToPool(amount uint64, minCount int) error {
 			bech32Addr, enpk := getEdPrivateKey()
 			if _, err := tx.Exec("INSERT INTO `proxy_pool`(`address`,`enpk`) VALUES(?,?)", bech32Addr, enpk); err != nil {
 				tx.Rollback()
-				return err
+				return 0, err
 			}
 
 			// add it to pending send
 			if err := InsertPendingSendSmrOrder(tx, bech32Addr, amount, SEND_POOL); err != nil {
 				tx.Rollback()
-				return err
+				return 0, err
 			}
 		}
 	}
 
-	return tx.Commit()
+	return minCount - count, tx.Commit()
 }
 
 // set the proxy's state to 1 after add balance to it
@@ -55,8 +55,8 @@ func UpdateProxyPoolState(address string, state int) error {
 	return err
 }
 
-func GetUsedProxyPool() (map[string]string, error) {
-	rows, err := db.Query("SELECT `address`,`enpk` FROM `proxy_pool` where `state`=?", 1)
+func GetProxyPool(state int) (map[string]string, error) {
+	rows, err := db.Query("SELECT `address`,`enpk` FROM `proxy_pool` where `state`=?", state)
 	if err != nil {
 		return nil, err
 	}

@@ -46,7 +46,7 @@ func PopOneNameNftRecord() (*NameNftRecord, error) {
 		return nil, err
 	}
 
-	row := tx.QueryRow("select `nftid`,`to`,`meta`,`expire` from `nft_name_record` where `state`=? limit 1", INIT_SEND)
+	row := tx.QueryRow("select `nftid`,`to`,`meta`,`expire` from `nft_name_record` where `state`=? limit 1 for update", INIT_SEND)
 	var nftid, to, meta string
 	var expire int
 	if err := row.Scan(&nftid, &to, &meta, &expire); err != nil {

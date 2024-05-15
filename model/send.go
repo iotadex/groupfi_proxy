@@ -18,6 +18,7 @@ const (
 	POP_SEND       = -1
 	INIT_SEND      = 0
 	PENDING_SEND   = 1
+	USED_ADDRESS   = 1
 	CONFIRMED_SEND = 2
 	FAILED_SEND    = 3
 )
@@ -71,7 +72,7 @@ func PopOnePendingSendSmrOrder() (*PendingSendSmrOrder, error) {
 		return nil, err
 	}
 
-	row := tx.QueryRow("select `id`,`to`,`amount`,`type`,`ts`,`sign` from `send_smr` where `state`=? limit 1", INIT_SEND)
+	row := tx.QueryRow("select `id`,`to`,`amount`,`type`,`ts`,`sign` from `send_smr` where `state`=? limit 1 for update", INIT_SEND)
 	var to, sign string
 	var _t int
 	var id, ts int64

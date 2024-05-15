@@ -15,7 +15,7 @@ var mintNameSignal chan bool
 
 func RunMintNameNft() {
 	mintNameSignal = make(chan bool, 1)
-	f := func(w *wallet.IotaSmrWallet, preMintTs *int64) {
+	f := func(w *wallet.IotaSmrWallet, addr string, preMintTs *int64) {
 		if (time.Now().Unix() - *preMintTs) < config.SendIntervalTime {
 			return
 		}
@@ -28,7 +28,9 @@ func RunMintNameNft() {
 			return
 		}
 
-		if id, err := w.MintNameNFT(r.To, r.Expire, r.Meta, []byte(config.NameNftTag), GetShimmerNodeProtocol()); err != nil {
+		basicOutput, basicId := GetCacheOutput(addr)
+		nftOutput, nftOutputId := GetCacheNFT()
+		if id, err := w.MintNameNFT(r.To, r.Expire, r.Meta, []byte(config.NameNftTag), basicOutput, basicId, nftOutput, nftOutputId, GetShimmerNodeProtocol()); err != nil {
 			gl.OutLogger.Error("sq.w.MintNameNFT error. %s, %v", r.To, err)
 		} else {
 			if err = model.UpdateBlockIdToNameNftRecord(r.Nftid, hexutil.Encode(id)); err != nil {
@@ -49,9 +51,9 @@ func RunMintNameNft() {
 	for {
 		select {
 		case <-mintNameSignal:
-			f(w, &preMintTs)
+			f(w, addr, &preMintTs)
 		case <-ticker.C:
-			f(w, &preMintTs)
+			f(w, addr, &preMintTs)
 		}
 	}
 }
@@ -68,6 +70,7 @@ func checkNameNft(w *wallet.IotaSmrWallet, id, addr string, blockId []byte) {
 		return
 	}
 	gl.OutLogger.Info("Mint name nft %s, %s", nftid, addr)
+	MintNameNFTSignal <- true
 
 	if err := model.UpdateNameNft(id, nftid); err != nil {
 		gl.OutLogger.Error("model.StoreNameNft error. %s, %s, %v", nftid, hexutil.Encode(blockId), err)

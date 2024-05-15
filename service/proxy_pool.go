@@ -10,8 +10,10 @@ import (
 
 func RunKeepProxyPoolFull() {
 	f := func() {
-		if err := model.CreateProxyToPool(config.ProxySendAmount, config.MinProxyPoolCount); err != nil {
+		if count, err := model.CreateProxyToPool(config.ProxySendAmount, config.MinProxyPoolCount); err != nil {
 			gl.OutLogger.Error("model.CreateProxyToPool error. %v", err)
+		} else if count > 0 {
+			CreateProxyPoolSignal <- true
 		}
 	}
 	f()
@@ -25,7 +27,7 @@ func RunCheckProxyPoolBalance() {
 	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", "")
 	ticker := time.NewTicker(time.Hour * time.Duration(config.ProxyPoolCheckHours))
 	for range ticker.C {
-		addrs, err := model.GetUsedProxyPool()
+		addrs, err := model.GetProxyPool(model.USED_ADDRESS)
 		if err != nil {
 			gl.OutLogger.Error("model.GetUsedProxyPool error. %v", err)
 		}

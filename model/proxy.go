@@ -31,7 +31,7 @@ func RegisterProxyFromPool(account string, signAcc string) (string, error) {
 		return "", err
 	}
 	// 2. get a proxy from proxy_pool
-	row = tx.QueryRow("select `id`,`address`,`enpk` from `proxy_pool` where `state`=? limit 1", CONFIRMED_SEND)
+	row = tx.QueryRow("select `id`,`address`,`enpk` from `proxy_pool` where `state`=? limit 1 for update", CONFIRMED_SEND)
 	var id int64
 	var enpk string
 	if err := row.Scan(&id, &smr, &enpk); err != nil {
@@ -46,7 +46,7 @@ func RegisterProxyFromPool(account string, signAcc string) (string, error) {
 	}
 
 	// 4. change the proxy from proxy_pool
-	if res, err := tx.Exec("update `proxy_pool` set `state`=? where `id`=?", 1, id); err != nil {
+	if res, err := tx.Exec("update `proxy_pool` set `state`=? where `id`=?", USED_ADDRESS, id); err != nil {
 		tx.Rollback()
 		return "", err
 	} else {

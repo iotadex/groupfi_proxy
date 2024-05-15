@@ -13,6 +13,7 @@ import (
 	iotago "github.com/iotaledger/iota.go/v3"
 )
 
+// send message
 func SendTxEssence(signAcc string, txEssenceBytes []byte, asyn bool) ([]byte, []byte, error) {
 	// get proxy from signAcc
 	proxy, err := model.GetProxyAccount(signAcc)
@@ -69,6 +70,7 @@ func SendTxEssence(signAcc string, txEssenceBytes []byte, asyn bool) ([]byte, []
 	return txid[:], blockId[:], nil
 }
 
+// register a proxy account
 func MintSignAccPkNft(signAcc string, metadata []byte) ([]byte, error) {
 	proxy, err := model.GetProxyAccount(signAcc)
 	if err != nil {
@@ -79,7 +81,8 @@ func MintSignAccPkNft(signAcc string, metadata []byte) ([]byte, error) {
 	}
 
 	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, proxy.Smr, proxy.EnPk, "")
-	id, err := w.MinPkCollectionNft(proxy.Smr, metadata, []byte(config.ProxyPkNftTag), GetShimmerNodeProtocol())
+	output, outputID := GetCacheOutput(proxy.Smr)
+	id, err := w.MinPkCollectionNft(proxy.Smr, metadata, []byte(config.ProxyPkNftTag), output, outputID, GetShimmerNodeProtocol())
 	if err != nil {
 		return nil, err
 	}
