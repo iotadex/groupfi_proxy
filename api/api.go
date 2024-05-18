@@ -179,7 +179,7 @@ func MintNFT(c *gin.Context) {
 		return
 	}
 
-	if len(name) < 11 || len(name) > 20 || !isAlphaNumeric(name) {
+	if len(name) < 8 || len(name) > 20 || !isAlphaNumeric(name) {
 		gl.OutLogger.Warn("User's name error. %s", name)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
@@ -251,7 +251,7 @@ func MintNameNftForMM(c *gin.Context) {
 		return
 	}
 
-	if len(name) < 11 || len(name) > 20 || !isAlphaNumeric(name) {
+	if len(name) < 8 || len(name) > 20 || !isAlphaNumeric(name) {
 		gl.OutLogger.Warn("User's name error. %s", name)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
