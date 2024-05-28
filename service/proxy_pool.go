@@ -17,7 +17,7 @@ func RunKeepProxyPoolFull() {
 		}
 	}
 	f()
-	ticker := time.NewTicker(time.Hour * time.Duration(config.ProxyPoolCheckHours))
+	ticker := time.NewTicker(time.Hour * time.Duration(config.ProxyPoolCheckMinutes))
 	for range ticker.C {
 		f()
 	}
@@ -25,7 +25,7 @@ func RunKeepProxyPoolFull() {
 
 func RunCheckProxyPoolBalance() {
 	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", "")
-	ticker := time.NewTicker(time.Hour * time.Duration(config.ProxyPoolCheckHours))
+	ticker := time.NewTicker(time.Hour * time.Duration(config.ProxyBalanceCheckHours))
 	for range ticker.C {
 		addrs, err := model.GetProxyPool(model.USED_ADDRESS)
 		if err != nil {
@@ -33,7 +33,7 @@ func RunCheckProxyPoolBalance() {
 		}
 
 		for bech32Addr, enpk := range addrs {
-			time.Sleep(time.Second)
+			time.Sleep(time.Second * 5)
 			if !wallet.ChecKEd25519Addr(enpk, bech32Addr) {
 				continue
 			}
