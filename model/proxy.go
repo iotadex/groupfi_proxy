@@ -80,7 +80,7 @@ func GetProxyAccount(signAcc string) (*ShimmerAccount, error) {
 }
 
 func getProxyAccount(signAcc string) (*ShimmerAccount, error) {
-	row := db.QueryRow("select `account`,`smr`,`pk` from `proxy` where `sign_acc`=?", signAcc)
+	row := db.QueryRow("select `account`,`sign_acc`,`smr`,`pk` from `proxy` where `sign_acc`=?", signAcc)
 	var acc, smr, pk string
 	if err := row.Scan(&acc, &smr, &pk); err != nil {
 		if err != sql.ErrNoRows {

@@ -14,6 +14,41 @@
             "listen_type": 0,
             "max_filter_block": 999,
             "contract": "0xc2F820BA3DBe0755deE2cD0ddc8Bf2fEc1e57255"
+        },
+        "128123": {
+            "rpc": "https://node.ghostnet.etherlink.com/",
+            "wss": "wss://node.ghostnet.etherlink.com/",
+            "listen_type": 1,
+            "max_filter_block": 999,
+            "contract": "0xD9B13709Ce4Ef82402c091f3fc8A93a9360A5c1e"
+        },
+        "56": {
+            "rpc": "https://bsc-dataseed.binance.org/",
+            "wss": "wss://bsc-dataseed.binance.org/",
+            "listen_type": 1,
+            "max_filter_block": 999,
+            "contract": "0xf6BEA7EA5bA937da0D73dA21139821Aa7ee85E0e"
+        },
+        "137": {
+            "rpc": "https://polygon-mainnet.infura.io",
+            "wss": "wss://polygon-mainnet.infura.io",
+            "listen_type": 1,
+            "max_filter_block": 999,
+            "contract": "0xD9B13709Ce4Ef82402c091f3fc8A93a9360A5c1e"
+        },
+        "43114": {
+            "rpc": "https://avalanche-mainnet.infura.io",
+            "wss": "wss://avalanche-mainnet.infura.io",
+            "listen_type": 1,
+            "max_filter_block": 999,
+            "contract": "0xD9B13709Ce4Ef82402c091f3fc8A93a9360A5c1e"
+        },
+        "1": {
+            "rpc": "https://mainnet.infura.io/v3/",
+            "wss": "wss://mainnet.infura.io/v3/",
+            "listen_type": 0,
+            "max_filter_block": 999,
+            "contract": "0xD9B13709Ce4Ef82402c091f3fc8A93a9360A5c1e"
         }
     },
     "shimmer_rpc": "https://api.shimmer.network",
