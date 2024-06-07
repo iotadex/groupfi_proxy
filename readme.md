@@ -85,7 +85,7 @@ erc is 20 or 721.
 }
 ```
 
-#### threshold parts per 10000 of the total supply amount of token. 
+#### `threshold` represents parts per ten thousand of the total supply amount of token. 
 
 ## sign apis
 ### POST /proxy/register, register a new proxy account or update the sign_account
