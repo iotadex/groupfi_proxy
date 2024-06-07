@@ -2,7 +2,7 @@
 
 ## url 
 ```
-https://testapi.groupfi.ai
+https://api.groupfi.ai
 ```
 
 ## public apis
@@ -11,7 +11,7 @@ https://testapi.groupfi.ai
 |  name  |  type  |  description  |
 | ------ | :---- | ---------- |
 |address|string| user's address, smr address|
-|name|string|letters and numbers, lowercase, 10 <= length <= 20|
+|name|string|letters and numbers, lowercase, 8 <= length <= 20|
 |image| string, optional|image url|
 #### response
 ```json
@@ -84,6 +84,8 @@ erc is 20 or 721.
     "sign": "sign hex string"
 }
 ```
+
+#### threshold parts per 10000 of the total supply amount of token. 
 
 ## sign apis
 ### POST /proxy/register, register a new proxy account or update the sign_account
