@@ -47,7 +47,7 @@ type Filter struct {
 	Chain     uint64   `json:"chain"`
 	Addresses []string `json:"addresses"`
 	Contract  string   `json:"contract"`
-	Threshold int64    `json:"threshold"`
+	Threshold string   `json:"threshold"`
 	Erc       int      `json:"erc"`
 	Ts        int64    `json:"ts"`
 }
@@ -56,7 +56,8 @@ func FilterGroup(c *gin.Context) {
 	f := Filter{}
 	err := c.BindJSON(&f)
 	node, exist := config.EvmNodes[f.Chain]
-	if err != nil || !exist {
+	threshold, b := new(big.Int).SetString(f.Threshold, 10)
+	if err != nil || !exist || !b {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.PARAMS_ERROR,
@@ -72,7 +73,7 @@ func FilterGroup(c *gin.Context) {
 	var indexes []uint16
 	t := tokens.NewEvmToken(node.Rpc, node.Wss, node.Contract, f.Chain, 0)
 	if f.Erc == 20 {
-		indexes, err = t.FilterERC20Addresses(addrs, common.HexToAddress(f.Contract), big.NewInt(f.Threshold))
+		indexes, err = t.FilterERC20Addresses(addrs, common.HexToAddress(f.Contract), threshold)
 	} else if f.Erc == 721 {
 		indexes, err = t.FilterERC721Addresses(addrs, common.HexToAddress(f.Contract))
 	}
@@ -98,7 +99,7 @@ type Verfiy struct {
 	Adds      []string `json:"adds"`
 	Subs      []string `json:"subs"`
 	Contract  string   `json:"contract"`
-	Threshold int64    `json:"threshold"`
+	Threshold string   `json:"threshold"`
 	Erc       int      `json:"erc"`
 	Ts        int64    `json:"ts"`
 }
@@ -107,7 +108,8 @@ func VerifyGroup(c *gin.Context) {
 	f := Verfiy{}
 	err := c.BindJSON(&f)
 	node, exist := config.EvmNodes[f.Chain]
-	if err != nil || !exist {
+	threshold, b := new(big.Int).SetString(f.Threshold, 10)
+	if err != nil || !exist || !b {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.PARAMS_ERROR,
@@ -127,7 +129,7 @@ func VerifyGroup(c *gin.Context) {
 	var res int8
 	t := tokens.NewEvmToken(node.Rpc, node.Wss, node.Contract, f.Chain, 0)
 	if f.Erc == 20 {
-		res, err = t.CheckERC20Addresses(adds, subs, common.HexToAddress(f.Contract), big.NewInt(f.Threshold))
+		res, err = t.CheckERC20Addresses(adds, subs, common.HexToAddress(f.Contract), threshold)
 	} else if f.Erc == 721 {
 		res, err = t.CheckERC721Addresses(adds, subs, common.HexToAddress(f.Contract))
 	}
