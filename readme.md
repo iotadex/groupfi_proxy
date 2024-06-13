@@ -49,7 +49,7 @@ https://api.groupfi.ai
     "chain": 148,
     "addresses" : ["address1","address2"],
     "contract" : "group contract address",
-    "threshold" : 1,
+    "threshold" : "1000000000",
     "erc" : 721,
     "ts" : 1712647238
 }
@@ -71,7 +71,7 @@ erc is 20 or 721.
     "adds" : ["address1","address2"],
     "subs" : ["address1","address2"],
     "contract" : "group contract",
-    "threshold" : 1,
+    "threshold" : "100000",
     "erc" : 20,
     "ts" : 1712647238
 }
@@ -84,8 +84,6 @@ erc is 20 or 721.
     "sign": "sign hex string"
 }
 ```
-
-#### `threshold` represents parts per ten thousand of the total supply amount of token. 
 
 ## sign apis
 ### POST /proxy/register, register a new proxy account or update the sign_account
