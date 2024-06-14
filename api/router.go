@@ -56,9 +56,14 @@ func InitRouter() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	api := gin.New()
 	api.Use(gin.LoggerWithConfig(gin.LoggerConfig{Output: GinLogger}), gin.Recovery())
+
 	api.GET("/mint_nicknft", MintNFT)
 
 	api.GET("/smr_price", SmrPrice)
+
+	api.GET("/faucet", Faucet)
+
+	api.GET("/proxy/account", GetProxyAccount)
 
 	group := api.Group("/group").Use(middleware.SignIpRateLimiterWare)
 	{
@@ -74,7 +79,6 @@ func InitRouter() *gin.Engine {
 	proxy := api.Group("/proxy").Use(middleware.SignIpRateLimiterWare).Use(middleware.VerifyEd25519Sign)
 	{
 		proxy.POST("/mint_nicknft", MintNameNftForMM)
-		proxy.POST("/account", GetProxyAccount)
 		proxy.POST("/send", SendTxEssence)
 		proxy.POST("/send/asyn", SendTxEssenceAsyn)
 	}

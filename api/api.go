@@ -19,6 +19,30 @@ import (
 	iotago "github.com/iotaledger/iota.go/v3"
 )
 
+// Send the test Token to user
+func Faucet(c *gin.Context) {
+	sps, err := model.GetSmrPrices()
+	if err != nil {
+		gl.OutLogger.Error("model.GetSmrPrices error. %v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.SYSTEM_ERROR,
+			"err-msg":  "system error",
+		})
+		return
+	}
+	for id, p := range sps {
+		if sp, exist := config.EvmNodes[id]; exist {
+			p.Contract = sp.Contract
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"result": true,
+		"data":   sps,
+	})
+}
+
 // Get the prices of smr on different evm chains
 func SmrPrice(c *gin.Context) {
 	sps, err := model.GetSmrPrices()
@@ -47,7 +71,7 @@ type Filter struct {
 	Chain     uint64   `json:"chain"`
 	Addresses []string `json:"addresses"`
 	Contract  string   `json:"contract"`
-	Threshold string   `json:"threshold"`
+	Threshold int      `json:"threshold"`
 	Erc       int      `json:"erc"`
 	Ts        int64    `json:"ts"`
 }
@@ -56,8 +80,9 @@ func FilterGroup(c *gin.Context) {
 	f := Filter{}
 	err := c.BindJSON(&f)
 	node, exist := config.EvmNodes[f.Chain]
-	threshold, b := new(big.Int).SetString(f.Threshold, 10)
-	if err != nil || !exist || !b {
+	threshold := new(big.Int).SetInt64(int64(f.Threshold))
+	//threshold, b := new(big.Int).SetString(f.Threshold, 10)
+	if err != nil || !exist {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.PARAMS_ERROR,
@@ -99,7 +124,7 @@ type Verfiy struct {
 	Adds      []string `json:"adds"`
 	Subs      []string `json:"subs"`
 	Contract  string   `json:"contract"`
-	Threshold string   `json:"threshold"`
+	Threshold int      `json:"threshold"`
 	Erc       int      `json:"erc"`
 	Ts        int64    `json:"ts"`
 }
@@ -108,8 +133,8 @@ func VerifyGroup(c *gin.Context) {
 	f := Verfiy{}
 	err := c.BindJSON(&f)
 	node, exist := config.EvmNodes[f.Chain]
-	threshold, b := new(big.Int).SetString(f.Threshold, 10)
-	if err != nil || !exist || !b {
+	threshold := new(big.Int).SetInt64(int64(f.Threshold))
+	if err != nil || !exist {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.PARAMS_ERROR,
@@ -345,7 +370,7 @@ func RegisterProxy(c *gin.Context) {
 }
 
 func GetProxyAccount(c *gin.Context) {
-	signAcc := c.GetString("publickey")
+	signAcc := c.Query("publickey")
 	proxy, err := model.GetProxyAccount(signAcc)
 	if err != nil {
 		gl.OutLogger.Error("model.GetProxyAccount error. %s, %v", signAcc, err)

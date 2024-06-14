@@ -140,10 +140,10 @@ func FilterGroup() {
 			"0xFf803bc4f2D0516101eB7Aa643299e1BAF5d78F2",
 			"0xd2Bae936E942115f1759631f6Ae5642D10B4824e",
 		},
-		Contract:  "0x544F353C02363D848dBAC8Dc3a818B36B7f9355e",
-		Threshold: "10000000",
-		Erc:       721,
-		Ts:        time.Now().Unix(),
+		Contract: "0x544F353C02363D848dBAC8Dc3a818B36B7f9355e",
+		//Threshold: "10000000",
+		Erc: 721,
+		Ts:  time.Now().Unix(),
 	}
 	url := URL + "/group/filter"
 	postParams, _ := json.Marshal(f)
@@ -165,11 +165,11 @@ func VerifyGroup() {
 			"0xFf803bc4f2D0516101eB7Aa643299e1BAF5d78F2",
 			"0xd2Bae936E942115f1759631f6Ae5642D10B4824e",
 		},
-		Subs:      []string{},
-		Contract:  "0x544F353C02363D848dBAC8Dc3a818B36B7f9355e",
-		Threshold: "100000000",
-		Erc:       721,
-		Ts:        time.Now().Unix(),
+		Subs:     []string{},
+		Contract: "0x544F353C02363D848dBAC8Dc3a818B36B7f9355e",
+		//Threshold: "100000000",
+		Erc: 721,
+		Ts:  time.Now().Unix(),
 	}
 	url := URL + "/group/verify"
 	postParams, _ := json.Marshal(f)

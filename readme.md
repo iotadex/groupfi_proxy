@@ -85,6 +85,15 @@ erc is 20 or 721.
 }
 ```
 
+### GET /proxy/account?publickey=0x5bcae1495b358f1b0968588745c5f92afa2ea40d0a3951d9a6d133d6550c1e27, get the proxy account using user's pairX 
+#### response
+```json
+{
+    "result": true,
+    "proxy_account": "a smr address"
+}
+```
+
 ## sign apis
 ### POST /proxy/register, register a new proxy account or update the sign_account
 #### params
@@ -123,22 +132,7 @@ erc is 20 or 721.
 }
 ```
 
-### POST /proxy/account, get the proxy account for the user's evm account, using the sign_account to sign
-#### params
-```json
-{
-    "publickey": "0x5bcae1495b358f1b0968588745c5f92afa2ea40d0a3951d9a6d133d6550c1e27",
-    "ts": 1711449778,
-    "sign": "0x0000000000000000000000, sign(ts), using the sign_account"
-}
-```
-#### response
-```json
-{
-    "result": true,
-    "proxy_account": "a smr address"
-}
-```
+
 
 ### POST /proxy/send, send the TransactionEssence which contains a msg as metadata on shimmer L1 network
 #### params
