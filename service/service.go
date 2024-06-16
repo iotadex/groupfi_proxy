@@ -26,6 +26,10 @@ func Start() {
 	if len(config.NameNftId) > 0 {
 		go RunMintNameNft()
 	}
+
+	if config.Services[config.Faucet] {
+		StartFaucet()
+	}
 }
 
 func Stop() {

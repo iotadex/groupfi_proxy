@@ -11,6 +11,7 @@ import (
 	"gproxy/wallet"
 	"math/big"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -21,25 +22,34 @@ import (
 
 // Send the test Token to user
 func Faucet(c *gin.Context) {
-	sps, err := model.GetSmrPrices()
-	if err != nil {
-		gl.OutLogger.Error("model.GetSmrPrices error. %v", err)
+	chainid, err := strconv.ParseUint(c.Query("chainid"), 10, 64)
+	token := common.HexToAddress(c.Query("token"))
+	to := common.HexToAddress(c.Query("to"))
+	amount, b := new(big.Int).SetString(c.Query("amount"), 10)
+
+	if err != nil || !b {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
+			"err-code": gl.PARAMS_ERROR,
+			"err-msg":  "params error.",
 		})
 		return
 	}
-	for id, p := range sps {
-		if sp, exist := config.EvmNodes[id]; exist {
-			p.Contract = sp.Contract
-		}
+
+	hashTx, err := service.FaucetSend(chainid, token.Hex(), to.Hex(), amount)
+	if err != nil || !b {
+		gl.OutLogger.Error("service.FaucetSend error. %v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.SYSTEM_ERROR,
+			"err-msg":  "system error.",
+		})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"result": true,
-		"data":   sps,
+		"data":   hexutil.Encode(hashTx),
 	})
 }
 

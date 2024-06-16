@@ -94,6 +94,23 @@ erc is 20 or 721.
 }
 ```
 
+### GET /faucet?chainid={1}&token={2}&to={3}&amount={4}, send test token to user
+#### params
+|  name  |  type  |  description  |
+| ------ | :---- | ---------- |
+|chainid|int64| evm network chain id|
+|token|string|erc20 token's contract address|
+|to| string|user's address, every address can get the test token per day|
+|amount|string|token's amount|
+
+#### response
+```json
+{
+    "result": true,
+    "proxy_account": "a smr address"
+}
+```
+
 ## sign apis
 ### POST /proxy/register, register a new proxy account or update the sign_account
 #### params

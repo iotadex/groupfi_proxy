@@ -72,11 +72,11 @@
         "send_smr": true
     },
     "sign_ed_pk": "9045bcf63f9dea84b0faeb83eef7f4be60b9d4317d417bb0f5a04bea4007aca9054b2a3d0106b2c82c467ea05472b72db35c2c96ffded60f5bc8639032dfc62f14f81fd9eb9dd5f3687c051df26a98898b576a9b87271af91fc6d1e95d3dd194c1fcadc2381759a3d6feb14ad01c3f2f0fb47707d330c3de99dfd4e6396eb14199bafc5e1d1c1e450900ae7e10fe1807",
-    "faucet": {
+    "faucet_node": {
         "148": {
             "rpc": "https://json-rpc.evm.shimmer.network",
-            "wallet": "0xc2F820BA3DBe0755deE2cD0ddc8Bf2fEc1e57255",
-            "max_amount": "9999999999"
+            "wallet": "b77fadf578f0151c54df4eb556253820ace68f374681eec933898508052f103a11d1efe553c35ab1f14ebb3e9ee93f6314aa1e2c8d7e6293cbb06b8a363256256296d3e24543d7ffc6f4e74e978681ab",
+            "max_amount": "100000000"
         }
     }
 }
