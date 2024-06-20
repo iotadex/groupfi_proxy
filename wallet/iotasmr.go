@@ -610,7 +610,7 @@ func (w *IotaSmrWallet) getBasiceUnSpentOutputs(b *builder.TransactionBuilder, a
 			}
 			b.AddInput(&builder.TxInput{UnlockTarget: addr, Input: output, InputID: ids[i]})
 			sum += output.Deposit()
-			if sum >= amount {
+			if sum >= 2*amount {
 				break
 			}
 		}

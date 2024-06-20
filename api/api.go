@@ -81,7 +81,7 @@ type Filter struct {
 	Chain     uint64   `json:"chain"`
 	Addresses []string `json:"addresses"`
 	Contract  string   `json:"contract"`
-	Threshold int      `json:"threshold"`
+	Threshold string   `json:"threshold"`
 	Erc       int      `json:"erc"`
 	Ts        int64    `json:"ts"`
 }
@@ -90,9 +90,9 @@ func FilterGroup(c *gin.Context) {
 	f := Filter{}
 	err := c.BindJSON(&f)
 	node, exist := config.EvmNodes[f.Chain]
-	threshold := new(big.Int).SetInt64(int64(f.Threshold))
-	//threshold, b := new(big.Int).SetString(f.Threshold, 10)
-	if err != nil || !exist {
+	//threshold := new(big.Int).SetInt64(int64(f.Threshold))
+	threshold, b := new(big.Int).SetString(f.Threshold, 10)
+	if err != nil || !exist || !b {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.PARAMS_ERROR,
@@ -134,7 +134,7 @@ type Verfiy struct {
 	Adds      []string `json:"adds"`
 	Subs      []string `json:"subs"`
 	Contract  string   `json:"contract"`
-	Threshold int      `json:"threshold"`
+	Threshold string   `json:"threshold"`
 	Erc       int      `json:"erc"`
 	Ts        int64    `json:"ts"`
 }
@@ -143,8 +143,9 @@ func VerifyGroup(c *gin.Context) {
 	f := Verfiy{}
 	err := c.BindJSON(&f)
 	node, exist := config.EvmNodes[f.Chain]
-	threshold := new(big.Int).SetInt64(int64(f.Threshold))
-	if err != nil || !exist {
+	//threshold := new(big.Int).SetInt64(int64(f.Threshold))
+	threshold, b := new(big.Int).SetString(f.Threshold, 10)
+	if err != nil || !exist || !b {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.PARAMS_ERROR,
@@ -362,7 +363,7 @@ func RegisterProxy(c *gin.Context) {
 	}
 
 	if id, err := service.MintSignAccPkNft(signAcc, common.FromHex(meta)); err != nil {
-		gl.OutLogger.Error("service.MintSignAccPkNft error. %s, %v", signAcc, err)
+		gl.OutLogger.Error("service.MintSignAccPkNft error. %s, %s, %v", smr, signAcc, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.SYSTEM_ERROR,

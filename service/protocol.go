@@ -39,5 +39,6 @@ func UpateShimmerNodeProtocol() {
 func GetShimmerNodeProtocol() *iotago.ProtocolParameters {
 	protocolMu.RLock()
 	defer protocolMu.RUnlock()
-	return &nodeProtocol
+	pp := nodeProtocol
+	return &pp
 }
