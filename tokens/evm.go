@@ -186,6 +186,22 @@ func (t *EvmToken) dealEventOrder(vLog *types.Log, chOrder chan Order) {
 	}
 }
 
+func (t *EvmToken) FilterEthAddresses(addrs []common.Address, threshold *big.Int) ([]uint16, error) {
+	client, err := ethclient.Dial(t.rpc)
+	if err != nil {
+		return nil, err
+	}
+	gp, err := NewGroupFi(t.contract, client)
+	if err != nil {
+		return nil, err
+	}
+	res, err := gp.FilterEthAddresses(&bind.CallOpts{}, addrs, threshold)
+	if err != nil {
+		return nil, err
+	}
+	return res.Indexes[:res.Count], nil
+}
+
 func (t *EvmToken) FilterERC20Addresses(addrs []common.Address, c common.Address, threshold *big.Int) ([]uint16, error) {
 	client, err := ethclient.Dial(t.rpc)
 	if err != nil {
@@ -216,6 +232,22 @@ func (t *EvmToken) FilterERC721Addresses(addrs []common.Address, c common.Addres
 		return nil, err
 	}
 	return res.Indexes[:res.Count], nil
+}
+
+func (t *EvmToken) CheckEthAddresses(adds, subs []common.Address, threshold *big.Int) (int8, error) {
+	client, err := ethclient.Dial(t.rpc)
+	if err != nil {
+		return 0, err
+	}
+	gp, err := NewGroupFi(t.contract, client)
+	if err != nil {
+		return 0, err
+	}
+	res, err := gp.CheckEthGroup(&bind.CallOpts{}, adds, subs, threshold)
+	if err != nil {
+		return 0, err
+	}
+	return res, nil
 }
 
 func (t *EvmToken) CheckERC20Addresses(adds, subs []common.Address, c common.Address, threshold *big.Int) (int8, error) {

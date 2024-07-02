@@ -111,6 +111,8 @@ func FilterGroup(c *gin.Context) {
 		indexes, err = t.FilterERC20Addresses(addrs, common.HexToAddress(f.Contract), threshold)
 	} else if f.Erc == 721 {
 		indexes, err = t.FilterERC721Addresses(addrs, common.HexToAddress(f.Contract))
+	} else if f.Erc == 0 {
+		indexes, err = t.FilterEthAddresses(addrs, threshold)
 	}
 
 	if err != nil {
@@ -168,6 +170,8 @@ func VerifyGroup(c *gin.Context) {
 		res, err = t.CheckERC20Addresses(adds, subs, common.HexToAddress(f.Contract), threshold)
 	} else if f.Erc == 721 {
 		res, err = t.CheckERC721Addresses(adds, subs, common.HexToAddress(f.Contract))
+	} else if f.Erc == 0 {
+		res, err = t.CheckEthAddresses(adds, subs, threshold)
 	}
 	if err != nil {
 		gl.OutLogger.Error("check addresses for group error. %d, %s, %v", f.Chain, f.Contract, err)
@@ -268,7 +272,7 @@ func MintNFT(c *gin.Context) {
 
 func MintNameNftForMM(c *gin.Context) {
 	signAcc := c.GetString("publickey")
-	name := c.GetString("data")
+	name := strings.ToLower(c.GetString("data"))
 
 	proxy, err := model.GetProxyAccount(signAcc)
 	if err != nil {

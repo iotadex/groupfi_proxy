@@ -54,7 +54,7 @@ https://api.groupfi.ai
     "ts" : 1712647238
 }
 ```
-erc is 20 or 721.
+erc is 20 or 721 or 0, and 0 represents native token.
 #### response
 ```json
 {

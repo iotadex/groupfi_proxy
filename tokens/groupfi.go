@@ -30,7 +30,7 @@ var (
 
 // GroupFiMetaData contains all meta data concerning the GroupFi contract.
 var GroupFiMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"w\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"pubkey\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BuySmr\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"ed25519\",\"type\":\"bytes32\"}],\"name\":\"buySmr\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"adds\",\"type\":\"address[]\"},{\"internalType\":\"address[]\",\"name\":\"subs\",\"type\":\"address[]\"},{\"internalType\":\"contractIERC20\",\"name\":\"c\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"threshold\",\"type\":\"uint256\"}],\"name\":\"checkERC20Group\",\"outputs\":[{\"internalType\":\"int8\",\"name\":\"res\",\"type\":\"int8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"adds\",\"type\":\"address[]\"},{\"internalType\":\"address[]\",\"name\":\"subs\",\"type\":\"address[]\"},{\"internalType\":\"contractIERC721\",\"name\":\"c\",\"type\":\"address\"}],\"name\":\"checkERC721Group\",\"outputs\":[{\"internalType\":\"int8\",\"name\":\"\",\"type\":\"int8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"addrs\",\"type\":\"address[]\"},{\"internalType\":\"contractIERC20\",\"name\":\"c\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"threshold\",\"type\":\"uint256\"}],\"name\":\"filterERC20Addresses\",\"outputs\":[{\"internalType\":\"uint16[]\",\"name\":\"indexes\",\"type\":\"uint16[]\"},{\"internalType\":\"uint16\",\"name\":\"count\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"addrs\",\"type\":\"address[]\"},{\"internalType\":\"contractIERC20\",\"name\":\"c\",\"type\":\"address\"}],\"name\":\"filterERC721Addresses\",\"outputs\":[{\"internalType\":\"uint16[]\",\"name\":\"indexes\",\"type\":\"uint16[]\"},{\"internalType\":\"uint16\",\"name\":\"count\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"wallet\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"w\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"pubkey\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"amountOut\",\"type\":\"uint64\"}],\"name\":\"BuySmr\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"ed25519\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"amount\",\"type\":\"uint64\"}],\"name\":\"buySmr\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"adds\",\"type\":\"address[]\"},{\"internalType\":\"address[]\",\"name\":\"subs\",\"type\":\"address[]\"},{\"internalType\":\"contractIERC20\",\"name\":\"c\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"threshold\",\"type\":\"uint256\"}],\"name\":\"checkERC20Group\",\"outputs\":[{\"internalType\":\"int8\",\"name\":\"res\",\"type\":\"int8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"adds\",\"type\":\"address[]\"},{\"internalType\":\"address[]\",\"name\":\"subs\",\"type\":\"address[]\"},{\"internalType\":\"contractIERC721\",\"name\":\"c\",\"type\":\"address\"}],\"name\":\"checkERC721Group\",\"outputs\":[{\"internalType\":\"int8\",\"name\":\"\",\"type\":\"int8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"adds\",\"type\":\"address[]\"},{\"internalType\":\"address[]\",\"name\":\"subs\",\"type\":\"address[]\"},{\"internalType\":\"uint256\",\"name\":\"threshold\",\"type\":\"uint256\"}],\"name\":\"checkEthGroup\",\"outputs\":[{\"internalType\":\"int8\",\"name\":\"res\",\"type\":\"int8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"addrs\",\"type\":\"address[]\"},{\"internalType\":\"contractIERC20\",\"name\":\"c\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"threshold\",\"type\":\"uint256\"}],\"name\":\"filterERC20Addresses\",\"outputs\":[{\"internalType\":\"uint16[]\",\"name\":\"indexes\",\"type\":\"uint16[]\"},{\"internalType\":\"uint16\",\"name\":\"count\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"addrs\",\"type\":\"address[]\"},{\"internalType\":\"contractIERC721\",\"name\":\"c\",\"type\":\"address\"}],\"name\":\"filterERC721Addresses\",\"outputs\":[{\"internalType\":\"uint16[]\",\"name\":\"indexes\",\"type\":\"uint16[]\"},{\"internalType\":\"uint16\",\"name\":\"count\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"addrs\",\"type\":\"address[]\"},{\"internalType\":\"uint256\",\"name\":\"threshold\",\"type\":\"uint256\"}],\"name\":\"filterEthAddresses\",\"outputs\":[{\"internalType\":\"uint16[]\",\"name\":\"indexes\",\"type\":\"uint16[]\"},{\"internalType\":\"uint16\",\"name\":\"count\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"wallet\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // GroupFiABI is the input ABI used to generate the binding from.
@@ -241,6 +241,37 @@ func (_GroupFi *GroupFiCallerSession) CheckERC721Group(adds []common.Address, su
 	return _GroupFi.Contract.CheckERC721Group(&_GroupFi.CallOpts, adds, subs, c)
 }
 
+// CheckEthGroup is a free data retrieval call binding the contract method 0x9978c27d.
+//
+// Solidity: function checkEthGroup(address[] adds, address[] subs, uint256 threshold) view returns(int8 res)
+func (_GroupFi *GroupFiCaller) CheckEthGroup(opts *bind.CallOpts, adds []common.Address, subs []common.Address, threshold *big.Int) (int8, error) {
+	var out []interface{}
+	err := _GroupFi.contract.Call(opts, &out, "checkEthGroup", adds, subs, threshold)
+
+	if err != nil {
+		return *new(int8), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(int8)).(*int8)
+
+	return out0, err
+
+}
+
+// CheckEthGroup is a free data retrieval call binding the contract method 0x9978c27d.
+//
+// Solidity: function checkEthGroup(address[] adds, address[] subs, uint256 threshold) view returns(int8 res)
+func (_GroupFi *GroupFiSession) CheckEthGroup(adds []common.Address, subs []common.Address, threshold *big.Int) (int8, error) {
+	return _GroupFi.Contract.CheckEthGroup(&_GroupFi.CallOpts, adds, subs, threshold)
+}
+
+// CheckEthGroup is a free data retrieval call binding the contract method 0x9978c27d.
+//
+// Solidity: function checkEthGroup(address[] adds, address[] subs, uint256 threshold) view returns(int8 res)
+func (_GroupFi *GroupFiCallerSession) CheckEthGroup(adds []common.Address, subs []common.Address, threshold *big.Int) (int8, error) {
+	return _GroupFi.Contract.CheckEthGroup(&_GroupFi.CallOpts, adds, subs, threshold)
+}
+
 // FilterERC20Addresses is a free data retrieval call binding the contract method 0xb88d5ea4.
 //
 // Solidity: function filterERC20Addresses(address[] addrs, address c, uint256 threshold) view returns(uint16[] indexes, uint16 count)
@@ -331,6 +362,51 @@ func (_GroupFi *GroupFiCallerSession) FilterERC721Addresses(addrs []common.Addre
 	return _GroupFi.Contract.FilterERC721Addresses(&_GroupFi.CallOpts, addrs, c)
 }
 
+// FilterEthAddresses is a free data retrieval call binding the contract method 0xd9524e5a.
+//
+// Solidity: function filterEthAddresses(address[] addrs, uint256 threshold) view returns(uint16[] indexes, uint16 count)
+func (_GroupFi *GroupFiCaller) FilterEthAddresses(opts *bind.CallOpts, addrs []common.Address, threshold *big.Int) (struct {
+	Indexes []uint16
+	Count   uint16
+}, error) {
+	var out []interface{}
+	err := _GroupFi.contract.Call(opts, &out, "filterEthAddresses", addrs, threshold)
+
+	outstruct := new(struct {
+		Indexes []uint16
+		Count   uint16
+	})
+	if err != nil {
+		return *outstruct, err
+	}
+
+	outstruct.Indexes = *abi.ConvertType(out[0], new([]uint16)).(*[]uint16)
+	outstruct.Count = *abi.ConvertType(out[1], new(uint16)).(*uint16)
+
+	return *outstruct, err
+
+}
+
+// FilterEthAddresses is a free data retrieval call binding the contract method 0xd9524e5a.
+//
+// Solidity: function filterEthAddresses(address[] addrs, uint256 threshold) view returns(uint16[] indexes, uint16 count)
+func (_GroupFi *GroupFiSession) FilterEthAddresses(addrs []common.Address, threshold *big.Int) (struct {
+	Indexes []uint16
+	Count   uint16
+}, error) {
+	return _GroupFi.Contract.FilterEthAddresses(&_GroupFi.CallOpts, addrs, threshold)
+}
+
+// FilterEthAddresses is a free data retrieval call binding the contract method 0xd9524e5a.
+//
+// Solidity: function filterEthAddresses(address[] addrs, uint256 threshold) view returns(uint16[] indexes, uint16 count)
+func (_GroupFi *GroupFiCallerSession) FilterEthAddresses(addrs []common.Address, threshold *big.Int) (struct {
+	Indexes []uint16
+	Count   uint16
+}, error) {
+	return _GroupFi.Contract.FilterEthAddresses(&_GroupFi.CallOpts, addrs, threshold)
+}
+
 // Wallet is a free data retrieval call binding the contract method 0x521eb273.
 //
 // Solidity: function wallet() view returns(address)
@@ -362,25 +438,25 @@ func (_GroupFi *GroupFiCallerSession) Wallet() (common.Address, error) {
 	return _GroupFi.Contract.Wallet(&_GroupFi.CallOpts)
 }
 
-// BuySmr is a paid mutator transaction binding the contract method 0x0be37470.
+// BuySmr is a paid mutator transaction binding the contract method 0x300ff8fb.
 //
-// Solidity: function buySmr(bytes32 ed25519) payable returns()
-func (_GroupFi *GroupFiTransactor) BuySmr(opts *bind.TransactOpts, ed25519 [32]byte) (*types.Transaction, error) {
-	return _GroupFi.contract.Transact(opts, "buySmr", ed25519)
+// Solidity: function buySmr(bytes32 ed25519, uint64 amount) payable returns()
+func (_GroupFi *GroupFiTransactor) BuySmr(opts *bind.TransactOpts, ed25519 [32]byte, amount uint64) (*types.Transaction, error) {
+	return _GroupFi.contract.Transact(opts, "buySmr", ed25519, amount)
 }
 
-// BuySmr is a paid mutator transaction binding the contract method 0x0be37470.
+// BuySmr is a paid mutator transaction binding the contract method 0x300ff8fb.
 //
-// Solidity: function buySmr(bytes32 ed25519) payable returns()
-func (_GroupFi *GroupFiSession) BuySmr(ed25519 [32]byte) (*types.Transaction, error) {
-	return _GroupFi.Contract.BuySmr(&_GroupFi.TransactOpts, ed25519)
+// Solidity: function buySmr(bytes32 ed25519, uint64 amount) payable returns()
+func (_GroupFi *GroupFiSession) BuySmr(ed25519 [32]byte, amount uint64) (*types.Transaction, error) {
+	return _GroupFi.Contract.BuySmr(&_GroupFi.TransactOpts, ed25519, amount)
 }
 
-// BuySmr is a paid mutator transaction binding the contract method 0x0be37470.
+// BuySmr is a paid mutator transaction binding the contract method 0x300ff8fb.
 //
-// Solidity: function buySmr(bytes32 ed25519) payable returns()
-func (_GroupFi *GroupFiTransactorSession) BuySmr(ed25519 [32]byte) (*types.Transaction, error) {
-	return _GroupFi.Contract.BuySmr(&_GroupFi.TransactOpts, ed25519)
+// Solidity: function buySmr(bytes32 ed25519, uint64 amount) payable returns()
+func (_GroupFi *GroupFiTransactorSession) BuySmr(ed25519 [32]byte, amount uint64) (*types.Transaction, error) {
+	return _GroupFi.Contract.BuySmr(&_GroupFi.TransactOpts, ed25519, amount)
 }
 
 // GroupFiBuySmrIterator is returned from FilterBuySmr and is used to iterate over the raw logs and unpacked data for BuySmr events raised by the GroupFi contract.
@@ -452,15 +528,16 @@ func (it *GroupFiBuySmrIterator) Close() error {
 
 // GroupFiBuySmr represents a BuySmr event raised by the GroupFi contract.
 type GroupFiBuySmr struct {
-	User   common.Address
-	Pubkey [32]byte
-	Amount *big.Int
-	Raw    types.Log // Blockchain specific contextual infos
+	User      common.Address
+	Pubkey    [32]byte
+	AmountIn  *big.Int
+	AmountOut uint64
+	Raw       types.Log // Blockchain specific contextual infos
 }
 
-// FilterBuySmr is a free log retrieval operation binding the contract event 0x905ae42a50701634c8c07d7c990f85ec62f09c26131b87d708dbe3d60e43b186.
+// FilterBuySmr is a free log retrieval operation binding the contract event 0x80b13b0b008cc1a1ca4fe2bf60e077b51203e806895da5e9eef74f477b8c5996.
 //
-// Solidity: event BuySmr(address indexed user, bytes32 indexed pubkey, uint256 amount)
+// Solidity: event BuySmr(address indexed user, bytes32 indexed pubkey, uint256 amountIn, uint64 amountOut)
 func (_GroupFi *GroupFiFilterer) FilterBuySmr(opts *bind.FilterOpts, user []common.Address, pubkey [][32]byte) (*GroupFiBuySmrIterator, error) {
 
 	var userRule []interface{}
@@ -479,9 +556,9 @@ func (_GroupFi *GroupFiFilterer) FilterBuySmr(opts *bind.FilterOpts, user []comm
 	return &GroupFiBuySmrIterator{contract: _GroupFi.contract, event: "BuySmr", logs: logs, sub: sub}, nil
 }
 
-// WatchBuySmr is a free log subscription operation binding the contract event 0x905ae42a50701634c8c07d7c990f85ec62f09c26131b87d708dbe3d60e43b186.
+// WatchBuySmr is a free log subscription operation binding the contract event 0x80b13b0b008cc1a1ca4fe2bf60e077b51203e806895da5e9eef74f477b8c5996.
 //
-// Solidity: event BuySmr(address indexed user, bytes32 indexed pubkey, uint256 amount)
+// Solidity: event BuySmr(address indexed user, bytes32 indexed pubkey, uint256 amountIn, uint64 amountOut)
 func (_GroupFi *GroupFiFilterer) WatchBuySmr(opts *bind.WatchOpts, sink chan<- *GroupFiBuySmr, user []common.Address, pubkey [][32]byte) (event.Subscription, error) {
 
 	var userRule []interface{}
@@ -525,9 +602,9 @@ func (_GroupFi *GroupFiFilterer) WatchBuySmr(opts *bind.WatchOpts, sink chan<- *
 	}), nil
 }
 
-// ParseBuySmr is a log parse operation binding the contract event 0x905ae42a50701634c8c07d7c990f85ec62f09c26131b87d708dbe3d60e43b186.
+// ParseBuySmr is a log parse operation binding the contract event 0x80b13b0b008cc1a1ca4fe2bf60e077b51203e806895da5e9eef74f477b8c5996.
 //
-// Solidity: event BuySmr(address indexed user, bytes32 indexed pubkey, uint256 amount)
+// Solidity: event BuySmr(address indexed user, bytes32 indexed pubkey, uint256 amountIn, uint64 amountOut)
 func (_GroupFi *GroupFiFilterer) ParseBuySmr(log types.Log) (*GroupFiBuySmr, error) {
 	event := new(GroupFiBuySmr)
 	if err := _GroupFi.contract.UnpackLog(event, "BuySmr", log); err != nil {

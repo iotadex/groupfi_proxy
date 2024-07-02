@@ -140,3 +140,7 @@ func verifyEthAddress(signature, hashData []byte) (*ecdsa.PublicKey, error) {
 	}
 	return crypto.SigToPub(hashData, signature)
 }
+
+func VerifySolana(c *gin.Context) {
+
+}
