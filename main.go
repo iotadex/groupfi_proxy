@@ -1,15 +1,20 @@
 package main
 
 import (
+	"fmt"
 	"gproxy/api"
 	"gproxy/config"
 	"gproxy/daemon"
 	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/service"
+	"gproxy/tokens"
 	"gproxy/tools"
 	"gproxy/wallet"
+	"math/big"
 	"os"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 func main() {
@@ -41,4 +46,13 @@ func setSeeds() {
 	model.SetSeeds(seeds)
 	// set service's seeds
 	wallet.SetSeeds(seeds)
+}
+
+func TestFilter() {
+	t := tokens.NewEvmToken("https://json-rpc.evm.shimmer.network", "", "0xAEaDcd57E4389678537d82891f095BBbE0ab9610", 148, 0)
+	addrs := make([]common.Address, 0)
+	addrs = append(addrs, common.HexToAddress("0x1CB7B54AAB4283782b8aF70d07F88AD795c952E9"))
+	a, _ := new(big.Int).SetString("170000000000000000000", 10)
+	indexes, err := t.FilterEthAddresses(addrs, a)
+	fmt.Println(indexes, err)
 }

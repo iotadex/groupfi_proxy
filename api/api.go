@@ -113,6 +113,14 @@ func FilterGroup(c *gin.Context) {
 		indexes, err = t.FilterERC721Addresses(addrs, common.HexToAddress(f.Contract))
 	} else if f.Erc == 0 {
 		indexes, err = t.FilterEthAddresses(addrs, threshold)
+	} else {
+		gl.OutLogger.Error("erc error. %d", f.Erc)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.SYSTEM_ERROR,
+			"err-msg":  "system error",
+		})
+		return
 	}
 
 	if err != nil {

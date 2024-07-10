@@ -6,6 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/gagliardetto/solana-go"
 )
 
 func TestVerifyEth(t *testing.T) {
@@ -20,4 +21,21 @@ func TestVerifyEth(t *testing.T) {
 	sign := common.FromHex("0xebce1073770bd60834071230d8f3faa9d7057a96974d338a355abb568e9fe2435cb85d5b490a9c59cb01fed0d7a7254a36dceb6d835d7b92e236cd82ee6a8db91b")
 	_, err := verifyEthAddress(sign, crypto.Keccak256Hash([]byte(data)).Bytes())
 	fmt.Println(err)
+}
+
+func TestVerifySolana(t *testing.T) {
+	encryptedPrivateKey := "67bda84c39bd28da355116973cd6b19c3565d0b7dbced87b7340b2cb1cb69ed38b238eac03d38b644968f17ea72fda74cda8a3c95e225d4ea94274ca5cd486a5841c84baa992470527b363e8a5288e218191535be3e5f1325f51a0e8251cc5f67ff2f4cd5ced3a066879f2ae01eaeddf"
+	pairXPublicKey := "0xe02d39be02ee6d40c8dee36198373801548cc55ecd8ddd1dc52482053104c8c2"
+	evmAddress := "DUTUWgs4dhaeyvSQkeD5iLBcDZgAD7xDQf2v59iENhso"
+	timestamp := "1720601578"
+	scenery := "2"
+
+	publicKey, _ := solana.PublicKeyFromBase58(evmAddress)
+	sign := "4b90769b23a5d8d5b0da18da0d2a4f5d3da23292170a448401cacbe379c121422fa8f532a061f61f9b3bc9e0919cd731b441f345c55e20969af33344e9aff604"
+
+	signature := solana.SignatureFromBytes(common.FromHex(sign))
+
+	data := encryptedPrivateKey + evmAddress + pairXPublicKey + scenery + timestamp
+
+	fmt.Println(publicKey.Verify([]byte(data), signature))
 }

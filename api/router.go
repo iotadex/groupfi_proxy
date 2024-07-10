@@ -76,6 +76,11 @@ func InitRouter() *gin.Engine {
 		mainAcc.POST("/register", RegisterProxy)
 	}
 
+	solAcc := api.Group("/proxy").Use(middleware.SignIpRateLimiterWare).Use(middleware.VerifySolSign)
+	{
+		solAcc.POST("/register/solana", RegisterProxy)
+	}
+
 	proxy := api.Group("/proxy").Use(middleware.SignIpRateLimiterWare).Use(middleware.VerifyEd25519Sign)
 	{
 		proxy.POST("/mint_nicknft", MintNameNftForMM)

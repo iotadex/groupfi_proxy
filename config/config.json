@@ -4,8 +4,8 @@
         "host": "127.0.0.1",
         "port": "3306",
         "dbname": "groupfi",
-        "usr": "root",
-        "pwd": "053c5f79a68fd96ae71309af8f920036"
+        "usr": "groupfiapi",
+        "pwd": "92d2ad82cae5014d4e7c0e5bc80dba8dcf80d9b152ec8e4b387ae252aadaa6d8"
     },
     "evm_node": {
         "148": {
@@ -13,70 +13,78 @@
             "wss": "wss://ws.json-rpc.evm.shimmer.network",
             "listen_type": 0,
             "max_filter_block": 999,
-            "contract": "0xc2F820BA3DBe0755deE2cD0ddc8Bf2fEc1e57255"
+            "contract": "0xAEaDcd57E4389678537d82891f095BBbE0ab9610"
         },
         "128123": {
             "rpc": "https://node.ghostnet.etherlink.com/",
             "wss": "wss://node.ghostnet.etherlink.com/",
             "listen_type": 1,
             "max_filter_block": 999,
-            "contract": "0xD9B13709Ce4Ef82402c091f3fc8A93a9360A5c1e"
+            "contract": "0xD735F8c06c8b802E989512F85E696b11733d7734"
         },
         "56": {
             "rpc": "https://bsc-dataseed.binance.org/",
             "wss": "wss://bsc-dataseed.binance.org/",
             "listen_type": 1,
             "max_filter_block": 999,
-            "contract": "0xf6BEA7EA5bA937da0D73dA21139821Aa7ee85E0e"
+            "contract": "0xc76f183f80B3be4237eECAc1C777E061a8A1624E"
         },
         "137": {
             "rpc": "https://polygon-mainnet.infura.io",
             "wss": "wss://polygon-mainnet.infura.io",
             "listen_type": 1,
             "max_filter_block": 999,
-            "contract": "0xD9B13709Ce4Ef82402c091f3fc8A93a9360A5c1e"
+            "contract": "0xD735F8c06c8b802E989512F85E696b11733d7734"
         },
         "43114": {
             "rpc": "https://avalanche-mainnet.infura.io",
             "wss": "wss://avalanche-mainnet.infura.io",
             "listen_type": 1,
             "max_filter_block": 999,
-            "contract": "0xD9B13709Ce4Ef82402c091f3fc8A93a9360A5c1e"
+            "contract": "0xD735F8c06c8b802E989512F85E696b11733d7734"
         },
         "1": {
-            "rpc": "https://mainnet.infura.io/v3/",
-            "wss": "wss://mainnet.infura.io/v3/",
+            "rpc": "https://mainnet.infura.io/v3/d76f3ff2954844359b16db013a099e45",
+            "wss": "wss://mainnet.infura.io/v3/d76f3ff2954844359b16db013a099e45",
             "listen_type": 0,
             "max_filter_block": 999,
-            "contract": "0xD9B13709Ce4Ef82402c091f3fc8A93a9360A5c1e"
+            "contract": "0xD735F8c06c8b802E989512F85E696b11733d7734"
+        },
+        "8822": {
+            "rpc": "https://json-rpc.evm.iotaledger.net",
+            "wss": "wss://ws.json-rpc.evm.iotaledger.net",
+            "listen_type": 0,
+            "max_filter_block": 999,
+            "contract": "0xf6BEA7EA5bA937da0D73dA21139821Aa7ee85E0e"
         }
     },
-    "shimmer_rpc": "https://api.shimmer.network",
+    "shimmer_rpc": "https://prerelease.api.iotacat.com",
     "update_protocol_time": 60,
     "send_interval_time": 60,
-    "proxy_pool_check_minutes": 1,
-    "min_proxy_pool_count": 5,
-    "proxy_wallet": "1",
-    "proxy_pk_nft_tag": "GROUPFIPAIRXV1",
-    "proxy_balance_check_hours": 24,
-    "proxy_send_amount": 10000000,
-    "name_nftid": "0x7f7479f95bfb52c24aadd3e45c9dfec8e67847a673e10b6a18063a5c19cc7370",
+    "proxy_pool_check_minutes": 10,
+    "min_proxy_pool_count": 20,
+    "proxy_wallet": "2",
+    "proxy_pk_nft_tag": "GROUPFIPAIRXV2",
+    "proxy_balance_check_hours": 12,
+    "proxy_send_amount": 200000000,
+    "name_nftid": "0xf45a533f41d52e8337a09aaa9f8456e8165a737e395f35d2d6af3467eb240533",
     "name_nft_days": 7,
-    "default_img": "https:npfs",
+    "default_img": "ipfs://bafybeidfvzjbovlskk6gw3vtubg4h4adn3k6bms7xwd4ixzl4wh2rfav24",
     "name_nft_tag": "groupfi-id",
     "max_msg_locked_days": 30,
     "services": {
         "buy_smr": false,
         "keep_proxy_pool": true,
         "check_proxy_balance": true,
-        "send_smr": true
+        "send_smr": true,
+        "faucet": true
     },
-    "sign_ed_pk": "9045bcf63f9dea84b0faeb83eef7f4be60b9d4317d417bb0f5a04bea4007aca9054b2a3d0106b2c82c467ea05472b72db35c2c96ffded60f5bc8639032dfc62f14f81fd9eb9dd5f3687c051df26a98898b576a9b87271af91fc6d1e95d3dd194c1fcadc2381759a3d6feb14ad01c3f2f0fb47707d330c3de99dfd4e6396eb14199bafc5e1d1c1e450900ae7e10fe1807",
     "faucet_node": {
         "148": {
             "rpc": "https://json-rpc.evm.shimmer.network",
             "wallet": "b77fadf578f0151c54df4eb556253820ace68f374681eec933898508052f103a11d1efe553c35ab1f14ebb3e9ee93f6314aa1e2c8d7e6293cbb06b8a363256256296d3e24543d7ffc6f4e74e978681ab",
             "max_amount": "100000000"
         }
-    }
+    },
+    "sign_ed_pk": "9045bcf63f9dea84b0faeb83eef7f4be60b9d4317d417bb0f5a04bea4007aca9054b2a3d0106b2c82c467ea05472b72db35c2c96ffded60f5bc8639032dfc62f14f81fd9eb9dd5f3687c051df26a98898b576a9b87271af91fc6d1e95d3dd194c1fcadc2381759a3d6feb14ad01c3f2f0fb47707d330c3de99dfd4e6396eb14199bafc5e1d1c1e450900ae7e10fe1807"
 }
