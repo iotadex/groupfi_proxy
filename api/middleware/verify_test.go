@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"gproxy/tools"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -90,4 +91,10 @@ func TestSolanaAccountInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println(a)
+}
+
+func TestFilterAddresses(t *testing.T) {
+	url := fmt.Sprintf("%s/getTokenAccountBalance?spl=%d&account=%s", "http://solana.groupfi.ai", 1, "Gjmjory7TWKJXD2Jc6hKzAG991wWutFhtbXudzJqgx3p")
+	data, err := tools.HttpGet(url)
+	fmt.Println(string(data), err)
 }

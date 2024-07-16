@@ -109,6 +109,9 @@ func FilterGroup(c *gin.Context) {
 	var indexes []uint16
 
 	if f.Chain == gl.SOLANA_CHAINID {
+		if f.Contract == "0x0000000000000000000000000000000000000000" {
+			f.Contract = "11111111111111111111111111111111"
+		}
 		indexes, err = filterSolanaAddresses(f.Addresses, f.Contract, threshold.Uint64(), f.Erc)
 	} else {
 		addrs := make([]common.Address, 0, len(f.Addresses))
@@ -181,6 +184,9 @@ func VerifyGroup(c *gin.Context) {
 	var res int8
 
 	if f.Chain == gl.SOLANA_CHAINID {
+		if f.Contract == "0x0000000000000000000000000000000000000000" {
+			f.Contract = "11111111111111111111111111111111"
+		}
 		res, err = verifySolanaAddresses(f.Adds, f.Subs, f.Contract, threshold.Uint64(), f.Erc)
 	} else {
 		adds := make([]common.Address, 0, len(f.Adds))

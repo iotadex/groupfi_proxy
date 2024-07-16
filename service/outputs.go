@@ -51,7 +51,9 @@ func GetCacheNFT() (*iotago.NFTOutput, iotago.OutputID) {
 
 func StartUpdateCacheOutputs() {
 	updateProxyPoolCacheOutputs()
-	updateMintNameNftCacheOutputs()
+	if len(config.NameNftId) > 0 {
+		updateMintNameNftCacheOutputs()
+	}
 	for {
 		select {
 		case <-CreateProxyPoolSignal:
