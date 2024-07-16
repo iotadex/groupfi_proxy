@@ -1,25 +1,28 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/programs/token"
+	"github.com/gagliardetto/solana-go/rpc"
 )
 
 func TestVerifyEth(t *testing.T) {
 	// encryptedPrivateKey+evmAddress+pairXPublicKey+scenery+timestamp
-	encryptedPrivateKey := "0x7b2276657273696f6e223a227832353531392d7873616c736132302d706f6c7931333035222c226e6f6e6365223a222f2f546875654e70447859465861746556337232414e4635516b354a4d777044222c22657068656d5075626c69634b6579223a225431304f516a74313736695170394d524d56666f4e47677a67456e39524b33584d447133456b6a335143593d222c2263697068657274657874223a2275625548325137746a524b6d4d74315a63733153364653574542474d4839334d4c546b4f3636364f5a2b61513563744d6e4174624f4b66524e643157374a5a617a52497459464e6f467965475a5863635256654b6b6c744b76326a544a73696468633641343253387943513d227d"
-	pairXPublicKey := "0xe9024a1bad751950c768417ad9de3709a67709a40331e79b4e80870b23aa17d6"
-	evmAddress := "0x928100571464c900A2F53689353770455D78a200"
-	timestamp := "1711445126"
-	scenery := "1"
+	encryptedPrivateKey := "78ececefdabf64909d6b5817f9169e0beb9ec417f5b1cf626de52ad5ef14448b88fe8e49d67a04f2cefda9f4b663d14d241528a541bf5cdb035fe8c16746d5300af69b2844c5f6a98fb979088b3ca531c5c753ee1a282bd74278e45b70f5a53698f10f6d0f86fc049bdf420118ca5ed7"
+	pairXPublicKey := "0x4b068c5d502f7d148a5cbc9018d8cf42c9f3ca05e8505d185bb52c7d44dd06b2"
+	evmAddress := "0x0439ac5cbc8ae15d19340f398989c1b8b9e78525"
+	timestamp := "1721111467"
+	scenery := "2"
 	data := encryptedPrivateKey + evmAddress + pairXPublicKey + scenery + timestamp
 	data = fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
-	sign := common.FromHex("0xebce1073770bd60834071230d8f3faa9d7057a96974d338a355abb568e9fe2435cb85d5b490a9c59cb01fed0d7a7254a36dceb6d835d7b92e236cd82ee6a8db91b")
-	_, err := verifyEthAddress(sign, crypto.Keccak256Hash([]byte(data)).Bytes())
+	sign := common.FromHex("0x7cccd92dc30a491ada855136ace2d65389357cd5e594629506c1ae121f531e6e7944139863606237a4186f9d5fcf354001b3ae177176a7b29c97c7d9f3616c7d1c")
+	_, err := verifyEthAddress(sign, crypto.Keccak256Hash([]byte(data)).Bytes(), common.HexToAddress(evmAddress))
 	fmt.Println(err)
 }
 
@@ -38,4 +41,51 @@ func TestVerifySolana(t *testing.T) {
 	data := encryptedPrivateKey + evmAddress + pairXPublicKey + scenery + timestamp
 
 	fmt.Println(publicKey.Verify([]byte(data), signature))
+}
+
+func TestSolanaHello(t *testing.T) {
+	client := rpc.New("http://localhost:8899")
+	fmt.Println(client.GetBlockHeight(context.Background(), "recent"))
+	account := solana.MustPublicKeyFromBase58("BC6ZoMVGS5BuUYZcUiHC1sBP7No4jmJPoJENsLXpsV9A")
+	programId := solana.MustPublicKeyFromBase58("3t6momB2NJc4DdveCFoK2VSxaMXLh1ktEfvZa1qWyRhG")
+	accMeta := solana.NewAccountMeta(account, true, true)
+	instruction := solana.NewInstruction(programId, solana.AccountMetaSlice{accMeta}, nil)
+
+	out, err := client.GetLatestBlockhash(context.Background(), "finalized")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(out.Value.Blockhash.String())
+
+	builder := solana.NewTransactionBuilder()
+	tx, err := builder.AddInstruction(instruction).SetFeePayer(account).SetRecentBlockHash(out.Value.Blockhash).Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fn := func(pubKey solana.PublicKey) *solana.PrivateKey {
+		prvKey := solana.PrivateKey([]byte{169, 147, 72, 162, 246, 161, 44, 40, 106, 31, 39, 127, 244, 179, 252, 156, 133, 118, 71, 48, 40, 189, 206, 8, 241, 35, 195, 245, 165, 224, 119, 108, 151, 108, 141, 20, 194, 201, 187, 6, 62, 17, 157, 27, 57, 181, 221, 215, 193, 118, 193, 171, 13, 194, 70, 117, 93, 29, 242, 228, 204, 146, 251, 9})
+		return &prvKey
+	}
+
+	tx.Sign(fn)
+
+	sign, err := client.SendTransaction(context.Background(), tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println(sign.String())
+}
+
+func TestSolanaAccountInfo(t *testing.T) {
+	client := rpc.New("http://localhost:8899")
+	fmt.Println(client.GetBlockHeight(context.Background(), "recent"))
+	account := solana.MustPublicKeyFromBase58("GPq3oUGDAvBYew9iufxU1TU5FwygAhjAtdCuXrECS6uX")
+	var a token.Account
+	err := client.GetAccountDataInto(context.Background(), account, &a)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(a)
 }

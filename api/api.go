@@ -90,7 +90,6 @@ func FilterGroup(c *gin.Context) {
 	f := Filter{}
 	err := c.BindJSON(&f)
 	node, exist := config.EvmNodes[f.Chain]
-	//threshold := new(big.Int).SetInt64(int64(f.Threshold))
 	threshold, b := new(big.Int).SetString(f.Threshold, 10)
 	if err != nil || !exist || !b {
 		c.JSON(http.StatusOK, gin.H{
@@ -100,6 +99,7 @@ func FilterGroup(c *gin.Context) {
 		})
 		return
 	}
+
 	addrs := make([]common.Address, 0, len(f.Addresses))
 	for i := range f.Addresses {
 		addrs = append(addrs, common.HexToAddress(f.Addresses[i]))

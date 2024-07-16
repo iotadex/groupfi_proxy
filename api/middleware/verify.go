@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"gproxy/config"
 	"gproxy/gl"
 	"net/http"
 	"strconv"
@@ -50,12 +51,12 @@ func VerifyEvmSign(c *gin.Context) {
 	}
 
 	signature := common.FromHex(md.Signature)
-	data := md.EncryptedPrivateKey + md.EvmAddress + md.PairXPublicKey + strconv.Itoa(md.Scenery) + strconv.FormatInt(md.Timestamp, 10)
+	data := config.SignPrefix + md.EncryptedPrivateKey + md.EvmAddress + md.PairXPublicKey + strconv.Itoa(md.Scenery) + strconv.FormatInt(md.Timestamp, 10)
 
 	account := ""
 	if len(md.EvmAddress) == 42 && (strings.HasPrefix(md.EvmAddress, "0x") || strings.HasPrefix(md.EvmAddress, "0X")) {
 		hashData := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
-		publickey, err := verifyEthAddress(signature, crypto.Keccak256Hash([]byte(hashData)).Bytes())
+		publickey, err := verifyEthAddress(signature, crypto.Keccak256Hash([]byte(hashData)).Bytes(), common.HexToAddress(md.EvmAddress))
 		if err != nil {
 			c.Abort()
 			c.JSON(http.StatusOK, gin.H{
@@ -79,8 +80,6 @@ func VerifyEvmSign(c *gin.Context) {
 			})
 			return
 		}
-
-		data := md.EncryptedPrivateKey + md.EvmAddress + md.PairXPublicKey + strconv.Itoa(md.Scenery) + strconv.FormatInt(md.Timestamp, 10)
 
 		if !publicKey.Verify([]byte(data), signature) {
 			c.Abort()
@@ -215,7 +214,7 @@ func VerifyEd25519Sign(c *gin.Context) {
 	c.Next()
 }
 
-func verifyEthAddress(signature, hashData []byte) (*ecdsa.PublicKey, error) {
+func verifyEthAddress(signature, hashData []byte, addr common.Address) (*ecdsa.PublicKey, error) {
 	if len(signature) < 65 {
 		return nil, fmt.Errorf("signature length is too short")
 	}
@@ -226,5 +225,12 @@ func verifyEthAddress(signature, hashData []byte) (*ecdsa.PublicKey, error) {
 	} else {
 		signature[64] -= 27
 	}
-	return crypto.SigToPub(hashData, signature)
+	pubkey, err := crypto.SigToPub(hashData, signature)
+	if err != nil {
+		return nil, err
+	}
+	if addr.Cmp(crypto.PubkeyToAddress(*pubkey)) != 0 {
+		return nil, fmt.Errorf("signature not match")
+	}
+	return pubkey, nil
 }

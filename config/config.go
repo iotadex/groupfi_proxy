@@ -64,6 +64,7 @@ var (
 	DefaultImg             string                // default_image url of name nft
 	NameNftTag             string                // name nft tag, string
 	MaxMsgLockTime         int64                 // max lock time of msg output, seconds
+	SignPrefix             string                // sign prefix "Creating account... "
 	Services               map[int]bool          // service runs or not
 	FaucetNodes            map[uint64]faucetNode // evm node for sending faucet
 
@@ -95,6 +96,7 @@ func Load() {
 		DefaultImg             string                `json:"default_img"`
 		NameNftTag             string                `json:"name_nft_tag"`
 		MaxMsgLockDays         int64                 `json:"max_msg_locked_days"`
+		SignPrefix             string                `json:"sign_prefix"`
 		Services               map[string]bool       `json:"services"`
 		SignEdPk               string                `json:"sign_ed_pk"`
 		FaucetNodes            map[string]faucetNode `json:"faucet_node"`
@@ -124,6 +126,7 @@ func Load() {
 	DefaultImg = all.DefaultImg
 	NameNftTag = all.NameNftTag
 	MaxMsgLockTime = all.MaxMsgLockDays * 3600 * 24
+	SignPrefix = all.SignPrefix
 	Services = make(map[int]bool)
 	for s, b := range all.Services {
 		Services[serviceType[s]] = b
