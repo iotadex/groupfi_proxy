@@ -55,6 +55,7 @@ https://api.groupfi.ai
 }
 ```
 erc is 20 or 721 or 0, and 0 represents native token.
+the contract is `11111111111111111111111111111111` if solana chain
 #### response
 ```json
 {

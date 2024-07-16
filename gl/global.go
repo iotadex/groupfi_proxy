@@ -22,6 +22,10 @@ const (
 	SYSTEM_ERROR                            // system error
 )
 
+const (
+	SOLANA_CHAINID = 518
+)
+
 func CreateLogFiles() {
 	var err error
 	if err = os.MkdirAll("./logs", os.ModePerm); err != nil {

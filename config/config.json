@@ -73,6 +73,7 @@
     "name_nft_tag": "groupfi-id",
     "max_msg_locked_days": 30,
     "sign_prefix": "Creating account... ",
+    "solana_rpc": "http://solana.groupfi.ai",
     "services": {
         "buy_smr": false,
         "keep_proxy_pool": true,

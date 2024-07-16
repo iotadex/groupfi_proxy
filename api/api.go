@@ -3,11 +3,13 @@ package api
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"gproxy/config"
 	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/service"
 	"gproxy/tokens"
+	"gproxy/tools"
 	"gproxy/wallet"
 	"math/big"
 	"net/http"
@@ -89,8 +91,12 @@ type Filter struct {
 func FilterGroup(c *gin.Context) {
 	f := Filter{}
 	err := c.BindJSON(&f)
-	node, exist := config.EvmNodes[f.Chain]
 	threshold, b := new(big.Int).SetString(f.Threshold, 10)
+	node, exist := config.EvmNodes[f.Chain]
+	if f.Chain == gl.SOLANA_CHAINID {
+		exist = true
+	}
+
 	if err != nil || !exist || !b {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
@@ -100,27 +106,32 @@ func FilterGroup(c *gin.Context) {
 		return
 	}
 
-	addrs := make([]common.Address, 0, len(f.Addresses))
-	for i := range f.Addresses {
-		addrs = append(addrs, common.HexToAddress(f.Addresses[i]))
-	}
-
 	var indexes []uint16
-	t := tokens.NewEvmToken(node.Rpc, node.Wss, node.Contract, f.Chain, 0)
-	if f.Erc == 20 {
-		indexes, err = t.FilterERC20Addresses(addrs, common.HexToAddress(f.Contract), threshold)
-	} else if f.Erc == 721 {
-		indexes, err = t.FilterERC721Addresses(addrs, common.HexToAddress(f.Contract))
-	} else if f.Erc == 0 {
-		indexes, err = t.FilterEthAddresses(addrs, threshold)
+
+	if f.Chain == gl.SOLANA_CHAINID {
+		indexes, err = filterSolanaAddresses(f.Addresses, f.Contract, threshold.Uint64(), f.Erc)
 	} else {
-		gl.OutLogger.Error("erc error. %d", f.Erc)
-		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
-		})
-		return
+		addrs := make([]common.Address, 0, len(f.Addresses))
+		for i := range f.Addresses {
+			addrs = append(addrs, common.HexToAddress(f.Addresses[i]))
+		}
+
+		t := tokens.NewEvmToken(node.Rpc, node.Wss, node.Contract, f.Chain, 0)
+		if f.Erc == 20 {
+			indexes, err = t.FilterERC20Addresses(addrs, common.HexToAddress(f.Contract), threshold)
+		} else if f.Erc == 721 {
+			indexes, err = t.FilterERC721Addresses(addrs, common.HexToAddress(f.Contract))
+		} else if f.Erc == 0 {
+			indexes, err = t.FilterEthAddresses(addrs, threshold)
+		} else {
+			gl.OutLogger.Error("erc error. %d", f.Erc)
+			c.JSON(http.StatusOK, gin.H{
+				"result":   false,
+				"err-code": gl.SYSTEM_ERROR,
+				"err-msg":  "system error",
+			})
+			return
+		}
 	}
 
 	if err != nil {
@@ -152,9 +163,12 @@ type Verfiy struct {
 func VerifyGroup(c *gin.Context) {
 	f := Verfiy{}
 	err := c.BindJSON(&f)
-	node, exist := config.EvmNodes[f.Chain]
-	//threshold := new(big.Int).SetInt64(int64(f.Threshold))
 	threshold, b := new(big.Int).SetString(f.Threshold, 10)
+	node, exist := config.EvmNodes[f.Chain]
+	if f.Chain == gl.SOLANA_CHAINID {
+		exist = true
+	}
+
 	if err != nil || !exist || !b {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
@@ -163,24 +177,30 @@ func VerifyGroup(c *gin.Context) {
 		})
 		return
 	}
-	adds := make([]common.Address, 0, len(f.Adds))
-	subs := make([]common.Address, 0, len(f.Subs))
-	for i := range f.Adds {
-		adds = append(adds, common.HexToAddress(f.Adds[i]))
-	}
-	for i := range f.Subs {
-		subs = append(subs, common.HexToAddress(f.Subs[i]))
-	}
 
 	var res int8
-	t := tokens.NewEvmToken(node.Rpc, node.Wss, node.Contract, f.Chain, 0)
-	if f.Erc == 20 {
-		res, err = t.CheckERC20Addresses(adds, subs, common.HexToAddress(f.Contract), threshold)
-	} else if f.Erc == 721 {
-		res, err = t.CheckERC721Addresses(adds, subs, common.HexToAddress(f.Contract))
-	} else if f.Erc == 0 {
-		res, err = t.CheckEthAddresses(adds, subs, threshold)
+
+	if f.Chain == gl.SOLANA_CHAINID {
+		res, err = verifySolanaAddresses(f.Adds, f.Subs, f.Contract, threshold.Uint64(), f.Erc)
+	} else {
+		adds := make([]common.Address, 0, len(f.Adds))
+		subs := make([]common.Address, 0, len(f.Subs))
+		for i := range f.Adds {
+			adds = append(adds, common.HexToAddress(f.Adds[i]))
+		}
+		for i := range f.Subs {
+			subs = append(subs, common.HexToAddress(f.Subs[i]))
+		}
+		t := tokens.NewEvmToken(node.Rpc, node.Wss, node.Contract, f.Chain, 0)
+		if f.Erc == 20 {
+			res, err = t.CheckERC20Addresses(adds, subs, common.HexToAddress(f.Contract), threshold)
+		} else if f.Erc == 721 {
+			res, err = t.CheckERC721Addresses(adds, subs, common.HexToAddress(f.Contract))
+		} else if f.Erc == 0 {
+			res, err = t.CheckEthAddresses(adds, subs, threshold)
+		}
 	}
+
 	if err != nil {
 		gl.OutLogger.Error("check addresses for group error. %d, %s, %v", f.Chain, f.Contract, err)
 		c.JSON(http.StatusOK, gin.H{
@@ -469,4 +489,73 @@ func isAlphaNumeric(str string) bool {
 		}
 	}
 	return true
+}
+
+type Account struct {
+	Result    bool   `json:"result"`
+	ProgramId string `json:"programid"` // base58
+	Owner     string `json:"owner"`     // The owner of this account. base58
+	Amount    uint64 `json:"amount"`    // The amount of tokens this account holds.
+}
+
+func filterSolanaAddresses(adds []string, programId string, threhold uint64, spl int) ([]uint16, error) {
+	indexes := make([]uint16, 0)
+	for i := range adds {
+		url := fmt.Sprintf("%s/getTokenAccountBalance?spl=%d&account=%s", config.SolanaRpc, spl, adds[i])
+		data, err := tools.HttpGet(url)
+		if err != nil {
+			data, err = tools.HttpGet(url)
+		}
+		if err != nil {
+			return nil, err
+		}
+		var acc Account
+		if err := json.Unmarshal(data, &acc); err != nil {
+			return nil, fmt.Errorf("unmarshal solana rpc result error. %s", string(data))
+		}
+
+		if (acc.ProgramId != programId) || (acc.Amount < threhold) {
+			indexes = append(indexes, uint16(i))
+		}
+	}
+	return indexes, nil
+}
+
+func verifySolanaAddresses(adds, subs []string, programId string, threhold uint64, spl int) (int8, error) {
+	for i := range adds {
+		url := fmt.Sprintf("%s/getTokenAccountBalance?spl=%d&account=%s", config.SolanaRpc, spl, adds[i])
+		data, err := tools.HttpGet(url)
+		if err != nil {
+			data, err = tools.HttpGet(url)
+		}
+		if err != nil {
+			return 0, err
+		}
+		var acc Account
+		if err := json.Unmarshal(data, &acc); err != nil {
+			return 0, fmt.Errorf("unmarshal solana rpc result error. %s", string(data))
+		}
+		if (acc.ProgramId != programId) || (acc.Amount < threhold) {
+			return 1, nil
+		}
+	}
+	for i := range subs {
+		url := config.SolanaRpc + "/getTokenAccountBalance?account=" + subs[i]
+		data, err := tools.HttpGet(url)
+		if err != nil {
+			data, err = tools.HttpGet(url)
+		}
+		if err != nil {
+			return 0, err
+		}
+		var acc Account
+		if err := json.Unmarshal(data, &acc); err != nil {
+			return 0, fmt.Errorf("unmarshal solana rpc result error. %s", string(data))
+		}
+
+		if (acc.ProgramId != programId) || (acc.Amount >= threhold) {
+			return -1, nil
+		}
+	}
+	return 0, nil
 }

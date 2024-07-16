@@ -79,6 +79,8 @@ func TestSolanaHello(t *testing.T) {
 }
 
 func TestSolanaAccountInfo(t *testing.T) {
+	var pk solana.PublicKey
+	fmt.Println(pk.String())
 	client := rpc.New("http://localhost:8899")
 	fmt.Println(client.GetBlockHeight(context.Background(), "recent"))
 	account := solana.MustPublicKeyFromBase58("GPq3oUGDAvBYew9iufxU1TU5FwygAhjAtdCuXrECS6uX")
