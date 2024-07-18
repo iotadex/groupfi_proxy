@@ -18,6 +18,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/gagliardetto/solana-go"
 	"github.com/gin-gonic/gin"
 	iotago "github.com/iotaledger/iota.go/v3"
 )
@@ -109,8 +110,19 @@ func FilterGroup(c *gin.Context) {
 	var indexes []uint16
 
 	if f.Chain == gl.SOLANA_CHAINID {
-		if f.Contract == "0x0000000000000000000000000000000000000000" {
-			f.Contract = "11111111111111111111111111111111"
+		if common.HexToAddress(f.Contract).Cmp(gl.EVM_EMPTY_ADDRESS) == 0 {
+			f.Contract = gl.SOLANA_EMPTY_PUBKEY.String()
+		}
+		if f.Contract != gl.SOLANA_EMPTY_PUBKEY.String() {
+			err := associatedTokenAddresses(f.Addresses, f.Contract)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"result":   false,
+					"err-code": gl.PARAMS_ERROR,
+					"err-msg":  err.Error(),
+				})
+				return
+			}
 		}
 		indexes, err = filterSolanaAddresses(f.Addresses, f.Contract, threshold.Uint64(), f.Erc)
 	} else {
@@ -176,7 +188,7 @@ func VerifyGroup(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "params error. ",
+			"err-msg":  fmt.Sprintf("params error. %d, %s, %v", f.Chain, f.Threshold, err),
 		})
 		return
 	}
@@ -184,8 +196,20 @@ func VerifyGroup(c *gin.Context) {
 	var res int8
 
 	if f.Chain == gl.SOLANA_CHAINID {
-		if f.Contract == "0x0000000000000000000000000000000000000000" {
-			f.Contract = "11111111111111111111111111111111"
+		if common.HexToAddress(f.Contract).Cmp(gl.EVM_EMPTY_ADDRESS) == 0 {
+			f.Contract = gl.SOLANA_EMPTY_PUBKEY.String()
+		}
+		if f.Contract != gl.SOLANA_EMPTY_PUBKEY.String() {
+			err1 := associatedTokenAddresses(f.Adds, f.Contract)
+			err2 := associatedTokenAddresses(f.Subs, f.Contract)
+			if err1 != nil || err2 != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"result":   false,
+					"err-code": gl.PARAMS_ERROR,
+					"err-msg":  fmt.Sprintf("%v, %v", err1, err2),
+				})
+				return
+			}
 		}
 		res, err = verifySolanaAddresses(f.Adds, f.Subs, f.Contract, threshold.Uint64(), f.Erc)
 	} else {
@@ -564,4 +588,18 @@ func verifySolanaAddresses(adds, subs []string, programId string, threhold uint6
 		}
 	}
 	return 0, nil
+}
+
+func associatedTokenAddresses(addrs []string, contract string) error {
+	for i, addr := range addrs {
+		owner, err1 := solana.PublicKeyFromBase58(addr)
+		mint, err2 := solana.PublicKeyFromBase58(contract)
+		pubkey, _, err3 := solana.FindAssociatedTokenAddress(owner, mint)
+		if err1 != nil || err2 != nil || err3 != nil {
+
+			return fmt.Errorf("addresses params error. %v, %v, %v", err1, err2, err3)
+		}
+		addrs[i] = pubkey.String()
+	}
+	return nil
 }

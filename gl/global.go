@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/gagliardetto/solana-go"
 	"github.com/triplefi/go-logger/logger"
 )
 
@@ -21,9 +23,13 @@ const (
 	MSG_OUTPUT_ILLEGAL                      // the output is illegal
 	SYSTEM_ERROR                            // system error
 )
-
 const (
 	SOLANA_CHAINID = 518
+)
+
+var (
+	EVM_EMPTY_ADDRESS   = common.Address{}
+	SOLANA_EMPTY_PUBKEY = solana.PublicKey{}
 )
 
 func CreateLogFiles() {

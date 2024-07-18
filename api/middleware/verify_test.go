@@ -80,17 +80,34 @@ func TestSolanaHello(t *testing.T) {
 }
 
 func TestSolanaAccountInfo(t *testing.T) {
-	var pk solana.PublicKey
-	fmt.Println(pk.String())
-	client := rpc.New("http://localhost:8899")
-	fmt.Println(client.GetBlockHeight(context.Background(), "recent"))
-	account := solana.MustPublicKeyFromBase58("GPq3oUGDAvBYew9iufxU1TU5FwygAhjAtdCuXrECS6uX")
+	client := rpc.New("https://api.devnet.solana.com")
+	account := solana.MustPublicKeyFromBase58("HWAzehDFpUS8FD61QYC7b5VHM3jAZWwQRE72xNpgCXVX")
+
+	mint := solana.MustPublicKeyFromBase58("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
+	conf := rpc.GetTokenAccountsConfig{
+		ProgramId: &mint,
+	}
+	out, err := client.GetTokenAccountsByOwner(context.TODO(), account, &conf, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, ta := range out.Value {
+		fmt.Println(ta.Pubkey.String())
+	}
+
 	var a token.Account
-	err := client.GetAccountDataInto(context.Background(), account, &a)
+	err = client.GetAccountDataInto(context.Background(), account, &a)
 	if err != nil {
 		t.Fatal(err)
 	}
 	fmt.Println(a)
+}
+
+func TestCreateTokenAccount(t *testing.T) {
+	account := solana.MustPublicKeyFromBase58("HWAzehDFpUS8FD61QYC7b5VHM3jAZWwQRE72xNpgCXVX")
+	mint := solana.MustPublicKeyFromBase58("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr")
+	pubkey, a, err := solana.FindAssociatedTokenAddress(account, mint)
+	fmt.Println(pubkey.String(), a, err)
 }
 
 func TestFilterAddresses(t *testing.T) {
