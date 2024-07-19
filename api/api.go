@@ -110,7 +110,7 @@ func FilterGroup(c *gin.Context) {
 	var indexes []uint16
 
 	if f.Chain == gl.SOLANA_CHAINID {
-		if common.HexToAddress(f.Contract).Cmp(gl.EVM_EMPTY_ADDRESS) == 0 {
+		if f.Contract == gl.EVM_EMPTY_ADDRESS.Hex() || f.Contract == strings.ToUpper(gl.EVM_EMPTY_ADDRESS.Hex()) {
 			f.Contract = gl.SOLANA_EMPTY_PUBKEY.String()
 		}
 		if f.Contract != gl.SOLANA_EMPTY_PUBKEY.String() {
@@ -196,7 +196,7 @@ func VerifyGroup(c *gin.Context) {
 	var res int8
 
 	if f.Chain == gl.SOLANA_CHAINID {
-		if common.HexToAddress(f.Contract).Cmp(gl.EVM_EMPTY_ADDRESS) == 0 {
+		if f.Contract == gl.EVM_EMPTY_ADDRESS.Hex() || f.Contract == strings.ToUpper(gl.EVM_EMPTY_ADDRESS.Hex()) {
 			f.Contract = gl.SOLANA_EMPTY_PUBKEY.String()
 		}
 		if f.Contract != gl.SOLANA_EMPTY_PUBKEY.String() {
