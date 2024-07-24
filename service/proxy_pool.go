@@ -55,7 +55,7 @@ func RunCheckProxyPoolBalance() {
 }
 
 func RunRecycleMsgOutputs() {
-	ticker := time.NewTicker(time.Hour * time.Duration(config.ProxyBalanceCheckHours))
+	ticker := time.NewTicker(time.Hour * 24)
 	for range ticker.C {
 		addrs, err := model.GetProxyPool(model.USED_ADDRESS)
 		if err != nil {
