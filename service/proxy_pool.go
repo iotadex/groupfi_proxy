@@ -55,8 +55,7 @@ func RunCheckProxyPoolBalance() {
 }
 
 func RunRecycleMsgOutputs() {
-	ticker := time.NewTicker(time.Hour * 24)
-	for range ticker.C {
+	f := func() {
 		addrs, err := model.GetProxyPool(model.USED_ADDRESS)
 		if err != nil {
 			gl.OutLogger.Error("model.GetUsedProxyPool error. %v", err)
@@ -77,5 +76,10 @@ func RunRecycleMsgOutputs() {
 			}
 			gl.OutLogger.Error("%s recycle msg, blockid : %s", bech32Addr, hex.EncodeToString(id))
 		}
+	}
+	f()
+	ticker := time.NewTicker(time.Hour * 24)
+	for range ticker.C {
+		f()
 	}
 }
