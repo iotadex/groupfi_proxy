@@ -15,6 +15,10 @@ func Start() {
 		go RunCheckProxyPoolBalance()
 	}
 
+	if config.RecycleMsgTime > 0 {
+		go RunRecycleMsgOutputs()
+	}
+
 	if config.Services[config.SendSmr] {
 		go RunSendSmr()
 	}

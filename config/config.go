@@ -64,6 +64,7 @@ var (
 	DefaultImg             string                // default_image url of name nft
 	NameNftTag             string                // name nft tag, string
 	MaxMsgLockTime         int64                 // max lock time of msg output, seconds
+	RecycleMsgTime         int64                 // recycle msg output days
 	SignPrefix             string                // sign prefix "Creating account... "
 	SolanaRpc              string                // solana ourself rpc
 	Services               map[int]bool          // service runs or not
@@ -97,6 +98,7 @@ func Load() {
 		DefaultImg             string                `json:"default_img"`
 		NameNftTag             string                `json:"name_nft_tag"`
 		MaxMsgLockDays         int64                 `json:"max_msg_locked_days"`
+		RecycleMsgDays         int64                 `json:"recycle_msg_days"`
 		SignPrefix             string                `json:"sign_prefix"`
 		SolanaRpc              string                `json:"solana_rpc"`
 		Services               map[string]bool       `json:"services"`
@@ -128,6 +130,7 @@ func Load() {
 	DefaultImg = all.DefaultImg
 	NameNftTag = all.NameNftTag
 	MaxMsgLockTime = all.MaxMsgLockDays * 3600 * 24
+	RecycleMsgTime = all.RecycleMsgDays * 3600 * 24
 	SignPrefix = all.SignPrefix
 	SolanaRpc = all.SolanaRpc
 	Services = make(map[int]bool)

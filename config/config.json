@@ -21,6 +21,7 @@
     "default_img": "ipfs://bafybeidfvzjbovlskk6gw3vtubg4h4adn3k6bms7xwd4ixzl4wh2rfav24",
     "name_nft_tag": "groupfi-id",
     "max_msg_locked_days": 30,
+    "recycle_msg_days": 5,
     "sign_prefix": "Creating account... ",
     "solana_rpc": "http://solana.groupfi.ai",
     "services": {

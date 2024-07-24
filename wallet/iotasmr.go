@@ -160,6 +160,47 @@ func (w *IotaSmrWallet) SendBasic(bech32To string, amount uint64) ([]byte, error
 	return id[:], nil
 }
 
+func (w *IotaSmrWallet) Recycle(lockedTime int64) ([]byte, error) {
+	info, err := w.nodeAPI.Info(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("get iotasmr node info error. %v", err)
+	}
+
+	addr, signer, err := w.getWalletAddress()
+	if err != nil {
+		return nil, err
+	}
+
+	txBuilder := builder.NewTransactionBuilder(info.Protocol.NetworkID())
+
+	left, err := w.getBasiceTimeoutUnSpentOutputs(txBuilder, iotago.PrefixShimmer, addr, uint32(lockedTime))
+	if err != nil {
+		return nil, err
+	}
+	if left > 0 {
+		txBuilder.AddOutput(&iotago.BasicOutput{
+			Amount: left,
+			Conditions: iotago.UnlockConditions{&iotago.AddressUnlockCondition{
+				Address: addr,
+			}},
+		})
+	}
+	blockBuilder := txBuilder.BuildAndSwapToBlockBuilder(&info.Protocol, signer, nil)
+
+	block, err := blockBuilder.Tips(context.Background(), w.nodeAPI).
+		ProofOfWork(context.Background(), &info.Protocol, float64(info.Protocol.MinPoWScore)).
+		Build()
+	if err != nil {
+		return nil, fmt.Errorf("build block error. %v", err)
+	}
+	id, err := w.nodeAPI.SubmitBlock(context.Background(), block, &info.Protocol)
+	if err != nil {
+		return nil, fmt.Errorf("send block to node error. %v", err)
+	}
+
+	return id[:], nil
+}
+
 func (w *IotaSmrWallet) MintNameNFT(bech32To string, days int, meta, tag []byte, basicOutput iotago.Output, basicOutputId iotago.OutputID, nftOutput *iotago.NFTOutput, nftOutputId iotago.OutputID, protocol *iotago.ProtocolParameters) ([]byte, error) {
 	prefix, toAddr, err := iotago.ParseBech32(bech32To)
 	if err != nil {
@@ -683,6 +724,59 @@ func (w *IotaSmrWallet) getBasiceUnSpentOutputsWithOutputId(b *builder.Transacti
 		return amount, nil, fmt.Errorf("balance amount is not enough")
 	}
 	return sum - amount, newOutput, nil
+}
+
+func (w *IotaSmrWallet) getBasiceTimeoutUnSpentOutputs(b *builder.TransactionBuilder, prefix iotago.NetworkPrefix, addr iotago.Address, beforeTs uint32) (uint64, error) {
+	indexer, err := w.nodeAPI.Indexer(context.Background())
+	if err != nil {
+		return 0, err
+	}
+
+	notHas := false
+	has := true
+	query := nodeclient.BasicOutputsQuery{
+		AddressBech32: addr.Bech32(prefix),
+		IndexerNativeTokenParas: nodeclient.IndexerNativeTokenParas{
+			HasNativeTokens: &notHas,
+		},
+		IndexerTimelockParas: nodeclient.IndexerTimelockParas{
+			HasTimelock:      &has,
+			TimelockedBefore: beforeTs,
+		},
+		IndexerExpirationParas: nodeclient.IndexerExpirationParas{
+			HasExpiration: &notHas,
+		},
+		IndexerStorageDepositParas: nodeclient.IndexerStorageDepositParas{
+			HasStorageDepositReturn: &notHas,
+		},
+	}
+	res, err := indexer.Outputs(context.Background(), &query)
+	if err != nil {
+		return 0, err
+	}
+	extParas := iotago.ExternalUnlockParameters{
+		ConfUnix: uint32(time.Now().Unix()),
+	}
+	sum := uint64(0)
+	for res.Next() {
+		ids, err := res.Response.Items.OutputIDs()
+		if err != nil {
+			return 0, err
+		}
+
+		outputs, _ := res.Outputs()
+		for i, output := range outputs {
+			if len(output.NativeTokenList()) > 0 {
+				continue
+			}
+			if output.UnlockConditionSet().TimelocksExpired(&extParas) != nil {
+				continue
+			}
+			b.AddInput(&builder.TxInput{UnlockTarget: addr, Input: output, InputID: ids[i]})
+			sum += output.Deposit()
+		}
+	}
+	return sum, nil
 }
 
 func (w *IotaSmrWallet) getNFTOutput(b *builder.TransactionBuilder, addr iotago.Address) (*iotago.NFTOutput, error) {
