@@ -74,7 +74,9 @@ func RunRecycleMsgOutputs() {
 				gl.OutLogger.Error("w.Recycle error. %s : %v", bech32Addr, err)
 				continue
 			}
-			gl.OutLogger.Error("%s recycle msg, blockid : %s", bech32Addr, hex.EncodeToString(id))
+			if len(id) > 0 {
+				gl.OutLogger.Error("%s recycle msg, blockid : %s", bech32Addr, hex.EncodeToString(id))
+			}
 		}
 	}
 	f()

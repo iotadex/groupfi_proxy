@@ -184,6 +184,8 @@ func (w *IotaSmrWallet) Recycle(lockedTime int64) ([]byte, error) {
 				Address: addr,
 			}},
 		})
+	} else {
+		return nil, nil
 	}
 	blockBuilder := txBuilder.BuildAndSwapToBlockBuilder(&info.Protocol, signer, nil)
 
