@@ -25,6 +25,7 @@ func RunKeepProxyPoolFull() {
 }
 
 func RunCheckProxyPoolBalance() {
+	// totalBalances := make(map[string]uint64)
 	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", "")
 	ticker := time.NewTicker(time.Hour * time.Duration(config.ProxyBalanceCheckHours))
 	for range ticker.C {
@@ -69,7 +70,7 @@ func RunRecycleMsgOutputs() {
 
 			w := wallet.NewIotaSmrWallet(config.ShimmerRpc, bech32Addr, enpk, "")
 
-			id, err := w.Recycle(time.Now().Unix() - config.RecycleMsgTime)
+			id, err := w.Recycle()
 			if err != nil {
 				gl.OutLogger.Error("w.Recycle error. %s : %v", bech32Addr, err)
 				continue

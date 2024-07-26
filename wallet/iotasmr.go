@@ -160,7 +160,7 @@ func (w *IotaSmrWallet) SendBasic(bech32To string, amount uint64) ([]byte, error
 	return id[:], nil
 }
 
-func (w *IotaSmrWallet) Recycle(lockedTime int64) ([]byte, error) {
+func (w *IotaSmrWallet) Recycle() ([]byte, error) {
 	info, err := w.nodeAPI.Info(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("get iotasmr node info error. %v", err)
@@ -173,7 +173,7 @@ func (w *IotaSmrWallet) Recycle(lockedTime int64) ([]byte, error) {
 
 	txBuilder := builder.NewTransactionBuilder(info.Protocol.NetworkID())
 
-	left, err := w.getBasiceTimeoutUnSpentOutputs(txBuilder, iotago.PrefixShimmer, addr, uint32(lockedTime))
+	left, err := w.getBasiceTimeoutUnSpentOutputs(txBuilder, iotago.PrefixShimmer, addr)
 	if err != nil {
 		return nil, err
 	}
@@ -728,7 +728,7 @@ func (w *IotaSmrWallet) getBasiceUnSpentOutputsWithOutputId(b *builder.Transacti
 	return sum - amount, newOutput, nil
 }
 
-func (w *IotaSmrWallet) getBasiceTimeoutUnSpentOutputs(b *builder.TransactionBuilder, prefix iotago.NetworkPrefix, addr iotago.Address, beforeTs uint32) (uint64, error) {
+func (w *IotaSmrWallet) getBasiceTimeoutUnSpentOutputs(b *builder.TransactionBuilder, prefix iotago.NetworkPrefix, addr iotago.Address) (uint64, error) {
 	indexer, err := w.nodeAPI.Indexer(context.Background())
 	if err != nil {
 		return 0, err
@@ -736,6 +736,7 @@ func (w *IotaSmrWallet) getBasiceTimeoutUnSpentOutputs(b *builder.TransactionBui
 
 	notHas := false
 	has := true
+	nowTs := uint32(time.Now().Unix())
 	query := nodeclient.BasicOutputsQuery{
 		AddressBech32: addr.Bech32(prefix),
 		IndexerNativeTokenParas: nodeclient.IndexerNativeTokenParas{
@@ -743,7 +744,7 @@ func (w *IotaSmrWallet) getBasiceTimeoutUnSpentOutputs(b *builder.TransactionBui
 		},
 		IndexerTimelockParas: nodeclient.IndexerTimelockParas{
 			HasTimelock:      &has,
-			TimelockedBefore: beforeTs,
+			TimelockedBefore: nowTs,
 		},
 		IndexerExpirationParas: nodeclient.IndexerExpirationParas{
 			HasExpiration: &notHas,
@@ -757,7 +758,7 @@ func (w *IotaSmrWallet) getBasiceTimeoutUnSpentOutputs(b *builder.TransactionBui
 		return 0, err
 	}
 	extParas := iotago.ExternalUnlockParameters{
-		ConfUnix: uint32(time.Now().Unix()),
+		ConfUnix: nowTs,
 	}
 	sum := uint64(0)
 	for res.Next() {

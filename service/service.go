@@ -15,7 +15,7 @@ func Start() {
 		go RunCheckProxyPoolBalance()
 	}
 
-	if config.RecycleMsgTime > 0 {
+	if config.Services[config.RecycleProxy] {
 		go RunRecycleMsgOutputs()
 	}
 
