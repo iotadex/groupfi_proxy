@@ -160,7 +160,7 @@ func (w *IotaSmrWallet) SendBasic(bech32To string, amount uint64) ([]byte, error
 	return id[:], nil
 }
 
-func (w *IotaSmrWallet) Recycle(filterTag []byte) ([]byte, error) {
+func (w *IotaSmrWallet) Recycle() ([]byte, error) {
 	info, err := w.nodeAPI.Info(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("get iotasmr node info error. %v", err)
@@ -173,7 +173,7 @@ func (w *IotaSmrWallet) Recycle(filterTag []byte) ([]byte, error) {
 
 	txBuilder := builder.NewTransactionBuilder(info.Protocol.NetworkID())
 
-	left, err := w.getBasiceTimeoutUnSpentOutputs(txBuilder, iotago.PrefixShimmer, addr, filterTag)
+	left, err := w.getBasiceTimeoutUnSpentOutputs(txBuilder, iotago.PrefixShimmer, addr)
 	if err != nil {
 		return nil, err
 	}
@@ -728,7 +728,7 @@ func (w *IotaSmrWallet) getBasiceUnSpentOutputsWithOutputId(b *builder.Transacti
 	return sum - amount, newOutput, nil
 }
 
-func (w *IotaSmrWallet) getBasiceTimeoutUnSpentOutputs(b *builder.TransactionBuilder, prefix iotago.NetworkPrefix, addr iotago.Address, filterTag []byte) (uint64, error) {
+func (w *IotaSmrWallet) getBasiceTimeoutUnSpentOutputs(b *builder.TransactionBuilder, prefix iotago.NetworkPrefix, addr iotago.Address) (uint64, error) {
 	indexer, err := w.nodeAPI.Indexer(context.Background())
 	if err != nil {
 		return 0, err
@@ -773,10 +773,6 @@ func (w *IotaSmrWallet) getBasiceTimeoutUnSpentOutputs(b *builder.TransactionBui
 				continue
 			}
 			if output.UnlockConditionSet().TimelocksExpired(&extParas) != nil {
-				continue
-			}
-			tag := output.FeatureSet().TagFeature()
-			if tag != nil && bytes.Equal(tag.Tag, filterTag) {
 				continue
 			}
 			b.AddInput(&builder.TxInput{UnlockTarget: addr, Input: output, InputID: ids[i]})
