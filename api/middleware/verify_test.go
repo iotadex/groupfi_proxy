@@ -104,8 +104,8 @@ func TestSolanaAccountInfo(t *testing.T) {
 }
 
 func TestCreateTokenAccount(t *testing.T) {
-	account := solana.MustPublicKeyFromBase58("HWAzehDFpUS8FD61QYC7b5VHM3jAZWwQRE72xNpgCXVX")
-	mint := solana.MustPublicKeyFromBase58("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr")
+	account := solana.MustPublicKeyFromBase58("AJSyTPw8DsuYrBWXeZW7HNW5gY3fWLEzseJdujg3PryD")
+	mint := solana.MustPublicKeyFromBase58("JBY8Ugso1Lge7VTERx1rpwx12hvv6jzDnHEZjMtRDwaR")
 	pubkey, a, err := solana.FindAssociatedTokenAddress(account, mint)
 	fmt.Println(pubkey.String(), a, err)
 }
