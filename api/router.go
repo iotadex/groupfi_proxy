@@ -57,6 +57,8 @@ func InitRouter() *gin.Engine {
 	api := gin.New()
 	api.Use(gin.LoggerWithConfig(gin.LoggerConfig{Output: GinLogger}), gin.Recovery())
 
+	api.GET("/chains", GetChains)
+
 	api.GET("/mint_nicknft", MintNFT)
 
 	api.GET("/smr_price", SmrPrice)

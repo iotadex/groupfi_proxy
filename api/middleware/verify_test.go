@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"gproxy/tools"
 	"testing"
@@ -9,7 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gagliardetto/solana-go"
-	"github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
 )
 
@@ -80,8 +80,10 @@ func TestSolanaHello(t *testing.T) {
 }
 
 func TestSolanaAccountInfo(t *testing.T) {
-	client := rpc.New("https://api.devnet.solana.com")
-	account := solana.MustPublicKeyFromBase58("HWAzehDFpUS8FD61QYC7b5VHM3jAZWwQRE72xNpgCXVX")
+	client := rpc.New("https://api.mainnet-beta.solana.com")
+	account := solana.MustPublicKeyFromBase58("7AigsDtFL3D5JYMTAC9kh6mZMnnnNXkisREiFD9VqVmv")
+	fmt.Println(hex.EncodeToString(account[:]))
+	return
 
 	mint := solana.MustPublicKeyFromBase58("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
 	conf := rpc.GetTokenAccountsConfig{
@@ -93,14 +95,19 @@ func TestSolanaAccountInfo(t *testing.T) {
 	}
 	for _, ta := range out.Value {
 		fmt.Println(ta.Pubkey.String())
-	}
 
-	var a token.Account
-	err = client.GetAccountDataInto(context.Background(), account, &a)
-	if err != nil {
-		t.Fatal(err)
+		data := ta.Account.Data.GetBinary()
+		fmt.Println(hex.EncodeToString(data))
+
+		//var _a token.Account
+		/*
+			res, err := client.GetAccountInfo(context.Background(), ta.Pubkey)
+			if err != nil {
+				t.Fatal(err)
+			}
+			fmt.Println(res.Value.Data)
+		*/
 	}
-	fmt.Println(a)
 }
 
 func TestCreateTokenAccount(t *testing.T) {

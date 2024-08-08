@@ -56,6 +56,17 @@ func Faucet(c *gin.Context) {
 	})
 }
 
+func GetChains(c *gin.Context) {
+	chains := make(map[uint64][2]string)
+	for id, chain := range config.EvmNodes {
+		chains[id] = [2]string{chain.Rpc, chain.Contract}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"chains": chains,
+	})
+}
+
 // Get the prices of smr on different evm chains
 func SmrPrice(c *gin.Context) {
 	sps, err := model.GetSmrPrices()
@@ -163,6 +174,134 @@ func FilterGroup(c *gin.Context) {
 		"result":  true,
 		"indexes": indexes,
 	})
+}
+
+type FilterV2 struct {
+	Addresses []string `json:"addresses"`
+	Chains    []struct {
+		Chain     uint64 `json:"chain"`
+		Contract  string `json:"contract"`
+		Threshold string `json:"threshold"`
+		Erc       int    `json:"erc"`
+	} `json:"chains"`
+	Ts int64 `json:"ts"`
+}
+
+// filterGroup for multichain
+func FilterGroupV2(c *gin.Context) {
+	f := FilterV2{}
+	c.BindJSON(&f)
+
+	// get out the solana addresses
+	solAddresses := make([]string, 0, len(f.Addresses))
+	evmAddresses := make([]common.Address, 0, len(f.Addresses))
+	for _, addr := range f.Addresses {
+		if strings.HasPrefix(addr, "0x") || strings.HasPrefix(addr, "0X") {
+			solAddresses = append(solAddresses, "")
+			evmAddresses = append(evmAddresses, common.HexToAddress(addr))
+		} else {
+			solAddresses = append(solAddresses, addr)
+			evmAddresses = append(evmAddresses, gl.EVM_EMPTY_ADDRESS)
+		}
+	}
+
+	indexes, err := GetEvmBelowIndexes(evmAddresses, &f)
+	if err != nil {
+		gl.OutLogger.Error("Filter addresses from group error. %v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.SYSTEM_ERROR,
+			"err-msg":  "system error",
+		})
+		return
+	}
+	indexes, err = GetSolanaAddresses(solAddresses, indexes, &f)
+	if err != nil {
+		gl.OutLogger.Error("Filter addresses from group error. %v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err-code": gl.SYSTEM_ERROR,
+			"err-msg":  "system error",
+		})
+		return
+	}
+
+	inx := make([]int, 0)
+	for i, b := range indexes {
+		if !b {
+			inx = append(inx, i)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"result":  true,
+		"indexes": inx,
+	})
+}
+
+func GetEvmBelowIndexes(addrs []common.Address, f *FilterV2) ([]bool, error) {
+	indexes := make([]bool, len(addrs))
+	for _, c := range f.Chains {
+		node, exist := config.EvmNodes[c.Chain]
+		threshold, b := new(big.Int).SetString(c.Threshold, 10)
+		if !exist || !b {
+			return nil, fmt.Errorf("chain not exist or threshold error. %d, %s", c.Chain, c.Threshold)
+		}
+		t := tokens.NewEvmToken(node.Rpc, "", c.Contract, c.Chain, 0)
+		var inx []uint16
+		var err error
+		if c.Erc == 20 {
+			inx, err = t.FilterERC20Addresses(addrs, common.HexToAddress(c.Contract), threshold)
+		} else if c.Erc == 721 {
+			inx, err = t.FilterERC721Addresses(addrs, common.HexToAddress(c.Contract))
+		} else if c.Erc == 0 {
+			inx, err = t.FilterEthAddresses(addrs, threshold)
+		} else {
+			err = fmt.Errorf("error erc. %d", c.Erc)
+		}
+		if err != nil {
+			return nil, err
+		}
+		indexes = getIndexesFromInx(indexes, inx)
+	}
+	return indexes, nil
+}
+
+func GetSolanaAddresses(addrs []string, indexes []bool, f *FilterV2) ([]bool, error) {
+	for _, c := range f.Chains {
+		if c.Chain != gl.SOLANA_CHAINID {
+			continue
+		}
+		if c.Contract == gl.EVM_EMPTY_ADDRESS.Hex() || c.Contract == strings.ToUpper(gl.EVM_EMPTY_ADDRESS.Hex()) {
+			c.Contract = gl.SOLANA_EMPTY_PUBKEY.String()
+		}
+		if c.Contract != gl.SOLANA_EMPTY_PUBKEY.String() {
+			if err := associatedTokenAddresses(addrs, c.Contract); err != nil {
+				return indexes, err
+			}
+		}
+		threhold, _ := strconv.ParseUint(c.Threshold, 10, 64)
+		inx, err := filterSolanaAddresses(f.Addresses, c.Contract, threhold, c.Erc)
+		if err != nil {
+			return indexes, err
+		}
+		indexes = getIndexesFromInx(indexes, inx)
+	}
+	return indexes, nil
+}
+
+func getIndexesFromInx(indexes []bool, inx []uint16) []bool {
+	allTrues := make([]bool, len(indexes))
+	for i := 0; i < len(indexes); i++ {
+		allTrues[i] = true
+	}
+	for _, i := range inx {
+		allTrues[i] = false
+	}
+	for i := 0; i < len(indexes); i++ {
+		indexes[i] = indexes[i] || allTrues[i]
+	}
+	return indexes
 }
 
 type Verfiy struct {
@@ -531,6 +670,9 @@ type Account struct {
 func filterSolanaAddresses(adds []string, programId string, threhold uint64, spl int) ([]uint16, error) {
 	indexes := make([]uint16, 0)
 	for i := range adds {
+		if len(adds[i]) == 0 {
+			continue
+		}
 		url := fmt.Sprintf("%s/getTokenAccountBalance?spl=%d&account=%s", config.SolanaRpc, spl, adds[i])
 		data, err := tools.HttpGet(url)
 		if err != nil {

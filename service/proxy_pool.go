@@ -70,7 +70,7 @@ func RunRecycleMsgOutputs() {
 
 			w := wallet.NewIotaSmrWallet(config.ShimmerRpc, bech32Addr, enpk, "")
 
-			id, err := w.Recycle()
+			id, err := w.Recycle(config.RecycleFilterTags)
 			if err != nil {
 				gl.OutLogger.Error("w.Recycle error. %s : %v", bech32Addr, err)
 				continue

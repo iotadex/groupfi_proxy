@@ -21,6 +21,9 @@
     "default_img": "ipfs://bafybeidfvzjbovlskk6gw3vtubg4h4adn3k6bms7xwd4ixzl4wh2rfav24",
     "name_nft_tag": "groupfi-id",
     "max_msg_locked_days": 30,
+    "recycle_filter_tags": [
+        "GROUPFIQUALIFYV1"
+    ],
     "sign_prefix": "Creating account... ",
     "solana_rpc": "http://solana.groupfi.ai",
     "services": {
@@ -88,6 +91,20 @@
             "listen_type": 0,
             "max_filter_block": 999,
             "contract": "0xf6BEA7EA5bA937da0D73dA21139821Aa7ee85E0e"
+        },
+        "8453": {
+            "rpc": "https://mainnet.base.org",
+            "wss": "wss://mainnet.base.org",
+            "listen_type": 0,
+            "max_filter_block": 999,
+            "contract": "0xD9B13709Ce4Ef82402c091f3fc8A93a9360A5c1e"
+        },
+        "42": {
+            "rpc": "https://42.rpc.thirdweb.com",
+            "wss": "wss://42.rpc.thirdweb.com",
+            "listen_type": 0,
+            "max_filter_block": 999,
+            "contract": "0xD9B13709Ce4Ef82402c091f3fc8A93a9360A5c1e"
         }
     }
 }
