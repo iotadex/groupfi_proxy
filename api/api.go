@@ -124,7 +124,7 @@ func FilterGroup(c *gin.Context) {
 		if f.Contract == gl.EVM_EMPTY_ADDRESS.Hex() || f.Contract == strings.ToUpper(gl.EVM_EMPTY_ADDRESS.Hex()) {
 			f.Contract = gl.SOLANA_EMPTY_PUBKEY.String()
 		}
-		if f.Contract != gl.SOLANA_EMPTY_PUBKEY.String() {
+		if f.Erc == 20 {
 			err := associatedTokenAddresses(f.Addresses, f.Contract)
 			if err != nil {
 				c.JSON(http.StatusOK, gin.H{
@@ -275,7 +275,7 @@ func GetSolanaAddresses(addrs []string, indexes []bool, f *FilterV2) ([]bool, er
 		if c.Contract == gl.EVM_EMPTY_ADDRESS.Hex() || c.Contract == strings.ToUpper(gl.EVM_EMPTY_ADDRESS.Hex()) {
 			c.Contract = gl.SOLANA_EMPTY_PUBKEY.String()
 		}
-		if c.Contract != gl.SOLANA_EMPTY_PUBKEY.String() {
+		if c.Erc == 20 {
 			if err := associatedTokenAddresses(addrs, c.Contract); err != nil {
 				return indexes, err
 			}
@@ -673,7 +673,7 @@ func filterSolanaAddresses(adds []string, programId string, threhold uint64, spl
 		if len(adds[i]) == 0 {
 			continue
 		}
-		url := fmt.Sprintf("%s/getTokenAccountBalance?spl=%d&account=%s", config.SolanaRpc, spl, adds[i])
+		url := fmt.Sprintf("%s/getTokenAccountBalance?spl=%d&account=%s&collection=%s", config.SolanaRpc, spl, adds[i], programId)
 		data, err := tools.HttpGet(url)
 		if err != nil {
 			data, err = tools.HttpGet(url)

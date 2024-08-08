@@ -70,6 +70,7 @@ func InitRouter() *gin.Engine {
 	group := api.Group("/group").Use(middleware.SignIpRateLimiterWare)
 	{
 		group.POST("/filter", FilterGroup)
+		group.POST("/filter/v2", FilterGroupV2)
 		group.POST("/verify", VerifyGroup)
 	}
 

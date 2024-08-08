@@ -65,6 +65,33 @@ the addresses are the solana's main account always
 }
 ```
 
+### POST /group/filter/v2, filter the addresses
+#### params
+```json
+{
+    "addresses" : ["address1","address2"],
+    "chains" : [
+        {
+            "chain": 148,
+            "contract" : "group contract address",
+            "threshold" : "1000000000",
+            "erc" : 721
+        }
+    ],
+    "ts" : 1712647238
+}
+```
+erc is 20 or 721 or 0, and 0 represents native token.
+the contract is `11111111111111111111111111111111` if solana chain
+the addresses are the solana's main account always
+#### response
+```json
+{
+    "result": true,
+    "indexes": [],
+}
+```
+
 ### POST /group/verify, verify the addresses that belong to one group or not
 #### params
 ```json

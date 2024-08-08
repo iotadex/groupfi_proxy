@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"gproxy/api"
 	"gproxy/config"
@@ -13,8 +14,11 @@ import (
 	"gproxy/wallet"
 	"math/big"
 	"os"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	iotago "github.com/iotaledger/iota.go/v3"
+	"github.com/iotaledger/iota.go/v3/nodeclient"
 )
 
 func main() {
@@ -55,4 +59,54 @@ func TestFilter() {
 	a, _ := new(big.Int).SetString("170000000000000000000", 10)
 	indexes, err := t.FilterEthAddresses(addrs, a)
 	fmt.Println(indexes, err)
+}
+
+func TestGetBasicOutput(addr string) {
+	nodeAPI := nodeclient.New("https://prerelease.api.iotacat.com")
+	indexer, err := nodeAPI.Indexer(context.Background())
+	if err != nil {
+		panic(err)
+	}
+
+	notHas := false
+	has := true
+	nowTs := uint32(time.Now().Unix())
+	query := nodeclient.BasicOutputsQuery{
+		AddressBech32: addr,
+		IndexerNativeTokenParas: nodeclient.IndexerNativeTokenParas{
+			HasNativeTokens: &notHas,
+		},
+		IndexerTimelockParas: nodeclient.IndexerTimelockParas{
+			HasTimelock:      &has,
+			TimelockedBefore: nowTs,
+		},
+		IndexerExpirationParas: nodeclient.IndexerExpirationParas{
+			HasExpiration: &notHas,
+		},
+		IndexerStorageDepositParas: nodeclient.IndexerStorageDepositParas{
+			HasStorageDepositReturn: &notHas,
+		},
+	}
+	res, err := indexer.Outputs(context.Background(), &query)
+	if err != nil {
+		panic(err)
+	}
+	extParas := iotago.ExternalUnlockParameters{
+		ConfUnix: nowTs,
+	}
+	for res.Next() {
+		outputs, _ := res.Outputs()
+		for _, output := range outputs {
+			if len(output.NativeTokenList()) > 0 {
+				continue
+			}
+			if output.UnlockConditionSet().TimelocksExpired(&extParas) != nil {
+				continue
+			}
+			tag := output.FeatureSet().TagFeature()
+			if tag != nil {
+				println(string(tag.Tag))
+			}
+		}
+	}
 }
