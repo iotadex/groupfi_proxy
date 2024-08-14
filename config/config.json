@@ -105,6 +105,13 @@
             "listen_type": 0,
             "max_filter_block": 999,
             "contract": "0xD9B13709Ce4Ef82402c091f3fc8A93a9360A5c1e"
+        },
+        "42161": {
+            "rpc": "https://arb1.arbitrum.io/rpc",
+            "wss": "wss://arb1.arbitrum.io/ws",
+            "listen_type": 0,
+            "max_filter_block": 999,
+            "contract": "0xD9B13709Ce4Ef82402c091f3fc8A93a9360A5c1e"
         }
     }
 }

@@ -242,12 +242,15 @@ func FilterGroupV2(c *gin.Context) {
 func GetEvmBelowIndexes(addrs []common.Address, f *FilterV2) ([]bool, error) {
 	indexes := make([]bool, len(addrs))
 	for _, c := range f.Chains {
+		if c.Chain == gl.SOLANA_CHAINID {
+			continue
+		}
 		node, exist := config.EvmNodes[c.Chain]
 		threshold, b := new(big.Int).SetString(c.Threshold, 10)
 		if !exist || !b {
 			return nil, fmt.Errorf("chain not exist or threshold error. %d, %s", c.Chain, c.Threshold)
 		}
-		t := tokens.NewEvmToken(node.Rpc, "", c.Contract, c.Chain, 0)
+		t := tokens.NewEvmToken(node.Rpc, "", node.Contract, c.Chain, 0)
 		var inx []uint16
 		var err error
 		if c.Erc == 20 {
