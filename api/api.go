@@ -284,7 +284,7 @@ func GetSolanaAddresses(addrs []string, indexes []bool, f *FilterV2) ([]bool, er
 			}
 		}
 		threhold, _ := strconv.ParseUint(c.Threshold, 10, 64)
-		inx, err := filterSolanaAddresses(f.Addresses, c.Contract, threhold, c.Erc)
+		inx, err := filterSolanaAddresses(addrs, c.Contract, threhold, c.Erc)
 		if err != nil {
 			return indexes, err
 		}
