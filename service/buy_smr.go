@@ -1,7 +1,6 @@
 package service
 
 import (
-	"gproxy/config"
 	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/tokens"
@@ -14,14 +13,18 @@ import (
 )
 
 var evmBuyTasks sync.WaitGroup
-var listenTokens map[uint64]*tokens.EvmToken // symbol->chains.Token
+var listenTokens map[uint64]*tokens.EvmToken // chainid->chains.Token
 
 func StartListenBuySmrOrder() {
 	listenTokens = make(map[uint64]*tokens.EvmToken)
-	for chainid, node := range config.EvmNodes {
-		t := tokens.NewEvmToken(node.Rpc, node.Wss, node.Contract, chainid, node.ListenType)
-		listenTokens[chainid] = t
-		go listen(chainid, t)
+	chains, err := model.GetChains()
+	if err != nil {
+		panic(err)
+	}
+	for _, c := range chains {
+		t := tokens.NewEvmToken(c.Rpc, c.Wss, c.Contract, c.ChainID, c.ListenType)
+		listenTokens[c.ChainID] = t
+		go listen(c.ChainID, t)
 	}
 }
 
@@ -77,8 +80,7 @@ func dealOrder(order tokens.Order) {
 }
 
 func StopListen() {
-	for chainid := range config.EvmNodes {
-		t := listenTokens[chainid]
+	for _, t := range listenTokens {
 		t.StopListen()
 	}
 	evmBuyTasks.Wait()

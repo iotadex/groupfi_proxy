@@ -49,9 +49,9 @@ var serviceType map[string]int = map[string]int{
 }
 
 var (
-	HttpPort               int                   // http service port
-	Db                     db                    // database config
-	EvmNodes               map[uint64]node       // evm node config of groupfi
+	HttpPort int // http service port
+	Db       db  // database config
+	//EvmNodes               map[uint64]node       // evm node config of groupfi
 	ShimmerRpc             string                // shimmer L1 network rpc url
 	UpdateProtocolTime     int64                 // update protocol parameters of shimmer node, time as seconds
 	SendIntervalTime       int64                 // the interval time of sending smr, seconds
@@ -113,11 +113,11 @@ func Load() {
 	}
 	HttpPort = all.HttpPort
 	Db = all.Db
-	EvmNodes = make(map[uint64]node)
-	for id, node := range all.EvmNodes {
-		chainid, _ := strconv.ParseUint(id, 10, 64)
-		EvmNodes[chainid] = node
-	}
+	//	EvmNodes = make(map[uint64]node)
+	//	for id, node := range all.EvmNodes {
+	//		chainid, _ := strconv.ParseUint(id, 10, 64)
+	//		EvmNodes[chainid] = node
+	//	}
 	ShimmerRpc = all.ShimmerRpc
 	UpdateProtocolTime = all.UpdateProtocolTime
 	SendIntervalTime = all.SendIntervalTime

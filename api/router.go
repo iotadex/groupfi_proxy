@@ -30,6 +30,10 @@ func StartHttpServer(port int) {
 			log.Printf("listen: %v\n", err)
 		}
 	}()
+
+	if err := loadEvmChains(); err != nil {
+		panic(err)
+	}
 }
 
 func StopHttpServer() {

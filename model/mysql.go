@@ -28,4 +28,5 @@ func ConnectToMysql(host, port, database, usr, pwd string) {
 	if err = db.Ping(); nil != err {
 		log.Panic("Connect to Mysql error : " + err.Error())
 	}
+
 }

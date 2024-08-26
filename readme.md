@@ -6,6 +6,29 @@ https://api.groupfi.ai
 ```
 
 ## public apis
+### GET /chains, get all the evm chains that grougfi supported
+#### response
+```json
+{
+    "1": {
+        "chainid": 1,
+        "name": "ethereum",
+        "Symbol": "ETH",
+        "decimal": 18,
+        "contract": "0xD735F8c06c8b802E989512F85E696b11733d7734",
+        "pic_uri": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets"
+    },
+    "148": {
+        "chainid": 148,
+        "name": "shimmer",
+        "Symbol": "SMR",
+        "decimal": 18,
+        "contract": "0xAEaDcd57E4389678537d82891f095BBbE0ab9610",
+        "pic_uri": ""
+    }
+}
+```
+
 ### GET /mint_nicknft, mint a nft which contains user's nick name
 #### params
 |  name  |  type  |  description  |

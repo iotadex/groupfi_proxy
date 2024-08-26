@@ -112,6 +112,13 @@
             "listen_type": 0,
             "max_filter_block": 999,
             "contract": "0xD9B13709Ce4Ef82402c091f3fc8A93a9360A5c1e"
+        },
+        "80002": {
+            "rpc": "https://rpc-amoy.polygon.technology/",
+            "wss": "wss://rpc-amoy.polygon.technology/",
+            "listen_type": 0,
+            "max_filter_block": 999,
+            "contract": "0xD9B13709Ce4Ef82402c091f3fc8A93a9360A5c1e"
         }
     }
 }

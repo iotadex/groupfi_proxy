@@ -57,14 +57,19 @@ func Faucet(c *gin.Context) {
 }
 
 func GetChains(c *gin.Context) {
-	chains := make(map[uint64][2]string)
-	for id, chain := range config.EvmNodes {
-		chains[id] = [2]string{chain.Rpc, chain.Contract}
+	update := c.DefaultQuery("update", "0")
+	if update != "0" {
+		if err := loadEvmChains(); err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"result":   false,
+				"err-code": gl.SYSTEM_ERROR,
+				"err-msg":  err.Error(),
+			})
+			return
+		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"chains": chains,
-	})
+	c.JSON(http.StatusOK, EvmChains)
 }
 
 // Get the prices of smr on different evm chains
@@ -80,8 +85,8 @@ func SmrPrice(c *gin.Context) {
 		return
 	}
 	for id, p := range sps {
-		if sp, exist := config.EvmNodes[id]; exist {
-			p.Contract = sp.Contract
+		if c, exist := EvmChains[id]; exist {
+			p.Contract = c.Contract
 		}
 	}
 
@@ -104,7 +109,7 @@ func FilterGroup(c *gin.Context) {
 	f := Filter{}
 	err := c.BindJSON(&f)
 	threshold, b := new(big.Int).SetString(f.Threshold, 10)
-	node, exist := config.EvmNodes[f.Chain]
+	node, exist := EvmChains[f.Chain]
 	if f.Chain == gl.SOLANA_CHAINID {
 		exist = true
 	}
@@ -245,7 +250,7 @@ func GetEvmBelowIndexes(addrs []common.Address, f *FilterV2) ([]bool, error) {
 		if c.Chain == gl.SOLANA_CHAINID {
 			continue
 		}
-		node, exist := config.EvmNodes[c.Chain]
+		node, exist := EvmChains[c.Chain]
 		threshold, b := new(big.Int).SetString(c.Threshold, 10)
 		if !exist || !b {
 			return nil, fmt.Errorf("chain not exist or threshold error. %d, %s", c.Chain, c.Threshold)
@@ -321,7 +326,7 @@ func VerifyGroup(c *gin.Context) {
 	f := Verfiy{}
 	err := c.BindJSON(&f)
 	threshold, b := new(big.Int).SetString(f.Threshold, 10)
-	node, exist := config.EvmNodes[f.Chain]
+	node, exist := EvmChains[f.Chain]
 	if f.Chain == gl.SOLANA_CHAINID {
 		exist = true
 	}
