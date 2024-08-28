@@ -4,12 +4,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"gproxy/api/selfdata"
 	"gproxy/config"
 	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/service"
 	"gproxy/tokens"
-	"gproxy/tools"
 	"gproxy/wallet"
 	"math/big"
 	"net/http"
@@ -18,7 +18,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/gagliardetto/solana-go"
 	"github.com/gin-gonic/gin"
 	iotago "github.com/iotaledger/iota.go/v3"
 )
@@ -33,8 +32,8 @@ func Faucet(c *gin.Context) {
 	if err != nil || !b {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "params error.",
+			"err_code": gl.PARAMS_ERROR,
+			"err_msg":  "params error.",
 		})
 		return
 	}
@@ -44,8 +43,8 @@ func Faucet(c *gin.Context) {
 		gl.OutLogger.Error("service.FaucetSend error. %v", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error.",
+			"err_code": gl.SYSTEM_ERROR,
+			"err_msg":  "system error.",
 		})
 		return
 	}
@@ -62,8 +61,8 @@ func GetChains(c *gin.Context) {
 		if err := loadEvmChains(); err != nil {
 			c.JSON(http.StatusOK, gin.H{
 				"result":   false,
-				"err-code": gl.SYSTEM_ERROR,
-				"err-msg":  err.Error(),
+				"err_code": gl.SYSTEM_ERROR,
+				"err_msg":  err.Error(),
 			})
 			return
 		}
@@ -79,8 +78,8 @@ func SmrPrice(c *gin.Context) {
 		gl.OutLogger.Error("model.GetSmrPrices error. %v", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
+			"err_code": gl.SYSTEM_ERROR,
+			"err_msg":  "system error",
 		})
 		return
 	}
@@ -117,8 +116,8 @@ func FilterGroup(c *gin.Context) {
 	if err != nil || !exist || !b {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "params error. ",
+			"err_code": gl.PARAMS_ERROR,
+			"err_msg":  "params error.",
 		})
 		return
 	}
@@ -126,21 +125,7 @@ func FilterGroup(c *gin.Context) {
 	var indexes []uint16
 
 	if f.Chain == gl.SOLANA_CHAINID {
-		if f.Contract == gl.EVM_EMPTY_ADDRESS.Hex() || f.Contract == strings.ToUpper(gl.EVM_EMPTY_ADDRESS.Hex()) {
-			f.Contract = gl.SOLANA_EMPTY_PUBKEY.String()
-		}
-		if f.Erc == 20 {
-			err := associatedTokenAddresses(f.Addresses, f.Contract)
-			if err != nil {
-				c.JSON(http.StatusOK, gin.H{
-					"result":   false,
-					"err-code": gl.PARAMS_ERROR,
-					"err-msg":  err.Error(),
-				})
-				return
-			}
-		}
-		indexes, err = filterSolanaAddresses(f.Addresses, f.Contract, threshold.Uint64(), f.Erc)
+		indexes, err = selfdata.FilterSolanaAddresses(f.Addresses, f.Contract, threshold.Uint64(), f.Erc)
 	} else {
 		addrs := make([]common.Address, 0, len(f.Addresses))
 		for i := range f.Addresses {
@@ -148,18 +133,18 @@ func FilterGroup(c *gin.Context) {
 		}
 
 		t := tokens.NewEvmToken(node.Rpc, node.Wss, node.Contract, f.Chain, 0)
-		if f.Erc == 20 {
+		if f.Erc == gl.ERC20 {
 			indexes, err = t.FilterERC20Addresses(addrs, common.HexToAddress(f.Contract), threshold)
-		} else if f.Erc == 721 {
+		} else if f.Erc == gl.ERC721 {
 			indexes, err = t.FilterERC721Addresses(addrs, common.HexToAddress(f.Contract))
-		} else if f.Erc == 0 {
+		} else if f.Erc == gl.ERC_NATIVE {
 			indexes, err = t.FilterEthAddresses(addrs, threshold)
 		} else {
 			gl.OutLogger.Error("erc error. %d", f.Erc)
 			c.JSON(http.StatusOK, gin.H{
 				"result":   false,
-				"err-code": gl.SYSTEM_ERROR,
-				"err-msg":  "system error",
+				"err_code": gl.SYSTEM_ERROR,
+				"err_msg":  "system error",
 			})
 			return
 		}
@@ -169,8 +154,8 @@ func FilterGroup(c *gin.Context) {
 		gl.OutLogger.Error("Filter addresses from group error. %d, %s, %v", f.Chain, f.Contract, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
+			"err_code": gl.SYSTEM_ERROR,
+			"err_msg":  "system error",
 		})
 		return
 	}
@@ -194,8 +179,10 @@ type FilterV2 struct {
 
 // filterGroup for multichain
 func FilterGroupV2(c *gin.Context) {
-	f := FilterV2{}
-	c.BindJSON(&f)
+	f, done := filterGroupfiData(c)
+	if done {
+		return
+	}
 
 	// get out the solana addresses
 	solAddresses := make([]string, 0, len(f.Addresses))
@@ -210,32 +197,26 @@ func FilterGroupV2(c *gin.Context) {
 		}
 	}
 
-	indexes, err := GetEvmBelowIndexes(evmAddresses, &f)
+	indexes, err := getEvmBelowIndexes(evmAddresses, f)
 	if err != nil {
 		gl.OutLogger.Error("Filter addresses from group error. %v", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
-		})
-		return
-	}
-	indexes, err = GetSolanaAddresses(solAddresses, indexes, &f)
-	if err != nil {
-		gl.OutLogger.Error("Filter addresses from group error. %v", err)
-		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
+			"err_code": gl.SYSTEM_ERROR,
+			"err_msg":  "system error",
 		})
 		return
 	}
 
-	inx := make([]int, 0)
-	for i, b := range indexes {
-		if !b {
-			inx = append(inx, i)
-		}
+	inx, err := getSolanaAddresses(solAddresses, indexes, f)
+	if err != nil {
+		gl.OutLogger.Error("Filter addresses from group error. %v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err_code": gl.SYSTEM_ERROR,
+			"err_msg":  "system error",
+		})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -244,7 +225,41 @@ func FilterGroupV2(c *gin.Context) {
 	})
 }
 
-func GetEvmBelowIndexes(addrs []common.Address, f *FilterV2) ([]bool, error) {
+func filterGroupfiData(c *gin.Context) (*FilterV2, bool) {
+	f := FilterV2{}
+	c.BindJSON(&f)
+
+	done := false
+	if len(f.Chains) == 1 {
+		var err error
+		var indexes []int
+		switch f.Chains[0].Erc {
+		case gl.ERC_MANGO:
+			indexes, err = selfdata.FilterMangoAddresses(f.Addresses)
+			done = true
+		}
+
+		if done {
+			if err != nil {
+				gl.OutLogger.Error("Filter addresses from group error. %v", err)
+				c.JSON(http.StatusOK, gin.H{
+					"result":   false,
+					"err_code": gl.SYSTEM_ERROR,
+					"err_msg":  "system error",
+				})
+			} else {
+				c.JSON(http.StatusOK, gin.H{
+					"result":  true,
+					"indexes": indexes,
+				})
+			}
+		}
+	}
+
+	return &f, done
+}
+
+func getEvmBelowIndexes(addrs []common.Address, f *FilterV2) ([]bool, error) {
 	indexes := make([]bool, len(addrs))
 	for _, c := range f.Chains {
 		if c.Chain == gl.SOLANA_CHAINID {
@@ -258,11 +273,11 @@ func GetEvmBelowIndexes(addrs []common.Address, f *FilterV2) ([]bool, error) {
 		t := tokens.NewEvmToken(node.Rpc, "", node.Contract, c.Chain, 0)
 		var inx []uint16
 		var err error
-		if c.Erc == 20 {
+		if c.Erc == gl.ERC20 {
 			inx, err = t.FilterERC20Addresses(addrs, common.HexToAddress(c.Contract), threshold)
-		} else if c.Erc == 721 {
+		} else if c.Erc == gl.ERC721 {
 			inx, err = t.FilterERC721Addresses(addrs, common.HexToAddress(c.Contract))
-		} else if c.Erc == 0 {
+		} else if c.Erc == gl.ERC_NATIVE {
 			inx, err = t.FilterEthAddresses(addrs, threshold)
 		} else {
 			err = fmt.Errorf("error erc. %d", c.Erc)
@@ -275,27 +290,26 @@ func GetEvmBelowIndexes(addrs []common.Address, f *FilterV2) ([]bool, error) {
 	return indexes, nil
 }
 
-func GetSolanaAddresses(addrs []string, indexes []bool, f *FilterV2) ([]bool, error) {
+func getSolanaAddresses(addrs []string, indexes []bool, f *FilterV2) ([]int, error) {
 	for _, c := range f.Chains {
 		if c.Chain != gl.SOLANA_CHAINID {
 			continue
 		}
-		if c.Contract == gl.EVM_EMPTY_ADDRESS.Hex() || c.Contract == strings.ToUpper(gl.EVM_EMPTY_ADDRESS.Hex()) {
-			c.Contract = gl.SOLANA_EMPTY_PUBKEY.String()
-		}
-		if c.Erc == 20 {
-			if err := associatedTokenAddresses(addrs, c.Contract); err != nil {
-				return indexes, err
-			}
-		}
 		threhold, _ := strconv.ParseUint(c.Threshold, 10, 64)
-		inx, err := filterSolanaAddresses(addrs, c.Contract, threhold, c.Erc)
+		inx, err := selfdata.FilterSolanaAddresses(addrs, c.Contract, threhold, c.Erc)
 		if err != nil {
-			return indexes, err
+			return nil, err
 		}
 		indexes = getIndexesFromInx(indexes, inx)
+		break
 	}
-	return indexes, nil
+	inx := make([]int, 0)
+	for i, b := range indexes {
+		if !b {
+			inx = append(inx, i)
+		}
+	}
+	return inx, nil
 }
 
 func getIndexesFromInx(indexes []bool, inx []uint16) []bool {
@@ -334,8 +348,8 @@ func VerifyGroup(c *gin.Context) {
 	if err != nil || !exist || !b {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  fmt.Sprintf("params error. %d, %s, %v", f.Chain, f.Threshold, err),
+			"err_code": gl.PARAMS_ERROR,
+			"err_msg":  fmt.Sprintf("params error. %d, %s, %v", f.Chain, f.Threshold, err),
 		})
 		return
 	}
@@ -346,19 +360,7 @@ func VerifyGroup(c *gin.Context) {
 		if f.Contract == gl.EVM_EMPTY_ADDRESS.Hex() || f.Contract == strings.ToUpper(gl.EVM_EMPTY_ADDRESS.Hex()) {
 			f.Contract = gl.SOLANA_EMPTY_PUBKEY.String()
 		}
-		if f.Contract != gl.SOLANA_EMPTY_PUBKEY.String() {
-			err1 := associatedTokenAddresses(f.Adds, f.Contract)
-			err2 := associatedTokenAddresses(f.Subs, f.Contract)
-			if err1 != nil || err2 != nil {
-				c.JSON(http.StatusOK, gin.H{
-					"result":   false,
-					"err-code": gl.PARAMS_ERROR,
-					"err-msg":  fmt.Sprintf("%v, %v", err1, err2),
-				})
-				return
-			}
-		}
-		res, err = verifySolanaAddresses(f.Adds, f.Subs, f.Contract, threshold.Uint64(), f.Erc)
+		res, err = selfdata.VerifySolanaAddresses(f.Adds, f.Subs, f.Contract, threshold.Uint64(), f.Erc)
 	} else {
 		adds := make([]common.Address, 0, len(f.Adds))
 		subs := make([]common.Address, 0, len(f.Subs))
@@ -382,8 +384,8 @@ func VerifyGroup(c *gin.Context) {
 		gl.OutLogger.Error("check addresses for group error. %d, %s, %v", f.Chain, f.Contract, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
+			"err_code": gl.SYSTEM_ERROR,
+			"err_msg":  "system error",
 		})
 		return
 	}
@@ -394,8 +396,8 @@ func VerifyGroup(c *gin.Context) {
 		gl.OutLogger.Error("service.SignEd25519Hash error. %v", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
+			"err_code": gl.SYSTEM_ERROR,
+			"err_msg":  "system error",
 		})
 		return
 	}
@@ -420,8 +422,8 @@ func MintNFT(c *gin.Context) {
 		gl.OutLogger.Warn("User's address error. %s", to)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "smr address error",
+			"err_code": gl.PARAMS_ERROR,
+			"err_msg":  "smr address error",
 		})
 		return
 	}
@@ -430,8 +432,8 @@ func MintNFT(c *gin.Context) {
 		gl.OutLogger.Warn("User's name error. %s", name)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "name invalid",
+			"err_code": gl.PARAMS_ERROR,
+			"err_msg":  "name invalid",
 		})
 		return
 	}
@@ -453,8 +455,8 @@ func MintNFT(c *gin.Context) {
 		gl.OutLogger.Error("model.InsertNameNftRecord error. %s, %s, %v", to, name, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
+			"err_code": gl.SYSTEM_ERROR,
+			"err_msg":  "system error",
 		})
 		return
 	}
@@ -462,8 +464,8 @@ func MintNFT(c *gin.Context) {
 		gl.OutLogger.Warn("name used. %s, %s", to, name)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "name used",
+			"err_code": gl.PARAMS_ERROR,
+			"err_msg":  "name used",
 		})
 		return
 	}
@@ -484,16 +486,16 @@ func MintNameNftForMM(c *gin.Context) {
 		gl.OutLogger.Error("model.GetProxyAccount error. %s, %v", signAcc, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
+			"err_code": gl.SYSTEM_ERROR,
+			"err_msg":  "system error",
 		})
 		return
 	}
 	if proxy == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.PROXY_NOT_EXIST,
-			"err-msg":  "proxy account is not exist",
+			"err_code": gl.PROXY_NOT_EXIST,
+			"err_msg":  "proxy account is not exist",
 		})
 		return
 	}
@@ -502,8 +504,8 @@ func MintNameNftForMM(c *gin.Context) {
 		gl.OutLogger.Warn("User's name error. %s", name)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "name invalid",
+			"err_code": gl.PARAMS_ERROR,
+			"err_msg":  "name invalid",
 		})
 		return
 	}
@@ -525,8 +527,8 @@ func MintNameNftForMM(c *gin.Context) {
 		gl.OutLogger.Error("model.VerifyAndInsertName error. %s, %s, %v", proxy.Smr, name, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
+			"err_code": gl.SYSTEM_ERROR,
+			"err_msg":  "system error",
 		})
 		return
 	}
@@ -534,8 +536,8 @@ func MintNameNftForMM(c *gin.Context) {
 		gl.OutLogger.Warn("name used. %s, %s", proxy.Smr, name)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "name used",
+			"err_code": gl.PARAMS_ERROR,
+			"err_msg":  "name used",
 		})
 		return
 	}
@@ -554,8 +556,8 @@ func RegisterProxy(c *gin.Context) {
 	if len(account) == 0 || len(signAcc) != 66 {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "params error. " + account + " " + signAcc,
+			"err_code": gl.PARAMS_ERROR,
+			"err_msg":  "params error. " + account + " " + signAcc,
 		})
 		return
 	}
@@ -565,8 +567,8 @@ func RegisterProxy(c *gin.Context) {
 		gl.OutLogger.Error("model.RegisterProxy error. %s, %s, %v", account, signAcc, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
+			"err_code": gl.SYSTEM_ERROR,
+			"err_msg":  "system error",
 		})
 		return
 	}
@@ -575,8 +577,8 @@ func RegisterProxy(c *gin.Context) {
 		gl.OutLogger.Error("service.MintSignAccPkNft error. %s, %s, %v", smr, signAcc, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "mint pk nft error",
+			"err_code": gl.SYSTEM_ERROR,
+			"err_msg":  "mint pk nft error",
 		})
 		return
 	} else {
@@ -596,16 +598,16 @@ func GetProxyAccount(c *gin.Context) {
 		gl.OutLogger.Error("model.GetProxyAccount error. %s, %v", signAcc, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.SYSTEM_ERROR,
-			"err-msg":  "system error",
+			"err_code": gl.SYSTEM_ERROR,
+			"err_msg":  "system error",
 		})
 		return
 	}
 	if proxy == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.PROXY_NOT_EXIST,
-			"err-msg":  "proxy account is not exist",
+			"err_code": gl.PROXY_NOT_EXIST,
+			"err_msg":  "proxy account is not exist",
 		})
 		return
 	}
@@ -624,8 +626,8 @@ func SendTxEssence(c *gin.Context) {
 		gl.OutLogger.Error("service.SendTxEssence error. %s, %v", signAcc, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.MSG_OUTPUT_ILLEGAL,
-			"err-msg":  "output illegal or proxy not exist",
+			"err_code": gl.MSG_OUTPUT_ILLEGAL,
+			"err_msg":  "output illegal or proxy not exist",
 		})
 		return
 	}
@@ -646,8 +648,8 @@ func SendTxEssenceAsyn(c *gin.Context) {
 		gl.OutLogger.Error("service.SendTxEssence error. %s, %v", signAcc, err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
-			"err-code": gl.MSG_OUTPUT_ILLEGAL,
-			"err-msg":  "output illegal or proxy not exist",
+			"err_code": gl.MSG_OUTPUT_ILLEGAL,
+			"err_msg":  "output illegal or proxy not exist",
 		})
 		return
 	}
@@ -666,90 +668,4 @@ func isAlphaNumeric(str string) bool {
 		}
 	}
 	return true
-}
-
-type Account struct {
-	Result    bool   `json:"result"`
-	ProgramId string `json:"programid"` // base58
-	Owner     string `json:"owner"`     // The owner of this account. base58
-	Amount    uint64 `json:"amount"`    // The amount of tokens this account holds.
-}
-
-func filterSolanaAddresses(adds []string, programId string, threhold uint64, spl int) ([]uint16, error) {
-	indexes := make([]uint16, 0)
-	for i := range adds {
-		if len(adds[i]) == 0 {
-			continue
-		}
-		url := fmt.Sprintf("%s/getTokenAccountBalance?spl=%d&account=%s&collection=%s", config.SolanaRpc, spl, adds[i], programId)
-		data, err := tools.HttpGet(url)
-		if err != nil {
-			data, err = tools.HttpGet(url)
-		}
-		if err != nil {
-			return nil, err
-		}
-		var acc Account
-		if err := json.Unmarshal(data, &acc); err != nil {
-			return nil, fmt.Errorf("unmarshal solana rpc result error. %s", string(data))
-		}
-
-		if (acc.ProgramId != programId) || (acc.Amount < threhold) {
-			indexes = append(indexes, uint16(i))
-		}
-	}
-	return indexes, nil
-}
-
-func verifySolanaAddresses(adds, subs []string, programId string, threhold uint64, spl int) (int8, error) {
-	for i := range adds {
-		url := fmt.Sprintf("%s/getTokenAccountBalance?spl=%d&account=%s", config.SolanaRpc, spl, adds[i])
-		data, err := tools.HttpGet(url)
-		if err != nil {
-			data, err = tools.HttpGet(url)
-		}
-		if err != nil {
-			return 0, err
-		}
-		var acc Account
-		if err := json.Unmarshal(data, &acc); err != nil {
-			return 0, fmt.Errorf("unmarshal solana rpc result error. %s", string(data))
-		}
-		if (acc.ProgramId != programId) || (acc.Amount < threhold) {
-			return 1, nil
-		}
-	}
-	for i := range subs {
-		url := config.SolanaRpc + "/getTokenAccountBalance?account=" + subs[i]
-		data, err := tools.HttpGet(url)
-		if err != nil {
-			data, err = tools.HttpGet(url)
-		}
-		if err != nil {
-			return 0, err
-		}
-		var acc Account
-		if err := json.Unmarshal(data, &acc); err != nil {
-			return 0, fmt.Errorf("unmarshal solana rpc result error. %s", string(data))
-		}
-
-		if (acc.ProgramId != programId) || (acc.Amount >= threhold) {
-			return -1, nil
-		}
-	}
-	return 0, nil
-}
-
-func associatedTokenAddresses(addrs []string, contract string) error {
-	for i, addr := range addrs {
-		owner, err1 := solana.PublicKeyFromBase58(addr)
-		mint, err2 := solana.PublicKeyFromBase58(contract)
-		pubkey, _, err3 := solana.FindAssociatedTokenAddress(owner, mint)
-		if err1 != nil || err2 != nil || err3 != nil {
-
-			return fmt.Errorf("addresses params error. %v, %v, %v", err1, err2, err3)
-		}
-		addrs[i] = pubkey.String()
-	}
-	return nil
 }

@@ -68,7 +68,7 @@ var (
 	MaxMsgLockTime         int64                 // max lock time of msg output, seconds
 	RecycleFilterTags      [][]byte              // recycle filter tags
 	SignPrefix             string                // sign prefix "Creating account... "
-	SolanaRpc              string                // solana ourself rpc
+	GroupfiDataUri         string                // groupfi data uri
 	Services               map[int]bool          // service runs or not
 	FaucetNodes            map[uint64]faucetNode // evm node for sending faucet
 
@@ -102,7 +102,7 @@ func Load() {
 		MaxMsgLockDays         int64                 `json:"max_msg_locked_days"`
 		RecycleFilterTags      []string              `json:"recycle_filter_tags"`
 		SignPrefix             string                `json:"sign_prefix"`
-		SolanaRpc              string                `json:"solana_rpc"`
+		GroupfiDataUri         string                `json:"groupfi_data_uri"`
 		Services               map[string]bool       `json:"services"`
 		SignEdPk               string                `json:"sign_ed_pk"`
 		FaucetNodes            map[string]faucetNode `json:"faucet_node"`
@@ -136,7 +136,7 @@ func Load() {
 		RecycleFilterTags = append(RecycleFilterTags, []byte(tag))
 	}
 	SignPrefix = all.SignPrefix
-	SolanaRpc = all.SolanaRpc
+	GroupfiDataUri = all.GroupfiDataUri
 	Services = make(map[int]bool)
 	for s, b := range all.Services {
 		Services[serviceType[s]] = b

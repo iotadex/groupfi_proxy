@@ -23,8 +23,16 @@ const (
 	MSG_OUTPUT_ILLEGAL                      // the output is illegal
 	SYSTEM_ERROR                            // system error
 )
+
 const (
 	SOLANA_CHAINID = 518
+)
+
+const (
+	ERC_NATIVE = 0
+	ERC20      = 20
+	ERC721     = 721
+	ERC_MANGO  = 10000
 )
 
 var (

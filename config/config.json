@@ -25,7 +25,7 @@
         "GROUPFIQUALIFYV1"
     ],
     "sign_prefix": "Creating account... ",
-    "solana_rpc": "http://solana.groupfi.ai",
+    "groupfi_data_uri": "http://data.groupfi.ai",
     "services": {
         "buy_smr": false,
         "keep_proxy_pool": true,
