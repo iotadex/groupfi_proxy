@@ -241,6 +241,16 @@ the addresses are the solana's main account always
 }
 ```
 
+## Groups Supported
+
+| Group Name |   Erc |   Chain     | Description |
+| ---------- | ----- | ----------- | ----------- |
+| erc20      |   20  | all evm     | erc20 token |
+| erc721     |   721 | all evm     | erc721 NFT  |
+| spl        |   20  | solana      | spl token   |
+| native     |   0   | evm,solana  | native token|
+| mango      | 10000 | solana      | mango market|
+
 ## Error Response
 ### Response format
 ```json

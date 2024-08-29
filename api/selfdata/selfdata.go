@@ -28,10 +28,9 @@ func FilterMangoAddresses(addresses []string) ([]int, error) {
 		Threshold: "1",
 		Erc:       gl.ERC_MANGO,
 	}
-	paramsJson, _ := json.Marshal(params)
-	data, err := tools.HttpJsonPost(url, paramsJson)
+	data, err := tools.HttpJsonPost(url, params)
 	if err != nil {
-		data, err = tools.HttpGet(url)
+		data, err = tools.HttpJsonPost(url, params)
 	}
 	if err != nil {
 		return nil, err
@@ -43,7 +42,7 @@ func FilterMangoAddresses(addresses []string) ([]int, error) {
 	}
 
 	if !res.Result {
-		return nil, fmt.Errorf("%v", res.ErrMsg)
+		return nil, fmt.Errorf("%s", string(data))
 	}
 
 	return res.Indexes, nil

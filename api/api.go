@@ -227,7 +227,14 @@ func FilterGroupV2(c *gin.Context) {
 
 func filterGroupfiData(c *gin.Context) (*FilterV2, bool) {
 	f := FilterV2{}
-	c.BindJSON(&f)
+	if err := c.BindJSON(&f); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err_code": gl.PARAMS_ERROR,
+			"err_msg":  err.Error(),
+		})
+		return nil, true
+	}
 
 	done := false
 	if len(f.Chains) == 1 {
@@ -241,7 +248,7 @@ func filterGroupfiData(c *gin.Context) (*FilterV2, bool) {
 
 		if done {
 			if err != nil {
-				gl.OutLogger.Error("Filter addresses from group error. %v", err)
+				gl.OutLogger.Error("Filter addresses from group error. %d : %v", len(err.Error()), err)
 				c.JSON(http.StatusOK, gin.H{
 					"result":   false,
 					"err_code": gl.SYSTEM_ERROR,
