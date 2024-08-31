@@ -1,10 +1,10 @@
-package api
+package middleware
 
 import "gproxy/model"
 
 var EvmChains map[uint64]model.Chain
 
-func loadEvmChains() error {
+func LoadEvmChains() error {
 	cs, err := model.GetChains()
 	if err != nil {
 		return err

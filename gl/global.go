@@ -35,6 +35,10 @@ const (
 	ERC_MANGO  = 10000
 )
 
+const (
+	SCENERY_LUKSO = 10001
+)
+
 var (
 	EVM_EMPTY_ADDRESS   = common.Address{}
 	SOLANA_EMPTY_PUBKEY = solana.PublicKey{}

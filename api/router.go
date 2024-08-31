@@ -31,7 +31,7 @@ func StartHttpServer(port int) {
 		}
 	}()
 
-	if err := loadEvmChains(); err != nil {
+	if err := middleware.LoadEvmChains(); err != nil {
 		panic(err)
 	}
 }

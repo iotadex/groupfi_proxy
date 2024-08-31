@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"crypto/ecdsa"
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
@@ -13,8 +12,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gin-gonic/gin"
 )
@@ -56,7 +57,12 @@ func VerifyEvmSign(c *gin.Context) {
 	account := ""
 	if len(md.EvmAddress) == 42 && (strings.HasPrefix(md.EvmAddress, "0x") || strings.HasPrefix(md.EvmAddress, "0X")) {
 		hashData := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
-		publickey, err := verifyEthAddress(signature, crypto.Keccak256Hash([]byte(hashData)).Bytes(), common.HexToAddress(md.EvmAddress))
+		var err error
+		if md.Scenery == gl.SCENERY_LUKSO {
+			err = verifyLuksoAddress(signature, crypto.Keccak256Hash([]byte(hashData)).Bytes(), common.HexToAddress(md.EvmAddress))
+		} else {
+			err = verifyEthAddress(signature, crypto.Keccak256Hash([]byte(hashData)).Bytes(), common.HexToAddress(md.EvmAddress))
+		}
 		if err != nil {
 			c.Abort()
 			c.JSON(http.StatusOK, gin.H{
@@ -67,7 +73,7 @@ func VerifyEvmSign(c *gin.Context) {
 			gl.OutLogger.Error("User's sign error. %v : %v", md, err)
 			return
 		}
-		account = crypto.PubkeyToAddress(*publickey).Hex()
+		account = md.EvmAddress
 	} else {
 		publicKey, _ := solana.PublicKeyFromBase58(md.EvmAddress)
 		signature := solana.SignatureFromBytes(signature)
@@ -214,23 +220,41 @@ func VerifyEd25519Sign(c *gin.Context) {
 	c.Next()
 }
 
-func verifyEthAddress(signature, hashData []byte, addr common.Address) (*ecdsa.PublicKey, error) {
+func verifyEthAddress(signature, hashData []byte, addr common.Address) error {
 	if len(signature) < 65 {
-		return nil, fmt.Errorf("signature length is too short")
+		return fmt.Errorf("signature length is too short")
 	}
 	if signature[64] < 27 {
 		if signature[64] != 0 && signature[64] != 1 {
-			return nil, fmt.Errorf("signature error")
+			return fmt.Errorf("signature error")
 		}
 	} else {
 		signature[64] -= 27
 	}
 	pubkey, err := crypto.SigToPub(hashData, signature)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if addr.Cmp(crypto.PubkeyToAddress(*pubkey)) != 0 {
-		return nil, fmt.Errorf("signature not match")
+		return fmt.Errorf("signature not match, %s", crypto.PubkeyToAddress(*pubkey).Hex())
 	}
-	return pubkey, nil
+	return nil
+}
+
+func verifyLuksoAddress(signature, hashData []byte, addr common.Address) error {
+	client, err := ethclient.Dial(EvmChains[42].Rpc)
+	if err != nil {
+		return err
+	}
+	lukso, err := NewILukso(addr, client)
+	if err != nil {
+		return err
+	}
+	data := common.FromHex("0xdf30dba06db6a30e65354d9a64c6098600000000000000000000000000000001")
+	controllerAddress, err := lukso.GetData(&bind.CallOpts{}, [32]byte(data))
+	if err != nil {
+		return err
+	}
+
+	return verifyEthAddress(signature, hashData, common.BytesToAddress(controllerAddress))
 }

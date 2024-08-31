@@ -23,7 +23,7 @@ func TestVerifyEth(t *testing.T) {
 	data := encryptedPrivateKey + evmAddress + pairXPublicKey + scenery + timestamp
 	data = fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
 	sign := common.FromHex("0x7cccd92dc30a491ada855136ace2d65389357cd5e594629506c1ae121f531e6e7944139863606237a4186f9d5fcf354001b3ae177176a7b29c97c7d9f3616c7d1c")
-	_, err := verifyEthAddress(sign, crypto.Keccak256Hash([]byte(data)).Bytes(), common.HexToAddress(evmAddress))
+	err := verifyEthAddress(sign, crypto.Keccak256Hash([]byte(data)).Bytes(), common.HexToAddress(evmAddress))
 	fmt.Println(err)
 }
 
@@ -83,7 +83,6 @@ func TestSolanaAccountInfo(t *testing.T) {
 	client := rpc.New("https://api.mainnet-beta.solana.com")
 	account := solana.MustPublicKeyFromBase58("7AigsDtFL3D5JYMTAC9kh6mZMnnnNXkisREiFD9VqVmv")
 	fmt.Println(hex.EncodeToString(account[:]))
-	return
 
 	mint := solana.MustPublicKeyFromBase58("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
 	conf := rpc.GetTokenAccountsConfig{
@@ -121,4 +120,12 @@ func TestFilterAddresses(t *testing.T) {
 	url := fmt.Sprintf("%s/getTokenAccountBalance?spl=%d&account=%s", "http://solana.groupfi.ai", 1, "Gjmjory7TWKJXD2Jc6hKzAG991wWutFhtbXudzJqgx3p")
 	data, err := tools.HttpGet(url)
 	fmt.Println(string(data), err)
+}
+
+func TestLukso(t *testing.T) {
+	data := "hello world"
+	hashData := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
+	signature := common.FromHex("0x66297143ed66e22482bff6e7d42fad4ee9d535cae147cccfbe8a4b1a552a64f51ab14ea20a9dd9dfef5d723303553d103686766721a48c8e88e2f487de34b6841c")
+	err := verifyLuksoAddress(signature, crypto.Keccak256Hash([]byte(hashData)).Bytes(), common.HexToAddress("0x8ffd1d75138fba044612549492aD25E9D9456F8E"))
+	fmt.Println(err)
 }
