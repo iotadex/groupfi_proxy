@@ -29,6 +29,15 @@ https://api.groupfi.ai
 }
 ```
 
+### GET /rpc?chainid={42}, get the rpc uri by chain id. Lukso is the only supported chainid now!
+#### response
+```json
+{
+    "result": true,
+    "rpc": "https://example.com"
+}
+```
+
 ### GET /mint_nicknft, mint a nft which contains user's nick name
 #### params
 |  name  |  type  |  description  |

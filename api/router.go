@@ -63,6 +63,8 @@ func InitRouter() *gin.Engine {
 
 	api.GET("/chains", GetChains)
 
+	api.GET("/rpc", GetRpcByChainId)
+
 	api.GET("/mint_nicknft", MintNFT)
 
 	api.GET("/smr_price", SmrPrice)

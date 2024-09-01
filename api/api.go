@@ -72,6 +72,23 @@ func GetChains(c *gin.Context) {
 	c.JSON(http.StatusOK, middleware.EvmChains)
 }
 
+func GetRpcByChainId(c *gin.Context) {
+	chainid, _ := strconv.ParseUint(c.Query("chainid"), 10, 64)
+	if chainid != gl.LUKSO_CHAINID {
+		c.JSON(http.StatusOK, gin.H{
+			"result":   false,
+			"err_code": gl.PARAMS_ERROR,
+			"err_msg":  "Don't support this chainid",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"result": true,
+		"rpc":    middleware.EvmChains[gl.LUKSO_CHAINID].Rpc,
+	})
+}
+
 // Get the prices of smr on different evm chains
 func SmrPrice(c *gin.Context) {
 	sps, err := model.GetSmrPrices()

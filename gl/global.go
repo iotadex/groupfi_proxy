@@ -26,6 +26,7 @@ const (
 
 const (
 	SOLANA_CHAINID = 518
+	LUKSO_CHAINID  = 42
 )
 
 const (
@@ -33,10 +34,6 @@ const (
 	ERC20      = 20
 	ERC721     = 721
 	ERC_MANGO  = 10000
-)
-
-const (
-	SCENERY_LUKSO = 10001
 )
 
 var (

@@ -26,6 +26,7 @@ type MetaData struct {
 	EvmAddress          string `json:"evmAddress"`
 	Timestamp           int64  `json:"timestamp"`
 	Scenery             int    `json:"scenery"`
+	Extra               string `json:"extra"`
 	Signature           string `json:"signature"`
 }
 
@@ -52,14 +53,14 @@ func VerifyEvmSign(c *gin.Context) {
 	}
 
 	signature := common.FromHex(md.Signature)
-	data := config.SignPrefix + md.EncryptedPrivateKey + md.EvmAddress + md.PairXPublicKey + strconv.Itoa(md.Scenery) + strconv.FormatInt(md.Timestamp, 10)
+	data := config.SignPrefix + md.EncryptedPrivateKey + md.EvmAddress + md.PairXPublicKey + strconv.Itoa(md.Scenery) + strconv.FormatInt(md.Timestamp, 10) + md.Extra
 
 	account := ""
 	if len(md.EvmAddress) == 42 && (strings.HasPrefix(md.EvmAddress, "0x") || strings.HasPrefix(md.EvmAddress, "0X")) {
 		hashData := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
 		var err error
-		if md.Scenery == gl.SCENERY_LUKSO {
-			err = verifyLuksoAddress(signature, crypto.Keccak256Hash([]byte(hashData)).Bytes(), common.HexToAddress(md.EvmAddress))
+		if len(md.Extra) > 4 {
+			err = verifyWithExtra(common.FromHex(md.Extra), signature, crypto.Keccak256Hash([]byte(hashData)).Bytes(), common.HexToAddress(md.EvmAddress))
 		} else {
 			err = verifyEthAddress(signature, crypto.Keccak256Hash([]byte(hashData)).Bytes(), common.HexToAddress(md.EvmAddress))
 		}
@@ -257,4 +258,15 @@ func verifyLuksoAddress(signature, hashData []byte, addr common.Address) error {
 	}
 
 	return verifyEthAddress(signature, hashData, common.BytesToAddress(controllerAddress))
+}
+
+func verifyWithExtra(extra, signature, hashData []byte, addr common.Address) error {
+	kv := make(map[string]interface{})
+	if err := json.Unmarshal(extra, &kv); err != nil {
+		return err
+	}
+	if _, exist := kv["lsp"]; exist {
+		return verifyLuksoAddress(signature, hashData, addr)
+	}
+	return fmt.Errorf("error extra. %s", hex.EncodeToString(extra))
 }
