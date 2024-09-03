@@ -3,9 +3,9 @@ package service
 import (
 	"fmt"
 	"gproxy/config"
-	"gproxy/gl"
 	"gproxy/wallet"
 	"log"
+	"log/slog"
 	"math/big"
 	"sync"
 	"time"
@@ -49,7 +49,7 @@ func FaucetSend(chainid uint64, erc20 string, to string, amount *big.Int) ([]byt
 	hashTx, err := w.SendERC20(erc20, to, amount)
 	if err == nil {
 		faucetUsed[to] = time.Now().Unix()
-		gl.OutLogger.Info("faucet test token. %s : %s", to, hexutil.Encode(hashTx))
+		slog.Info("faucet test token", "to", to, "hash", hexutil.Encode(hashTx))
 	}
 	return hashTx, err
 }

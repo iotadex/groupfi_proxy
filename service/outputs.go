@@ -3,12 +3,13 @@ package service
 import (
 	"encoding/hex"
 	"gproxy/config"
-	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/wallet"
+	"log/slog"
 	"sync"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	iotago "github.com/iotaledger/iota.go/v3"
 )
 
@@ -70,7 +71,7 @@ func updateProxyPoolCacheOutputs() {
 	// Get addresses which are confirmed
 	addrs, err := model.GetProxyPool(model.CONFIRMED_SEND)
 	if err != nil {
-		gl.OutLogger.Error("model.GetProxyPool error. %v, %d", err, model.CONFIRMED_SEND)
+		slog.Error("model.GetProxyPool", "type", model.CONFIRMED_SEND, "err", err)
 		return
 	}
 	if len(addrs) == 0 {
@@ -81,10 +82,10 @@ func updateProxyPoolCacheOutputs() {
 		time.Sleep(time.Second)
 		output, id, err := w.GetUnspentOutput(addr)
 		if err != nil {
-			gl.OutLogger.Error("w.GetUnspentOutput error. %s, %v", addr, err)
+			slog.Error("w.GetUnspentOutput error. %s, %v", addr, err)
 			continue
 		}
-		gl.OutLogger.Info("cache output %s : 0x%s", addr, hex.EncodeToString(id[:]))
+		slog.Info("cache output", "addr", addr, "id", hex.EncodeToString(id[:]))
 
 		cacheOutputMu.Lock()
 		cacheOutputs[addr] = CacheOutput{output: output, outputID: id}
@@ -95,16 +96,16 @@ func updateProxyPoolCacheOutputs() {
 func updateMintNameNftCacheOutputs() {
 	addr, _, err := model.GetIssuerByNftid(config.NameNftId)
 	if err != nil {
-		gl.OutLogger.Error("model.GetIssuerByNftid error. %s, %v", config.NameNftId, err)
+		slog.Error("model.GetIssuerByNftid", "namenftid", config.NameNftId, "err", err)
 		return
 	}
 	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", config.NameNftId)
 
 	output, id, err := w.GetUnspentOutput(addr)
 	if err != nil {
-		gl.OutLogger.Error("w.GetUnspentOutput error. %s, %v", addr, err)
+		slog.Error("w.GetUnspentOutput", "addr", addr, "err", err)
 	} else {
-		gl.OutLogger.Info("cache output %s : 0x%s", addr, hex.EncodeToString(id[:]))
+		slog.Info("cache output", "addr", addr, "id", hexutil.Encode(id[:]))
 		cacheOutputMu.Lock()
 		cacheOutputs[addr] = CacheOutput{output: output, outputID: id}
 		cacheOutputMu.Unlock()
@@ -112,9 +113,9 @@ func updateMintNameNftCacheOutputs() {
 
 	nft, id, err := w.GetCollectionNFTOutput()
 	if err != nil {
-		gl.OutLogger.Error("w.GetCollectionNFTOutput error. %s, %v", config.NameNftId, err)
+		slog.Error("w.GetCollectionNFTOutput", "namenftid", config.NameNftId, "err", err)
 	} else {
-		gl.OutLogger.Info("cache nft 0x%s", hex.EncodeToString(id[:]))
+		slog.Info("cache nft", "id", hexutil.Encode(id[:]))
 		cacheNFTMu.Lock()
 		cacheNFT = nft
 		cacheNFTID = id

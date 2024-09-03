@@ -1,9 +1,9 @@
 package service
 
 import (
-	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/tokens"
+	"log/slog"
 	"math/big"
 	"strings"
 	"sync"
@@ -38,15 +38,15 @@ func listen(chainid uint64, t *tokens.EvmToken) {
 		case log := <-chLog:
 			switch log.Type {
 			case 0:
-				gl.OutLogger.Info(log.Info)
+				slog.Info(log.Info)
 			case 1, 2:
-				gl.OutLogger.Error(log.Info)
+				slog.Error(log.Info)
 			case 3:
-				gl.OutLogger.Info("Listen service %d is stoped!", chainid)
+				slog.Info("Listen service is stoped!", "chainid", chainid)
 				return
 			}
 		case order := <-chOrder:
-			gl.OutLogger.Info("%d : %s : %s : %s : %d", order.ChainId, order.TxHash, order.User.Hex(), order.AmountIn.String(), order.AmountOut.Uint64())
+			slog.Info("new buy order", "order", order)
 			dealOrder(order)
 		}
 	}
@@ -56,13 +56,13 @@ func dealOrder(order tokens.Order) {
 	// get the price from db
 	p, err := model.GetSmrPrice(order.ChainId)
 	if err != nil {
-		gl.OutLogger.Error("model.GetSmrPrice error. %v, %v", err, order)
+		slog.Error("model.GetSmrPrice", "order", order, "err", err)
 		return
 	}
 	a, _ := new(big.Int).SetString(p.Price, 10)
 	a = a.Mul(order.AmountOut, a)
 	if a.Cmp(order.AmountIn) > 0 {
-		gl.OutLogger.Error("amountIn is not satisfied. %s, %s, %s", order.AmountIn.String(), order.AmountOut.String(), p.Price)
+		slog.Error("amountIn is not satisfied", "amountIn", order.AmountIn.String(), "amountOut", order.AmountOut.String(), "price", p.Price)
 		return
 	}
 
@@ -72,7 +72,7 @@ func dealOrder(order tokens.Order) {
 	smrAddr := addr.Bech32(iotago.PrefixShimmer)
 	if err := model.StoreBuyOrder(order.ChainId, order.TxHash.Hex(), order.User.Hex(), hexutil.Encode(order.EdAddr), smrAddr, order.AmountIn.String(), order.AmountOut.Uint64()); err != nil {
 		if !strings.HasPrefix(err.Error(), "Error 1062") {
-			gl.OutLogger.Error("model.StoreBuyOrder error. %v, %v", err, order)
+			slog.Error("model.StoreBuyOrder", "order", order, "err", err)
 		}
 		return
 	}

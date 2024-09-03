@@ -92,6 +92,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/iotaledger/iota.go/v3 v3.0.0-rc.3
 	github.com/triplefi/go-logger v0.0.0-20230908002104-b98a36a465ac
+	github.com/wytools/rlog v0.0.0-20240903060920-3d89e0f2f2c1
 	golang.org/x/term v0.18.0
 	golang.org/x/time v0.5.0
 )

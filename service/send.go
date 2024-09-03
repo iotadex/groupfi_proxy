@@ -2,9 +2,9 @@ package service
 
 import (
 	"gproxy/config"
-	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/wallet"
+	"log/slog"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -18,7 +18,7 @@ func RunSendSmr() {
 		// Get a record from database
 		o, err := model.PopOnePendingSendSmrOrder()
 		if err != nil {
-			gl.OutLogger.Error("model.PopOnePendingSendSmrOrder error. %v", err)
+			slog.Error("model.PopOnePendingSendSmrOrder", "err", err)
 			return
 		}
 		if o == nil {
@@ -27,7 +27,7 @@ func RunSendSmr() {
 
 		// check the ts
 		if o.Ts <= *CurrentSentTs {
-			gl.OutLogger.Error("send_coin_pending id error. %d : %v", CurrentSentTs, *o)
+			slog.Error("send_coin_pending id", "ts", CurrentSentTs, "order", *o)
 			return
 		}
 		*CurrentSentTs = o.Ts
@@ -35,23 +35,23 @@ func RunSendSmr() {
 		// get the wallet
 		w, err := getWallet(config.ProxyWallet)
 		if err != nil {
-			gl.OutLogger.Error("getWallet error. %v, %v", *o, err)
+			slog.Error("getWallet", "order", *o, "err", err)
 			return
 		}
 
 		blockId, err := w.SendBasic(o.To, o.Amount)
 		if err != nil {
-			gl.OutLogger.Error("w.SendBasic error. %v, %v", *o, err)
+			slog.Error("w.SendBasic", "order", *o, "err", err)
 			// store back
 			if err = model.StoreBackPendingSendSmrOrder(o.To, o.Amount, o.Type); err != nil {
-				gl.OutLogger.Error("model.StoreBackPendingSendSmrOrder error. %v, %v", *o, err)
+				slog.Error("model.StoreBackPendingSendSmrOrder", "order", *o, "err", err)
 			}
 			return
 		}
 
 		// updata blockid and state
 		if err = model.UpdatePendingOrderblockId(o.Id, hexutil.Encode(blockId)); err != nil {
-			gl.OutLogger.Error("model.UpdatePendingOrderblockId error. %v, %v", *o, err)
+			slog.Error("model.UpdatePendingOrderblockId", "order", *o, "err", err)
 			return
 		}
 
@@ -77,7 +77,7 @@ func runCheckPendingOrders() {
 	for range ticker.C {
 		orders, err := model.GetPendingOrders()
 		if err != nil {
-			gl.OutLogger.Error("model.GetPendingOrders error. %v", err)
+			slog.Error("model.GetPendingOrders", "err", err)
 			continue
 		}
 
@@ -85,7 +85,7 @@ func runCheckPendingOrders() {
 			time.Sleep(time.Second)
 			b, err := w.CheckTx(common.FromHex(o.BlockId))
 			if b && err != nil {
-				gl.OutLogger.Error("w.CheckTx error. %s, %v", o.BlockId, err)
+				slog.Error("w.CheckTx", "blockid", o.BlockId, "err", err)
 				continue
 			}
 
@@ -94,11 +94,11 @@ func runCheckPendingOrders() {
 				state = model.FAILED_SEND
 			}
 			if err = model.UpdatePendingOrderState(o.Id, state); err != nil {
-				gl.OutLogger.Error("model.UpdatePendingOrderState. %d, %v", o.Id, err)
+				slog.Error("model.UpdatePendingOrderState", "id", o.Id, "err", err)
 			}
 			if o.Type == model.SEND_POOL {
 				if err = model.UpdateProxyPoolState(o.To, state); err != nil {
-					gl.OutLogger.Error("model.UpdateProxyPoolState. %d, %v", o.Id, err)
+					slog.Error("model.UpdateProxyPoolState", "id", o.Id, "err", err)
 				}
 			}
 		}

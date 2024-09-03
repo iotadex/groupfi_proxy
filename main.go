@@ -6,12 +6,12 @@ import (
 	"gproxy/api"
 	"gproxy/config"
 	"gproxy/daemon"
-	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/service"
 	"gproxy/tokens"
 	"gproxy/tools"
 	"gproxy/wallet"
+	"log/slog"
 	"math/big"
 	"os"
 	"time"
@@ -19,6 +19,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	iotago "github.com/iotaledger/iota.go/v3"
 	"github.com/iotaledger/iota.go/v3/nodeclient"
+	"github.com/wytools/rlog/handler"
 )
 
 func main() {
@@ -31,7 +32,7 @@ func main() {
 	config.Load()
 	setSeeds()
 
-	gl.CreateLogFiles()
+	slog.SetDefault(handler.GetDefaultDailyLogger("logs/out.log", 0, 0))
 
 	model.ConnectToMysql(config.Db.Host, config.Db.Port, config.Db.DbName, config.Db.Usr, config.Db.Pwd)
 

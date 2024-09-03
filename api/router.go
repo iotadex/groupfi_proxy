@@ -6,12 +6,11 @@ import (
 	"gproxy/api/middleware"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/triplefi/go-logger/logger"
+	"github.com/wytools/rlog/rotation"
 )
 
 var httpServer *http.Server
@@ -49,10 +48,7 @@ func StopHttpServer() {
 
 // InitRouter init the router
 func InitRouter() *gin.Engine {
-	if err := os.MkdirAll("./logs/http", os.ModePerm); err != nil {
-		log.Panicf("Create dir './logs/http' error. %v", err)
-	}
-	GinLogger, err := logger.New("logs/http/gin.log", 2, 100*1024*1024, 10, logger.ERROR)
+	GinLogger, err := rotation.NewSizeWithLockLogger("logs/http/gin.log", 100*1024*1024, 10)
 	if err != nil {
 		log.Panicf("Create GinLogger file error. %v", err)
 	}

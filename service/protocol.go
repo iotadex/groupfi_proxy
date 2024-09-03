@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"gproxy/config"
-	"gproxy/gl"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -20,7 +20,7 @@ func UpateShimmerNodeProtocol() {
 	f := func() {
 		info, err := nodeApi.Info(context.Background())
 		if err != nil {
-			gl.OutLogger.Error("nodeApi.Info error. %v", err)
+			slog.Error("nodeApi.Info", "err", err)
 			return
 		}
 

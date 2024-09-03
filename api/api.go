@@ -12,6 +12,7 @@ import (
 	"gproxy/service"
 	"gproxy/tokens"
 	"gproxy/wallet"
+	"log/slog"
 	"math/big"
 	"net/http"
 	"strconv"
@@ -41,7 +42,7 @@ func Faucet(c *gin.Context) {
 
 	hashTx, err := service.FaucetSend(chainid, token.Hex(), to.Hex(), amount)
 	if err != nil || !b {
-		gl.OutLogger.Error("service.FaucetSend error. %v", err)
+		slog.Error("service.FaucetSend", "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.SYSTEM_ERROR,
@@ -93,7 +94,7 @@ func GetRpcByChainId(c *gin.Context) {
 func SmrPrice(c *gin.Context) {
 	sps, err := model.GetSmrPrices()
 	if err != nil {
-		gl.OutLogger.Error("model.GetSmrPrices error. %v", err)
+		slog.Error("model.GetSmrPrices", "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.SYSTEM_ERROR,
@@ -158,7 +159,7 @@ func FilterGroup(c *gin.Context) {
 		} else if f.Erc == gl.ERC_NATIVE {
 			indexes, err = t.FilterEthAddresses(addrs, threshold)
 		} else {
-			gl.OutLogger.Error("erc error. %d", f.Erc)
+			slog.Error("protocol error", "erc", f.Erc)
 			c.JSON(http.StatusOK, gin.H{
 				"result":   false,
 				"err_code": gl.SYSTEM_ERROR,
@@ -169,7 +170,7 @@ func FilterGroup(c *gin.Context) {
 	}
 
 	if err != nil {
-		gl.OutLogger.Error("Filter addresses from group error. %d, %s, %v", f.Chain, f.Contract, err)
+		slog.Error("Filter addresses from group", "chain", f.Chain, "contract", f.Contract, "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.SYSTEM_ERROR,
@@ -217,7 +218,7 @@ func FilterGroupV2(c *gin.Context) {
 
 	indexes, err := getEvmBelowIndexes(evmAddresses, f)
 	if err != nil {
-		gl.OutLogger.Error("Filter addresses from group error. %v", err)
+		slog.Error("Filter addresses from group", "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.SYSTEM_ERROR,
@@ -228,7 +229,7 @@ func FilterGroupV2(c *gin.Context) {
 
 	inx, err := getSolanaAddresses(solAddresses, indexes, f)
 	if err != nil {
-		gl.OutLogger.Error("Filter addresses from group error. %v", err)
+		slog.Error("Filter addresses from group", "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.SYSTEM_ERROR,
@@ -266,7 +267,7 @@ func filterGroupfiData(c *gin.Context) (*FilterV2, bool) {
 
 		if done {
 			if err != nil {
-				gl.OutLogger.Error("Filter addresses from group error. %d : %v", len(err.Error()), err)
+				slog.Error("Filter addresses from group", "err", err)
 				c.JSON(http.StatusOK, gin.H{
 					"result":   false,
 					"err_code": gl.SYSTEM_ERROR,
@@ -406,7 +407,7 @@ func VerifyGroup(c *gin.Context) {
 	}
 
 	if err != nil {
-		gl.OutLogger.Error("check addresses for group error. %d, %s, %v", f.Chain, f.Contract, err)
+		slog.Error("check addresses for group", "chain", f.Chain, "contract", f.Contract, "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.SYSTEM_ERROR,
@@ -418,7 +419,7 @@ func VerifyGroup(c *gin.Context) {
 	data, _ := json.Marshal(f)
 	sign, err := wallet.SignEd25519Hash(data[:])
 	if err != nil {
-		gl.OutLogger.Error("service.SignEd25519Hash error. %v", err)
+		slog.Error("service.SignEd25519Hash", "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.SYSTEM_ERROR,
@@ -444,7 +445,7 @@ func MintNFT(c *gin.Context) {
 
 	prefix, _, err := iotago.ParseBech32(to)
 	if prefix != iotago.PrefixShimmer && err != nil {
-		gl.OutLogger.Warn("User's address error. %s", to)
+		slog.Warn("User's address error", "to", to)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.PARAMS_ERROR,
@@ -454,7 +455,7 @@ func MintNFT(c *gin.Context) {
 	}
 
 	if len(name) < 8 || len(name) > 20 || !isAlphaNumeric(name) {
-		gl.OutLogger.Warn("User's name error. %s", name)
+		slog.Warn("User's name", "name", name)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.PARAMS_ERROR,
@@ -477,7 +478,7 @@ func MintNFT(c *gin.Context) {
 
 	b, err := model.InsertNameNftRecord(to, name, hexutil.Encode(meta), config.NameNftId, config.NameNftDays)
 	if err != nil {
-		gl.OutLogger.Error("model.InsertNameNftRecord error. %s, %s, %v", to, name, err)
+		slog.Error("model.InsertNameNftRecord", "to", to, "name", name, "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.SYSTEM_ERROR,
@@ -486,7 +487,7 @@ func MintNFT(c *gin.Context) {
 		return
 	}
 	if !b {
-		gl.OutLogger.Warn("name used. %s, %s", to, name)
+		slog.Warn("name used", "to", to, "name", name)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.PARAMS_ERROR,
@@ -508,7 +509,7 @@ func MintNameNftForMM(c *gin.Context) {
 
 	proxy, err := model.GetProxyAccount(signAcc)
 	if err != nil {
-		gl.OutLogger.Error("model.GetProxyAccount error. %s, %v", signAcc, err)
+		slog.Error("model.GetProxyAccount", "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.SYSTEM_ERROR,
@@ -526,7 +527,7 @@ func MintNameNftForMM(c *gin.Context) {
 	}
 
 	if len(name) < 8 || len(name) > 20 || !isAlphaNumeric(name) {
-		gl.OutLogger.Warn("User's name error. %s", name)
+		slog.Warn("User's name error", "name", name)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.PARAMS_ERROR,
@@ -549,7 +550,7 @@ func MintNameNftForMM(c *gin.Context) {
 
 	b, err := model.InsertNameNftRecord(proxy.Smr, name, hexutil.Encode(meta), config.NameNftId, 0)
 	if err != nil {
-		gl.OutLogger.Error("model.VerifyAndInsertName error. %s, %s, %v", proxy.Smr, name, err)
+		slog.Error("model.VerifyAndInsertName", "smr", proxy.Smr, "name", name, "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.SYSTEM_ERROR,
@@ -558,7 +559,7 @@ func MintNameNftForMM(c *gin.Context) {
 		return
 	}
 	if !b {
-		gl.OutLogger.Warn("name used. %s, %s", proxy.Smr, name)
+		slog.Warn("name used", "smr", proxy.Smr, "name", name)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.PARAMS_ERROR,
@@ -589,7 +590,7 @@ func RegisterProxy(c *gin.Context) {
 
 	smr, err := model.RegisterProxyFromPool(account, signAcc)
 	if err != nil {
-		gl.OutLogger.Error("model.RegisterProxy error. %s, %s, %v", account, signAcc, err)
+		slog.Error("model.RegisterProxy", "account", account, "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.SYSTEM_ERROR,
@@ -599,7 +600,7 @@ func RegisterProxy(c *gin.Context) {
 	}
 
 	if id, err := service.MintSignAccPkNft(signAcc, common.FromHex(meta)); err != nil {
-		gl.OutLogger.Error("service.MintSignAccPkNft error. %s, %s, %v", smr, signAcc, err)
+		slog.Error("service.MintSignAccPkNft", "smr", smr, "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.SYSTEM_ERROR,
@@ -607,7 +608,7 @@ func RegisterProxy(c *gin.Context) {
 		})
 		return
 	} else {
-		gl.OutLogger.Info("mint pk nft. 0x%s", hex.EncodeToString(id))
+		slog.Info("mint pk nft", "nft_id", "0x"+hex.EncodeToString(id))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -620,7 +621,7 @@ func GetProxyAccount(c *gin.Context) {
 	signAcc := c.Query("publickey")
 	proxy, err := model.GetProxyAccount(signAcc)
 	if err != nil {
-		gl.OutLogger.Error("model.GetProxyAccount error. %s, %v", signAcc, err)
+		slog.Error("model.GetProxyAccount", "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.SYSTEM_ERROR,
@@ -648,7 +649,7 @@ func SendTxEssence(c *gin.Context) {
 
 	txid, bid, err := service.SendTxEssence(signAcc, txEssenceBytes, false)
 	if err != nil {
-		gl.OutLogger.Error("service.SendTxEssence error. %s, %v", signAcc, err)
+		slog.Error("service.SendTxEssence", "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.MSG_OUTPUT_ILLEGAL,
@@ -670,7 +671,7 @@ func SendTxEssenceAsyn(c *gin.Context) {
 
 	txid, bid, err := service.SendTxEssence(signAcc, txEssenceBytes, true)
 	if err != nil {
-		gl.OutLogger.Error("service.SendTxEssence error. %s, %v", signAcc, err)
+		slog.Error("service.SendTxEssence", "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{
 			"result":   false,
 			"err_code": gl.MSG_OUTPUT_ILLEGAL,

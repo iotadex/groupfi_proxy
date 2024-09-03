@@ -3,16 +3,16 @@ package service
 import (
 	"encoding/hex"
 	"gproxy/config"
-	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/wallet"
+	"log/slog"
 	"time"
 )
 
 func RunKeepProxyPoolFull() {
 	f := func() {
 		if count, err := model.CreateProxyToPool(config.ProxySendAmount, config.MinProxyPoolCount); err != nil {
-			gl.OutLogger.Error("model.CreateProxyToPool error. %v", err)
+			slog.Error("model.CreateProxyToPool", "err", err)
 		} else if count > 0 {
 			CreateProxyPoolSignal <- true
 		}
@@ -31,7 +31,7 @@ func RunCheckProxyPoolBalance() {
 	for range ticker.C {
 		addrs, err := model.GetProxyPool(model.USED_ADDRESS)
 		if err != nil {
-			gl.OutLogger.Error("model.GetUsedProxyPool error. %v", err)
+			slog.Error("model.GetUsedProxyPool", "err", err)
 		}
 
 		for bech32Addr, enpk := range addrs {
@@ -42,13 +42,13 @@ func RunCheckProxyPoolBalance() {
 
 			amount, err := w.Balance(bech32Addr)
 			if err != nil {
-				gl.OutLogger.Error("w.Balance error. %s : %v", bech32Addr, err)
+				slog.Error("w.Balance", "addr", bech32Addr, "err", err)
 				continue
 			}
 
 			if amount < (config.ProxySendAmount * 20 / 100) {
 				if err := model.InsertSendSmrOrder(bech32Addr, config.ProxySendAmount, 3); err != nil {
-					gl.OutLogger.Error("model.InsertSendSmrOrder error. %s : %v", bech32Addr, err)
+					slog.Error("model.InsertSendSmrOrder", "addr", bech32Addr, "err", err)
 				}
 			}
 		}
@@ -59,7 +59,7 @@ func RunRecycleMsgOutputs() {
 	f := func() {
 		addrs, err := model.GetProxyPool(model.USED_ADDRESS)
 		if err != nil {
-			gl.OutLogger.Error("model.GetUsedProxyPool error. %v", err)
+			slog.Error("model.GetUsedProxyPool", "err", err)
 		}
 
 		for bech32Addr, enpk := range addrs {
@@ -72,11 +72,11 @@ func RunRecycleMsgOutputs() {
 
 			id, err := w.Recycle(config.RecycleFilterTags)
 			if err != nil {
-				gl.OutLogger.Error("w.Recycle error. %s : %v", bech32Addr, err)
+				slog.Error("w.Recycle", "addr", bech32Addr, "err", err)
 				continue
 			}
 			if len(id) > 0 {
-				gl.OutLogger.Info("%s recycle msg, blockid : %s", bech32Addr, hex.EncodeToString(id))
+				slog.Info(bech32Addr+" recycle msg", "blockid", hex.EncodeToString(id))
 			}
 		}
 	}

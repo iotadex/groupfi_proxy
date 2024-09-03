@@ -4,9 +4,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"gproxy/config"
-	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/wallet"
+	"log/slog"
 	"time"
 
 	"github.com/iotaledger/hive.go/serializer/v2"
@@ -54,16 +54,16 @@ func SendTxEssence(signAcc string, txEssenceBytes []byte, asyn bool) ([]byte, []
 	if asyn {
 		go func() {
 			if blockId, err = w.SendSignedTxDataWithoutPow(tx, GetShimmerNodeProtocol()); err != nil {
-				gl.OutLogger.Error("w.SendSignedTxDataWithoutPow error. %s, %v", proxy.Smr, err)
+				slog.Error("w.SendSignedTxDataWithoutPow", "proxy", proxy.Smr, "err", err)
 			} else {
-				gl.OutLogger.Info("send msg meta output. 0x%s", hex.EncodeToString(blockId))
+				slog.Info("send msg meta output", "blockid", hex.EncodeToString(blockId))
 			}
 		}()
 	} else {
 		if blockId, err = w.SendSignedTxDataWithoutPow(tx, GetShimmerNodeProtocol()); err != nil {
-			gl.OutLogger.Error("w.SendSignedTxDataWithoutPow error. %s, %v", proxy.Smr, err)
+			slog.Error("w.SendSignedTxDataWithoutPow", "proxy", proxy.Smr, "err", err)
 		} else {
-			gl.OutLogger.Info("send msg meta output. 0x%s", hex.EncodeToString(blockId))
+			slog.Info("send msg meta output", "blockid", hex.EncodeToString(blockId))
 		}
 	}
 

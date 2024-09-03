@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"gproxy/config"
 	"gproxy/gl"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -71,7 +72,7 @@ func VerifyEvmSign(c *gin.Context) {
 				"err-code": gl.SIGN_ERROR,
 				"err-msg":  "sign error. " + err.Error(),
 			})
-			gl.OutLogger.Error("User's sign error. %v : %v", md, err)
+			slog.Error("User's sign", "postParams", md, "err", err)
 			return
 		}
 		account = md.EvmAddress
@@ -95,7 +96,7 @@ func VerifyEvmSign(c *gin.Context) {
 				"err-code": gl.SIGN_ERROR,
 				"err-msg":  "sign error",
 			})
-			gl.OutLogger.Error("User's sign error. %v", md)
+			slog.Error("User's sign error", "postParams", md)
 			return
 		}
 		account = publicKey.String()
@@ -152,7 +153,7 @@ func VerifySolSign(c *gin.Context) {
 			"err-code": gl.SIGN_ERROR,
 			"err-msg":  "sign error",
 		})
-		gl.OutLogger.Error("User's sign error. %v", md)
+		slog.Error("User's sign error", "postParams", md)
 		return
 	}
 
@@ -212,7 +213,7 @@ func VerifyEd25519Sign(c *gin.Context) {
 			"err-code": gl.SIGN_ERROR,
 			"err-msg":  "sign error",
 		})
-		gl.OutLogger.Error("User's sign error. %v", sd)
+		slog.Error("User's sign error", "postParams", sd)
 		return
 	}
 

@@ -2,10 +2,10 @@ package service
 
 import (
 	"gproxy/config"
-	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/wallet"
 	"log"
+	"log/slog"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -21,7 +21,7 @@ func RunMintNameNft() {
 		}
 		r, err := model.PopOneNameNftRecord()
 		if err != nil {
-			gl.OutLogger.Error("model.PopOneNftNameRecord error. %v", err)
+			slog.Error("model.PopOneNftNameRecord", "err", err)
 			return
 		}
 		if r == nil {
@@ -31,10 +31,10 @@ func RunMintNameNft() {
 		basicOutput, basicId := GetCacheOutput(addr)
 		nftOutput, nftOutputId := GetCacheNFT()
 		if id, err := w.MintNameNFT(r.To, r.Expire, r.Meta, []byte(config.NameNftTag), basicOutput, basicId, nftOutput, nftOutputId, GetShimmerNodeProtocol()); err != nil {
-			gl.OutLogger.Error("sq.w.MintNameNFT error. %s, %v", r.To, err)
+			slog.Error("sq.w.MintNameNFT", "to", r.To, "err", err)
 		} else {
 			if err = model.UpdateBlockIdToNameNftRecord(r.Nftid, hexutil.Encode(id)); err != nil {
-				gl.OutLogger.Error("model.UpdateBlockIdToNameNftRecord error.%s : %s : %v", r.Nftid, hexutil.Encode(id), err)
+				slog.Error("model.UpdateBlockIdToNameNftRecord", "nftid", r.Nftid, "id", hexutil.Encode(id), "err", err)
 			}
 			*preMintTs = time.Now().Unix()
 			go checkNameNft(w, r.Nftid, r.To, id)
@@ -66,13 +66,13 @@ func checkNameNft(w *wallet.IotaSmrWallet, id, addr string, blockId []byte) {
 	time.Sleep(time.Minute)
 	nftid, err := w.GetNftOutputFromBlockID(blockId)
 	if err != nil {
-		gl.OutLogger.Error("w.GetNftOutputFromBlockID error. %s, %v", hexutil.Encode(blockId), err)
+		slog.Error("w.GetNftOutputFromBlockID", "blockid", hexutil.Encode(blockId), "err", err)
 		return
 	}
-	gl.OutLogger.Info("Mint name nft %s, %s", nftid, addr)
+	slog.Info("Mint name nft", "nftid", nftid, "addr", addr)
 	MintNameNFTSignal <- true
 
 	if err := model.UpdateNameNft(id, nftid); err != nil {
-		gl.OutLogger.Error("model.StoreNameNft error. %s, %s, %v", nftid, hexutil.Encode(blockId), err)
+		slog.Error("model.StoreNameNft", "nftid", nftid, "blockid", hexutil.Encode(blockId), "err", err)
 	}
 }
