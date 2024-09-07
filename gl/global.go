@@ -32,4 +32,5 @@ const (
 var (
 	EVM_EMPTY_ADDRESS   = common.Address{}
 	SOLANA_EMPTY_PUBKEY = solana.PublicKey{}
+	LUKSO_UP_HELP       = common.HexToAddress("0x0A86EcF432Bb889Fc000804ecF04b4A96017fC78")
 )

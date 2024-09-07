@@ -30,7 +30,7 @@ var (
 
 // ILuksoMetaData contains all meta data concerning the ILukso contract.
 var ILuksoMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"dataKey\",\"type\":\"bytes32\"}],\"name\":\"getData\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[],\"name\":\"KEY_ADDRESS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"KEY_COUNT\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contractIERC725Y\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"getControllerAddresses\",\"outputs\":[{\"internalType\":\"bytes[]\",\"name\":\"\",\"type\":\"bytes[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"dataKey\",\"type\":\"bytes32\"}],\"name\":\"getData\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // ILuksoABI is the input ABI used to generate the binding from.
@@ -177,6 +177,99 @@ func (_ILukso *ILuksoTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Tr
 // Transact invokes the (paid) contract method with params as input values.
 func (_ILukso *ILuksoTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _ILukso.Contract.contract.Transact(opts, method, params...)
+}
+
+// KEYADDRESS is a free data retrieval call binding the contract method 0xf35152f6.
+//
+// Solidity: function KEY_ADDRESS() view returns(uint256)
+func (_ILukso *ILuksoCaller) KEYADDRESS(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _ILukso.contract.Call(opts, &out, "KEY_ADDRESS")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// KEYADDRESS is a free data retrieval call binding the contract method 0xf35152f6.
+//
+// Solidity: function KEY_ADDRESS() view returns(uint256)
+func (_ILukso *ILuksoSession) KEYADDRESS() (*big.Int, error) {
+	return _ILukso.Contract.KEYADDRESS(&_ILukso.CallOpts)
+}
+
+// KEYADDRESS is a free data retrieval call binding the contract method 0xf35152f6.
+//
+// Solidity: function KEY_ADDRESS() view returns(uint256)
+func (_ILukso *ILuksoCallerSession) KEYADDRESS() (*big.Int, error) {
+	return _ILukso.Contract.KEYADDRESS(&_ILukso.CallOpts)
+}
+
+// KEYCOUNT is a free data retrieval call binding the contract method 0xf6ec0254.
+//
+// Solidity: function KEY_COUNT() view returns(bytes32)
+func (_ILukso *ILuksoCaller) KEYCOUNT(opts *bind.CallOpts) ([32]byte, error) {
+	var out []interface{}
+	err := _ILukso.contract.Call(opts, &out, "KEY_COUNT")
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// KEYCOUNT is a free data retrieval call binding the contract method 0xf6ec0254.
+//
+// Solidity: function KEY_COUNT() view returns(bytes32)
+func (_ILukso *ILuksoSession) KEYCOUNT() ([32]byte, error) {
+	return _ILukso.Contract.KEYCOUNT(&_ILukso.CallOpts)
+}
+
+// KEYCOUNT is a free data retrieval call binding the contract method 0xf6ec0254.
+//
+// Solidity: function KEY_COUNT() view returns(bytes32)
+func (_ILukso *ILuksoCallerSession) KEYCOUNT() ([32]byte, error) {
+	return _ILukso.Contract.KEYCOUNT(&_ILukso.CallOpts)
+}
+
+// GetControllerAddresses is a free data retrieval call binding the contract method 0xa534af89.
+//
+// Solidity: function getControllerAddresses(address user) view returns(bytes[])
+func (_ILukso *ILuksoCaller) GetControllerAddresses(opts *bind.CallOpts, user common.Address) ([][]byte, error) {
+	var out []interface{}
+	err := _ILukso.contract.Call(opts, &out, "getControllerAddresses", user)
+
+	if err != nil {
+		return *new([][]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([][]byte)).(*[][]byte)
+
+	return out0, err
+
+}
+
+// GetControllerAddresses is a free data retrieval call binding the contract method 0xa534af89.
+//
+// Solidity: function getControllerAddresses(address user) view returns(bytes[])
+func (_ILukso *ILuksoSession) GetControllerAddresses(user common.Address) ([][]byte, error) {
+	return _ILukso.Contract.GetControllerAddresses(&_ILukso.CallOpts, user)
+}
+
+// GetControllerAddresses is a free data retrieval call binding the contract method 0xa534af89.
+//
+// Solidity: function getControllerAddresses(address user) view returns(bytes[])
+func (_ILukso *ILuksoCallerSession) GetControllerAddresses(user common.Address) ([][]byte, error) {
+	return _ILukso.Contract.GetControllerAddresses(&_ILukso.CallOpts, user)
 }
 
 // GetData is a free data retrieval call binding the contract method 0x54f6127f.

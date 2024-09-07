@@ -18,7 +18,7 @@ func RunKeepProxyPoolFull() {
 		}
 	}
 	f()
-	ticker := time.NewTicker(time.Hour * time.Duration(config.ProxyPoolCheckMinutes))
+	ticker := time.NewTicker(time.Minute * time.Duration(config.ProxyPoolCheckMinutes))
 	for range ticker.C {
 		f()
 	}

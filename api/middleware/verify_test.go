@@ -124,8 +124,26 @@ func TestFilterAddresses(t *testing.T) {
 
 func TestLukso(t *testing.T) {
 	data := "hello world"
+	//data := config.SignPrefix + md.EncryptedPrivateKey + md.EvmAddress + md.PairXPublicKey + strconv.Itoa(md.Scenery) + strconv.FormatInt(md.Timestamp, 10) + md.Extra
+	/*
+	   {
+	     "encryptedPrivateKey": "",
+	     "pairXPublicKey": "0xa7d2540082f160c9754b021297dcc1bb2649bc5a8a6daaed8f7b60197c7c2e01",
+	     "evmAddress": "0xce4dc867b1f756f8adccf4e270d2a6ac6357e3f9",
+	     "timestamp": 1725621363,
+	     "scenery": 2,
+	     "extra": "0x7b226c7370223a747275657d",
+	     "signature": "0x8610d83bf46c41093cbb35fe1e37567e64d47381b362370f938f8432297a178d33f6900088b7092a0fda97a5f4a8e7b523fc57dd3e0e1f635f0e8bdb8a03f7171b"
+	   }
+	*/
+	data = "Creating account... " + "c9f57603473f9058b003fd03ad19544b51780b6ab3a06cd6a8d82e3ec6af73ece2030c75785c03494cd9bb914938fb72ebf61f51ad8ce418271f3a9533a1cf68fca5efd013d26c38e883299b8a24e37d2443ebc906ed3f95601c03f983434b009496366e1a0b07e1130e3b57bbed06bd" +
+		"0xce4dc867b1f756f8adccf4e270d2a6ac6357e3f9" +
+		"0xa7d2540082f160c9754b021297dcc1bb2649bc5a8a6daaed8f7b60197c7c2e01" +
+		"2" +
+		"1725621363" +
+		"0x7b226c7370223a747275657d"
 	hashData := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
-	signature := common.FromHex("0x66297143ed66e22482bff6e7d42fad4ee9d535cae147cccfbe8a4b1a552a64f51ab14ea20a9dd9dfef5d723303553d103686766721a48c8e88e2f487de34b6841c")
-	err := verifyLuksoAddress(signature, crypto.Keccak256Hash([]byte(hashData)).Bytes(), common.HexToAddress("0x8ffd1d75138fba044612549492aD25E9D9456F8E"))
+	signature := common.FromHex("0x8610d83bf46c41093cbb35fe1e37567e64d47381b362370f938f8432297a178d33f6900088b7092a0fda97a5f4a8e7b523fc57dd3e0e1f635f0e8bdb8a03f7171b")
+	err := verifyEthAddress(signature, crypto.Keccak256Hash([]byte(hashData)).Bytes(), common.HexToAddress("0x378be8577ede94b9d4b9f45447f21b826501bab8"))
 	fmt.Println(err)
 }

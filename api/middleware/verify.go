@@ -248,17 +248,20 @@ func verifyLuksoAddress(signature, hashData []byte, addr common.Address) error {
 	if err != nil {
 		return err
 	}
-	lukso, err := NewILukso(addr, client)
-	if err != nil {
-		return err
-	}
-	data := common.FromHex("0xdf30dba06db6a30e65354d9a64c6098600000000000000000000000000000001")
-	controllerAddress, err := lukso.GetData(&bind.CallOpts{}, [32]byte(data))
+	lukso, err := NewILukso(gl.LUKSO_UP_HELP, client)
 	if err != nil {
 		return err
 	}
 
-	return verifyEthAddress(signature, hashData, common.BytesToAddress(controllerAddress))
+	controllerAddresses, err := lukso.GetControllerAddresses(&bind.CallOpts{}, addr)
+
+	for _, cAddr := range controllerAddresses {
+		if err = verifyEthAddress(signature, hashData, common.BytesToAddress(cAddr)); err == nil {
+			return nil
+		}
+	}
+
+	return err
 }
 
 func verifyWithExtra(extra, signature, hashData []byte, addr common.Address) error {
