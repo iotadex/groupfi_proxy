@@ -265,8 +265,8 @@ the addresses are the solana's main account always
 ```json
 {
     "result": false,
-    "err-code": 0,
-    "err-msg": "system error"
+    gl.ErrCodeStr: 0,
+    gl.ErrMsgStr: "system error"
 }
 ```
 

@@ -33,9 +33,9 @@ func Faucet(c *gin.Context) {
 
 	if err != nil || !b {
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.PARAMS_ERROR,
-			"err_msg":  "params error.",
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "params error.",
 		})
 		return
 	}
@@ -44,9 +44,9 @@ func Faucet(c *gin.Context) {
 	if err != nil || !b {
 		slog.Error("service.FaucetSend", "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.SYSTEM_ERROR,
-			"err_msg":  "system error.",
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "system error.",
 		})
 		return
 	}
@@ -62,9 +62,9 @@ func GetChains(c *gin.Context) {
 	if update != "0" {
 		if err := middleware.LoadEvmChains(); err != nil {
 			c.JSON(http.StatusOK, gin.H{
-				"result":   false,
-				"err_code": gl.SYSTEM_ERROR,
-				"err_msg":  err.Error(),
+				"result":      false,
+				gl.ErrCodeStr: gl.SYSTEM_ERROR,
+				gl.ErrMsgStr:  err.Error(),
 			})
 			return
 		}
@@ -77,9 +77,9 @@ func GetRpcByChainId(c *gin.Context) {
 	chainid, _ := strconv.ParseUint(c.Query("chainid"), 10, 64)
 	if chainid != gl.LUKSO_CHAINID {
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.PARAMS_ERROR,
-			"err_msg":  "Don't support this chainid",
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "Don't support this chainid",
 		})
 		return
 	}
@@ -96,9 +96,9 @@ func SmrPrice(c *gin.Context) {
 	if err != nil {
 		slog.Error("model.GetSmrPrices", "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.SYSTEM_ERROR,
-			"err_msg":  "system error",
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "system error",
 		})
 		return
 	}
@@ -134,9 +134,9 @@ func FilterGroup(c *gin.Context) {
 
 	if err != nil || !exist || !b {
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.PARAMS_ERROR,
-			"err_msg":  "params error.",
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "params error.",
 		})
 		return
 	}
@@ -161,9 +161,9 @@ func FilterGroup(c *gin.Context) {
 		} else {
 			slog.Error("protocol error", "erc", f.Erc)
 			c.JSON(http.StatusOK, gin.H{
-				"result":   false,
-				"err_code": gl.SYSTEM_ERROR,
-				"err_msg":  "system error",
+				"result":      false,
+				gl.ErrCodeStr: gl.SYSTEM_ERROR,
+				gl.ErrMsgStr:  "system error",
 			})
 			return
 		}
@@ -172,9 +172,9 @@ func FilterGroup(c *gin.Context) {
 	if err != nil {
 		slog.Error("Filter addresses from group", "chain", f.Chain, "contract", f.Contract, "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.SYSTEM_ERROR,
-			"err_msg":  "system error",
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "system error",
 		})
 		return
 	}
@@ -220,9 +220,9 @@ func FilterGroupV2(c *gin.Context) {
 	if err != nil {
 		slog.Error("Filter addresses from group", "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.SYSTEM_ERROR,
-			"err_msg":  "system error",
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "system error",
 		})
 		return
 	}
@@ -231,9 +231,9 @@ func FilterGroupV2(c *gin.Context) {
 	if err != nil {
 		slog.Error("Filter addresses from group", "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.SYSTEM_ERROR,
-			"err_msg":  "system error",
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "system error",
 		})
 		return
 	}
@@ -248,9 +248,9 @@ func filterGroupfiData(c *gin.Context) (*FilterV2, bool) {
 	f := FilterV2{}
 	if err := c.BindJSON(&f); err != nil {
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.PARAMS_ERROR,
-			"err_msg":  err.Error(),
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  err.Error(),
 		})
 		return nil, true
 	}
@@ -269,9 +269,9 @@ func filterGroupfiData(c *gin.Context) (*FilterV2, bool) {
 			if err != nil {
 				slog.Error("Filter addresses from group", "err", err)
 				c.JSON(http.StatusOK, gin.H{
-					"result":   false,
-					"err_code": gl.SYSTEM_ERROR,
-					"err_msg":  "system error",
+					"result":      false,
+					gl.ErrCodeStr: gl.SYSTEM_ERROR,
+					gl.ErrMsgStr:  "system error",
 				})
 			} else {
 				c.JSON(http.StatusOK, gin.H{
@@ -373,9 +373,9 @@ func VerifyGroup(c *gin.Context) {
 
 	if err != nil || !exist || !b {
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.PARAMS_ERROR,
-			"err_msg":  fmt.Sprintf("params error. %d, %s, %v", f.Chain, f.Threshold, err),
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  fmt.Sprintf("params error. %d, %s, %v", f.Chain, f.Threshold, err),
 		})
 		return
 	}
@@ -409,9 +409,9 @@ func VerifyGroup(c *gin.Context) {
 	if err != nil {
 		slog.Error("check addresses for group", "chain", f.Chain, "contract", f.Contract, "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.SYSTEM_ERROR,
-			"err_msg":  "system error",
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "system error",
 		})
 		return
 	}
@@ -421,9 +421,9 @@ func VerifyGroup(c *gin.Context) {
 	if err != nil {
 		slog.Error("service.SignEd25519Hash", "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.SYSTEM_ERROR,
-			"err_msg":  "system error",
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "system error",
 		})
 		return
 	}
@@ -447,9 +447,9 @@ func MintNFT(c *gin.Context) {
 	if prefix != iotago.PrefixShimmer && err != nil {
 		slog.Warn("User's address error", "to", to)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.PARAMS_ERROR,
-			"err_msg":  "smr address error",
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "smr address error",
 		})
 		return
 	}
@@ -457,9 +457,9 @@ func MintNFT(c *gin.Context) {
 	if len(name) < 8 || len(name) > 20 || !isAlphaNumeric(name) {
 		slog.Warn("User's name", "name", name)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.PARAMS_ERROR,
-			"err_msg":  "name invalid",
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "name invalid",
 		})
 		return
 	}
@@ -480,18 +480,18 @@ func MintNFT(c *gin.Context) {
 	if err != nil {
 		slog.Error("model.InsertNameNftRecord", "to", to, "name", name, "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.SYSTEM_ERROR,
-			"err_msg":  "system error",
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "system error",
 		})
 		return
 	}
 	if !b {
 		slog.Warn("name used", "to", to, "name", name)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.PARAMS_ERROR,
-			"err_msg":  "name used",
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "name used",
 		})
 		return
 	}
@@ -511,17 +511,17 @@ func MintNameNftForMM(c *gin.Context) {
 	if err != nil {
 		slog.Error("model.GetProxyAccount", "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.SYSTEM_ERROR,
-			"err_msg":  "system error",
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "system error",
 		})
 		return
 	}
 	if proxy == nil {
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.PROXY_NOT_EXIST,
-			"err_msg":  "proxy account is not exist",
+			"result":      false,
+			gl.ErrCodeStr: gl.PROXY_NOT_EXIST,
+			gl.ErrMsgStr:  "proxy account is not exist",
 		})
 		return
 	}
@@ -529,9 +529,9 @@ func MintNameNftForMM(c *gin.Context) {
 	if len(name) < 8 || len(name) > 20 || !isAlphaNumeric(name) {
 		slog.Warn("User's name error", "name", name)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.PARAMS_ERROR,
-			"err_msg":  "name invalid",
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "name invalid",
 		})
 		return
 	}
@@ -552,18 +552,18 @@ func MintNameNftForMM(c *gin.Context) {
 	if err != nil {
 		slog.Error("model.VerifyAndInsertName", "smr", proxy.Smr, "name", name, "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.SYSTEM_ERROR,
-			"err_msg":  "system error",
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "system error",
 		})
 		return
 	}
 	if !b {
 		slog.Warn("name used", "smr", proxy.Smr, "name", name)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.PARAMS_ERROR,
-			"err_msg":  "name used",
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "name used",
 		})
 		return
 	}
@@ -581,9 +581,9 @@ func RegisterProxy(c *gin.Context) {
 	meta := c.GetString("meta")
 	if len(account) == 0 || len(signAcc) != 66 {
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.PARAMS_ERROR,
-			"err_msg":  "params error. " + account + " " + signAcc,
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "params error. " + account + " " + signAcc,
 		})
 		return
 	}
@@ -592,9 +592,9 @@ func RegisterProxy(c *gin.Context) {
 	if err != nil {
 		slog.Error("model.RegisterProxy", "account", account, "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.SYSTEM_ERROR,
-			"err_msg":  "system error",
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "system error",
 		})
 		return
 	}
@@ -602,9 +602,9 @@ func RegisterProxy(c *gin.Context) {
 	if id, err := service.MintSignAccPkNft(signAcc, common.FromHex(meta)); err != nil {
 		slog.Error("service.MintSignAccPkNft", "smr", smr, "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.SYSTEM_ERROR,
-			"err_msg":  "mint pk nft error",
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "mint pk nft error",
 		})
 		return
 	} else {
@@ -623,17 +623,17 @@ func GetProxyAccount(c *gin.Context) {
 	if err != nil {
 		slog.Error("model.GetProxyAccount", "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.SYSTEM_ERROR,
-			"err_msg":  "system error",
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "system error",
 		})
 		return
 	}
 	if proxy == nil {
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.PROXY_NOT_EXIST,
-			"err_msg":  "proxy account is not exist",
+			"result":      false,
+			gl.ErrCodeStr: gl.PROXY_NOT_EXIST,
+			gl.ErrMsgStr:  "proxy account is not exist",
 		})
 		return
 	}
@@ -651,9 +651,9 @@ func SendTxEssence(c *gin.Context) {
 	if err != nil {
 		slog.Error("service.SendTxEssence", "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.MSG_OUTPUT_ILLEGAL,
-			"err_msg":  "output illegal or proxy not exist",
+			"result":      false,
+			gl.ErrCodeStr: gl.MSG_OUTPUT_ILLEGAL,
+			gl.ErrMsgStr:  "output illegal or proxy not exist",
 		})
 		return
 	}
@@ -673,9 +673,9 @@ func SendTxEssenceAsyn(c *gin.Context) {
 	if err != nil {
 		slog.Error("service.SendTxEssence", "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err_code": gl.MSG_OUTPUT_ILLEGAL,
-			"err_msg":  "output illegal or proxy not exist",
+			"result":      false,
+			gl.ErrCodeStr: gl.MSG_OUTPUT_ILLEGAL,
+			gl.ErrMsgStr:  "output illegal or proxy not exist",
 		})
 		return
 	}

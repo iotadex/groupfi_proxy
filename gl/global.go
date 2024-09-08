@@ -8,6 +8,11 @@ import (
 type ERRORCODE int
 
 const (
+	ErrCodeStr = "err-code"
+	ErrMsgStr  = "err-msg"
+)
+
+const (
 	TIMEOUT_ERROR      ERRORCODE = iota + 1 // the signed ts is time out, 10 minutes
 	SIGN_ERROR                              // sign error, can not get the public key from it
 	REQUEST_LIMIT                           // request times over limit

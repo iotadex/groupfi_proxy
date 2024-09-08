@@ -78,9 +78,9 @@ func SignIpRateLimiterWare(c *gin.Context) {
 	if !limiter.Allow() {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.REQUEST_LIMIT,
-			"err-msg":  "too many requests",
+			"result":      false,
+			gl.ErrCodeStr: gl.REQUEST_LIMIT,
+			gl.ErrMsgStr:  "too many requests",
 		})
 		return
 	}
@@ -92,9 +92,9 @@ func PublicIpRateLimiterWare(c *gin.Context) {
 	if !limiter.Allow() {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.REQUEST_LIMIT,
-			"err-msg":  "too many requests",
+			"result":      false,
+			gl.ErrCodeStr: gl.REQUEST_LIMIT,
+			gl.ErrMsgStr:  "too many requests",
 		})
 		return
 	}

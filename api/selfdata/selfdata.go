@@ -17,8 +17,8 @@ type GroupfiDataFilterParam struct {
 type GroupfiDataResult struct {
 	Result  bool   `json:"result"`
 	Indexes []int  `json:"indexes"`
-	ErrCode int    `json:"err_code"`
-	ErrMsg  string `json:"err_msg"`
+	ErrCode int    `json:"err-code"`
+	ErrMsg  string `json:"err-msg"`
 }
 
 func FilterMangoAddresses(addresses []string) ([]int, error) {

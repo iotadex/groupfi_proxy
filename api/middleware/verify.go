@@ -36,9 +36,9 @@ func VerifyEvmSign(c *gin.Context) {
 	if err := c.BindJSON(&md); err != nil {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "not json format",
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "not json format",
 		})
 		return
 	}
@@ -46,9 +46,9 @@ func VerifyEvmSign(c *gin.Context) {
 	if md.Timestamp+600 < time.Now().Unix() {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.TIMEOUT_ERROR,
-			"err-msg":  "sign expired",
+			"result":      false,
+			gl.ErrCodeStr: gl.TIMEOUT_ERROR,
+			gl.ErrMsgStr:  "sign expired",
 		})
 		return
 	}
@@ -68,9 +68,9 @@ func VerifyEvmSign(c *gin.Context) {
 		if err != nil {
 			c.Abort()
 			c.JSON(http.StatusOK, gin.H{
-				"result":   false,
-				"err-code": gl.SIGN_ERROR,
-				"err-msg":  "sign error. " + err.Error(),
+				"result":      false,
+				gl.ErrCodeStr: gl.SIGN_ERROR,
+				gl.ErrMsgStr:  "sign error. " + err.Error(),
 			})
 			slog.Error("User's sign", "postParams", md, "err", err)
 			return
@@ -82,9 +82,9 @@ func VerifyEvmSign(c *gin.Context) {
 		if len(publicKey) != ed25519.PublicKeySize || signature.IsZero() {
 			c.Abort()
 			c.JSON(http.StatusOK, gin.H{
-				"result":   false,
-				"err-code": gl.PARAMS_ERROR,
-				"err-msg":  "public key error",
+				"result":      false,
+				gl.ErrCodeStr: gl.PARAMS_ERROR,
+				gl.ErrMsgStr:  "public key error",
 			})
 			return
 		}
@@ -92,9 +92,9 @@ func VerifyEvmSign(c *gin.Context) {
 		if !publicKey.Verify([]byte(data), signature) {
 			c.Abort()
 			c.JSON(http.StatusOK, gin.H{
-				"result":   false,
-				"err-code": gl.SIGN_ERROR,
-				"err-msg":  "sign error",
+				"result":      false,
+				gl.ErrCodeStr: gl.SIGN_ERROR,
+				gl.ErrMsgStr:  "sign error",
 			})
 			slog.Error("User's sign error", "postParams", md)
 			return
@@ -115,9 +115,9 @@ func VerifySolSign(c *gin.Context) {
 	if err := c.BindJSON(&md); err != nil {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "not json format",
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "not json format",
 		})
 		return
 	}
@@ -125,9 +125,9 @@ func VerifySolSign(c *gin.Context) {
 	if md.Timestamp+600 < time.Now().Unix() {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.TIMEOUT_ERROR,
-			"err-msg":  "sign expired",
+			"result":      false,
+			gl.ErrCodeStr: gl.TIMEOUT_ERROR,
+			gl.ErrMsgStr:  "sign expired",
 		})
 		return
 	}
@@ -137,9 +137,9 @@ func VerifySolSign(c *gin.Context) {
 	if len(publicKey) != ed25519.PublicKeySize || signature.IsZero() {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "public key error",
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "public key error",
 		})
 		return
 	}
@@ -149,9 +149,9 @@ func VerifySolSign(c *gin.Context) {
 	if !publicKey.Verify([]byte(data), signature) {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.SIGN_ERROR,
-			"err-msg":  "sign error",
+			"result":      false,
+			gl.ErrCodeStr: gl.SIGN_ERROR,
+			gl.ErrMsgStr:  "sign error",
 		})
 		slog.Error("User's sign error", "postParams", md)
 		return
@@ -176,9 +176,9 @@ func VerifyEd25519Sign(c *gin.Context) {
 	if err := c.BindJSON(&sd); err != nil {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "not json format",
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "not json format",
 		})
 		return
 	}
@@ -188,9 +188,9 @@ func VerifyEd25519Sign(c *gin.Context) {
 	if sd.Ts+600 < time.Now().Unix() {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.TIMEOUT_ERROR,
-			"err-msg":  "sign expired",
+			"result":      false,
+			gl.ErrCodeStr: gl.TIMEOUT_ERROR,
+			gl.ErrMsgStr:  "sign expired",
 		})
 		return
 	}
@@ -199,9 +199,9 @@ func VerifyEd25519Sign(c *gin.Context) {
 	if len(publicKey) != ed25519.PublicKeySize {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.PARAMS_ERROR,
-			"err-msg":  "public key error",
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "public key error",
 		})
 		return
 	}
@@ -209,9 +209,9 @@ func VerifyEd25519Sign(c *gin.Context) {
 	if !ed25519.Verify(publicKey, []byte(sd.Data+strconv.FormatInt(sd.Ts, 10)), signature) {
 		c.Abort()
 		c.JSON(http.StatusOK, gin.H{
-			"result":   false,
-			"err-code": gl.SIGN_ERROR,
-			"err-msg":  "sign error",
+			"result":      false,
+			gl.ErrCodeStr: gl.SIGN_ERROR,
+			gl.ErrMsgStr:  "sign error",
 		})
 		slog.Error("User's sign error", "postParams", sd)
 		return
