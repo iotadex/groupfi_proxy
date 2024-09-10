@@ -13,10 +13,11 @@ import (
 // @return, the proxy account, a shimmer address
 func RegisterProxyFromPool(account string, signAcc string) (string, error) {
 	// 1. Check db that the shimmer proxy address is exist or not
-	row := db.QueryRow("select `smr` from `proxy` where `account`=?", account)
-	var smr string
-	if err := row.Scan(&smr); err == nil {
+	row := db.QueryRow("select `smr`,`sign_acc` from `proxy` where `account`=?", account)
+	var smr, oldSignAcc string
+	if err := row.Scan(&smr, &oldSignAcc); err == nil {
 		// update the sign_acc
+		signAccounts.Del(oldSignAcc)
 		_, err = db.Exec("update `proxy` set `sign_acc`=? where `account`=?", signAcc, account)
 		return smr, err
 	} else if err != sql.ErrNoRows {
@@ -125,4 +126,10 @@ func (tasp *SignAccountToSmrProxy) Get(signAcc string) *ShimmerAccount {
 	tasp.RLock()
 	defer tasp.RUnlock()
 	return tasp.users[signAcc]
+}
+
+func (tasp *SignAccountToSmrProxy) Del(signAcc string) {
+	tasp.Lock()
+	defer tasp.Unlock()
+	delete(tasp.users, signAcc)
 }
