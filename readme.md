@@ -259,14 +259,15 @@ the addresses are the solana's main account always
 | spl        |   20  | solana      | spl token   |
 | native     |   0   | evm,solana  | native token|
 | mango      | 10000 | solana      | mango market|
+| erc404     | 404   | all evm     | erc404 token|
 
 ## Error Response
 ### Response format
 ```json
 {
-    "result": false,
-    gl.ErrCodeStr: 0,
-    gl.ErrMsgStr: "system error"
+    "result"  : false,
+    "err-code": 0,
+    "err-msg" : "system error"
 }
 ```
 

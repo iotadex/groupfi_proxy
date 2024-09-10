@@ -30,6 +30,7 @@ const (
 const (
 	ERC_NATIVE = 0
 	ERC20      = 20
+	ERC404     = 404
 	ERC721     = 721
 	ERC_MANGO  = 10000
 )

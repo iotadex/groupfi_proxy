@@ -152,13 +152,14 @@ func FilterGroup(c *gin.Context) {
 		}
 
 		t := tokens.NewEvmToken(node.Rpc, node.Wss, node.Contract, f.Chain, 0)
-		if f.Erc == gl.ERC20 {
+		switch f.Erc {
+		case gl.ERC20, gl.ERC404:
 			indexes, err = t.FilterERC20Addresses(addrs, common.HexToAddress(f.Contract), threshold)
-		} else if f.Erc == gl.ERC721 {
+		case gl.ERC721:
 			indexes, err = t.FilterERC721Addresses(addrs, common.HexToAddress(f.Contract))
-		} else if f.Erc == gl.ERC_NATIVE {
+		case gl.ERC_NATIVE:
 			indexes, err = t.FilterEthAddresses(addrs, threshold)
-		} else {
+		default:
 			slog.Error("protocol error", "erc", f.Erc)
 			c.JSON(http.StatusOK, gin.H{
 				"result":      false,
@@ -299,15 +300,17 @@ func getEvmBelowIndexes(addrs []common.Address, f *FilterV2) ([]bool, error) {
 		t := tokens.NewEvmToken(node.Rpc, "", node.Contract, c.Chain, 0)
 		var inx []uint16
 		var err error
-		if c.Erc == gl.ERC20 {
+		switch c.Erc {
+		case gl.ERC20, gl.ERC404:
 			inx, err = t.FilterERC20Addresses(addrs, common.HexToAddress(c.Contract), threshold)
-		} else if c.Erc == gl.ERC721 {
+		case gl.ERC721:
 			inx, err = t.FilterERC721Addresses(addrs, common.HexToAddress(c.Contract))
-		} else if c.Erc == gl.ERC_NATIVE {
+		case gl.ERC_NATIVE:
 			inx, err = t.FilterEthAddresses(addrs, threshold)
-		} else {
+		default:
 			err = fmt.Errorf("error erc. %d", c.Erc)
 		}
+
 		if err != nil {
 			return nil, err
 		}
