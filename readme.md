@@ -74,6 +74,45 @@ https://api.groupfi.ai
 }
 ```
 
+### POST /group/dids, get dids for all the addresses
+#### params
+```json
+{
+    "addresses" : ["address1","address2"],
+    "updates" : [false, false]
+}
+```
+the length of `addresses` and `updates` must be same.
+
+#### response
+```json
+{
+    "result": true,
+    "dids": {
+        "address1" : {
+            "148" : {
+                "name" : "John",
+                "image_url" : ""
+            },
+            "42" : {
+                "name": "Hello",
+                "image_url": ""
+            }
+        },
+        "address2" : {
+            "148" : {
+                "name" : "Rodor",
+                "image_url" : ""
+            },
+            "42" : {
+                "name": "Wulfgar",
+                "image_url": ""
+            }
+        }
+    }
+}
+```
+
 ### POST /group/filter, filter the addresses, remove ones don't belong to the group
 #### params
 ```json

@@ -4,11 +4,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"gproxy/api/middleware"
 	"gproxy/api/selfdata"
 	"gproxy/config"
 	"gproxy/gl"
 	"gproxy/model"
+	"gproxy/profile"
 	"gproxy/service"
 	"gproxy/tokens"
 	"gproxy/wallet"
@@ -60,7 +60,7 @@ func Faucet(c *gin.Context) {
 func GetChains(c *gin.Context) {
 	update := c.DefaultQuery("update", "0")
 	if update != "0" {
-		if err := middleware.LoadEvmChains(); err != nil {
+		if err := model.LoadEvmChains(); err != nil {
 			c.JSON(http.StatusOK, gin.H{
 				"result":      false,
 				gl.ErrCodeStr: gl.SYSTEM_ERROR,
@@ -70,7 +70,7 @@ func GetChains(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, middleware.EvmChains)
+	c.JSON(http.StatusOK, model.EvmChains)
 }
 
 func GetRpcByChainId(c *gin.Context) {
@@ -86,7 +86,7 @@ func GetRpcByChainId(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"result": true,
-		"rpc":    middleware.EvmChains[gl.LUKSO_CHAINID].Rpc,
+		"rpc":    model.EvmChains[gl.LUKSO_CHAINID].Rpc,
 	})
 }
 
@@ -103,7 +103,7 @@ func SmrPrice(c *gin.Context) {
 		return
 	}
 	for id, p := range sps {
-		if c, exist := middleware.EvmChains[id]; exist {
+		if c, exist := model.EvmChains[id]; exist {
 			p.Contract = c.Contract
 		}
 	}
@@ -127,7 +127,7 @@ func FilterGroup(c *gin.Context) {
 	f := Filter{}
 	err := c.BindJSON(&f)
 	threshold, b := new(big.Int).SetString(f.Threshold, 10)
-	node, exist := middleware.EvmChains[f.Chain]
+	node, exist := model.EvmChains[f.Chain]
 	if f.Chain == gl.SOLANA_CHAINID {
 		exist = true
 	}
@@ -292,7 +292,7 @@ func getEvmBelowIndexes(addrs []common.Address, f *FilterV2) ([]bool, error) {
 		if c.Chain == gl.SOLANA_CHAINID {
 			continue
 		}
-		node, exist := middleware.EvmChains[c.Chain]
+		node, exist := model.EvmChains[c.Chain]
 		threshold, b := new(big.Int).SetString(c.Threshold, 10)
 		if !exist || !b {
 			return nil, fmt.Errorf("chain not exist or threshold error. %d, %s", c.Chain, c.Threshold)
@@ -369,7 +369,7 @@ func VerifyGroup(c *gin.Context) {
 	f := Verfiy{}
 	err := c.BindJSON(&f)
 	threshold, b := new(big.Int).SetString(f.Threshold, 10)
-	node, exist := middleware.EvmChains[f.Chain]
+	node, exist := model.EvmChains[f.Chain]
 	if f.Chain == gl.SOLANA_CHAINID {
 		exist = true
 	}
@@ -435,6 +435,33 @@ func VerifyGroup(c *gin.Context) {
 		"result": true,
 		"flag":   res,
 		"sign":   hexutil.Encode(sign),
+	})
+}
+
+type DidParams struct {
+	Addresses []string `json:"addresses"`
+	Updates   []bool   `json:"updates"`
+}
+
+func GetDids(c *gin.Context) {
+	ps := DidParams{}
+	if err := c.BindJSON(&ps); (err != nil) || (len(ps.Addresses) != len(ps.Updates)) {
+		c.JSON(http.StatusOK, gin.H{
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  err.Error(),
+		})
+		return
+	}
+
+	dids := make(map[string]map[uint64]profile.Did)
+	for i, addr := range ps.Addresses {
+		dids[addr] = profile.GetAllDids(addr, ps.Updates[i])
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"result": true,
+		"dids":   dids,
 	})
 }
 

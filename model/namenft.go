@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -82,4 +83,36 @@ func UpdateBlockIdToNameNftRecord(nftid, blockid string) error {
 func UpdateNameNft(id, nftid string) error {
 	_, err := db.Exec("update `nft_name_record` set `nftid`=?,`meta`=?,`state`=? where `nftid`=?", nftid, "0", CONFIRMED_SEND, id)
 	return err
+}
+
+type NameCash struct {
+	data map[string]string // evm address -> nft name
+	sync.Mutex
+}
+
+var nameCash NameCash = NameCash{
+	data: make(map[string]string),
+}
+
+func GetNameByEvmAddress(address string) (string, error) {
+	nameCash.Lock()
+	defer nameCash.Unlock()
+	if n, exist := nameCash.data[address]; exist {
+		return n, nil
+	}
+	n, err := getNameByEvmAccount(address)
+	nameCash.data[address] = n
+	return n, err
+}
+
+func getNameByEvmAccount(address string) (string, error) {
+	row := db.QueryRow("select `name` from `nft_name_record`,`proxy` where `proxy`.`account`=? and `proxy`.`smr`=`nft_name_record`.`to` and `nft_name_record`.`state`=?", address, CONFIRMED_SEND)
+	var name string
+	err := row.Scan(&name)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", nil
+		}
+	}
+	return name, err
 }

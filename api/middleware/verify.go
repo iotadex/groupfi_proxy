@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"gproxy/config"
 	"gproxy/gl"
+	"gproxy/model"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -244,7 +245,7 @@ func verifyEthAddress(signature, hashData []byte, addr common.Address) error {
 }
 
 func verifyLuksoAddress(signature, hashData []byte, addr common.Address) error {
-	client, err := ethclient.Dial(EvmChains[42].Rpc)
+	client, err := ethclient.Dial(model.EvmChains[gl.LUKSO_CHAINID].Rpc)
 	if err != nil {
 		return err
 	}

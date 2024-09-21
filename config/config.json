@@ -22,7 +22,8 @@
     "name_nft_tag": "groupfi-id",
     "max_msg_locked_days": 30,
     "recycle_filter_tags": [
-        "GROUPFIQUALIFYV1"
+        "GROUPFIQUALIFYV1",
+        "GROUPFIPROFILE"
     ],
     "sign_prefix": "Creating account... ",
     "groupfi_data_uri": "http://data.groupfi.ai",

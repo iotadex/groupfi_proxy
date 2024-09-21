@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"gproxy/api/middleware"
+	"gproxy/model"
 	"log"
 	"net/http"
 	"strconv"
@@ -30,7 +31,7 @@ func StartHttpServer(port int) {
 		}
 	}()
 
-	if err := middleware.LoadEvmChains(); err != nil {
+	if err := model.LoadEvmChains(); err != nil {
 		panic(err)
 	}
 }
@@ -74,6 +75,7 @@ func InitRouter() *gin.Engine {
 		group.POST("/filter", FilterGroupV2)
 		group.POST("/filter/v2", FilterGroupV2)
 		group.POST("/verify", VerifyGroup)
+		group.POST("/dids", GetDids)
 	}
 
 	mainAcc := api.Group("/proxy").Use(middleware.SignIpRateLimiterWare).Use(middleware.VerifyEvmSign)
