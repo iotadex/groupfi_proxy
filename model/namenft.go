@@ -11,6 +11,15 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+func CheckName(name string) (bool, error) {
+	row := db.QueryRow("select `nftid` from `nft_name_record` where `name`=?", name)
+	var nftid string
+	if err := row.Scan(&nftid); err != sql.ErrNoRows {
+		return false, err
+	}
+	return true, nil
+}
+
 func InsertNameNftRecord(to, name, meta, collectionid string, expireDays int) (bool, error) {
 	tx, err := db.Begin()
 	if err != nil {
@@ -94,10 +103,10 @@ var nameCash NameCash = NameCash{
 	data: make(map[string]string),
 }
 
-func GetNameByEvmAddress(address string) (string, error) {
+func GetNameByEvmAddress(address string, bUpdate bool) (string, error) {
 	nameCash.Lock()
 	defer nameCash.Unlock()
-	if n, exist := nameCash.data[address]; exist {
+	if n, exist := nameCash.data[address]; exist && !bUpdate {
 		return n, nil
 	}
 	n, err := getNameByEvmAccount(address)
@@ -106,7 +115,7 @@ func GetNameByEvmAddress(address string) (string, error) {
 }
 
 func getNameByEvmAccount(address string) (string, error) {
-	row := db.QueryRow("select `name` from `nft_name_record`,`proxy` where `proxy`.`account`=? and `proxy`.`smr`=`nft_name_record`.`to` and `nft_name_record`.`state`=?", address, CONFIRMED_SEND)
+	row := db.QueryRow("select `name` from `nft_name_record`,`proxy` where `proxy`.`account`=? and `proxy`.`smr`=`nft_name_record`.`to` and `nft_name_record`.`state`=? order by `nft_name_record`.`ts` desc", address, CONFIRMED_SEND)
 	var name string
 	err := row.Scan(&name)
 	if err != nil {

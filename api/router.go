@@ -76,6 +76,7 @@ func InitRouter() *gin.Engine {
 		group.POST("/filter/v2", FilterGroupV2)
 		group.POST("/verify", VerifyGroup)
 		group.POST("/dids", GetDids)
+		group.GET("/checkname", CheckName)
 	}
 
 	mainAcc := api.Group("/proxy").Use(middleware.SignIpRateLimiterWare).Use(middleware.VerifyEvmSign)

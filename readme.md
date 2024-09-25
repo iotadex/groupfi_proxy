@@ -74,6 +74,21 @@ https://api.groupfi.ai
 }
 ```
 
+### GET /group/checkname?n={name1}, check the is valid or not.
+#### response
+```json
+{
+    "result" : true,
+}
+```
+or
+```json
+{
+    "result" : false,
+    "err-code" : 4
+}
+```
+
 ### POST /group/dids, get dids for all the addresses
 #### params
 ```json

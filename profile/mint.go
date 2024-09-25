@@ -1,10 +1,14 @@
 package profile
 
 import (
+	"bytes"
 	"encoding/hex"
+	"encoding/json"
+	"fmt"
 	"gproxy/gl"
 	"gproxy/model"
 	"gproxy/tokens"
+	"gproxy/tools"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -61,4 +65,58 @@ func nameHash(address string) [32]byte {
 	var res [32]byte
 	copy(res[:], result)
 	return res
+}
+
+var mintSpaceIdNameServiceContract []byte
+
+type MintNFTResult struct {
+	Items []struct {
+		Amount string `json:"amount"`
+		Token  struct {
+			Address string `json:"address"`
+			Name    string `json:"name"`
+			Symbol  string `json:"symbol"`
+			Type    string `json:"type"`
+		} `json:"token"`
+		TokenInstances []struct {
+			Id       string `json:"id"`
+			Metadata struct {
+				Description string `json:"description"`
+				Image       string `json:"image"`
+				Name        string `json:"name"`
+			} `json:"metadata"`
+		} `json:"token_instances"`
+	} `json:"items"`
+}
+
+func MintSpaceIdNameService(address string, bUpdate bool) (*Did, error) {
+	didcache.mintMutex.Lock()
+	defer didcache.mintMutex.Unlock()
+
+	if did, exist := didcache.mint[address]; exist && !bUpdate {
+		return &did, nil
+	}
+
+	baseUrl := fmt.Sprintf("https://explorer.mintchain.io/api/v2/addresses/%s/nft/collections?type=ERC-721", address)
+	data, err := tools.HttpGetWithHeader(baseUrl, map[string]string{"accept": "application/json"})
+	if err != nil {
+		return nil, err
+	}
+
+	result := MintNFTResult{}
+	if err = json.Unmarshal(data, &result); err != nil {
+		return nil, err
+	}
+
+	did := Did{}
+	for _, item := range result.Items {
+		if bytes.Equal(common.FromHex(item.Token.Address), mintSpaceIdNameServiceContract) {
+			if len(item.TokenInstances) > 0 {
+				did.Name = item.TokenInstances[0].Metadata.Name
+				did.ImageUrl = item.TokenInstances[0].Metadata.Image
+			}
+		}
+	}
+	didcache.up[address] = did
+	return &did, err
 }

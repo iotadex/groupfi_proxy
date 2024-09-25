@@ -533,6 +533,24 @@ func MintNFT(c *gin.Context) {
 	})
 }
 
+func CheckName(c *gin.Context) {
+	valide, err := model.CheckName(c.Query("n"))
+	if err != nil {
+		slog.Error("model.CheckName.", "err", err)
+	}
+	if valide {
+		c.JSON(http.StatusOK, gin.H{
+			"result": true,
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"result":      false,
+			gl.ErrCodeStr: gl.PARAMS_ERROR,
+			gl.ErrMsgStr:  "name used",
+		})
+	}
+}
+
 func MintNameNftForMM(c *gin.Context) {
 	signAcc := c.GetString("publickey")
 	name := strings.ToLower(c.GetString("data"))
