@@ -117,6 +117,6 @@ func MintSpaceIdNameService(address string, bUpdate bool) (*Did, error) {
 			}
 		}
 	}
-	didcache.up[address] = did
+	didcache.mint[address] = did
 	return &did, err
 }
