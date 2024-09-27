@@ -14,6 +14,8 @@
     "min_proxy_pool_count": 20,
     "proxy_wallet": "2",
     "proxy_pk_nft_tag": "GROUPFIPAIRXV2",
+    "split_left_amount": 100000,
+    "split_left_count": 8,
     "proxy_balance_check_hours": 12,
     "proxy_send_amount": 200000000,
     "name_nftid": "0xf45a533f41d52e8337a09aaa9f8456e8165a737e395f35d2d6af3467eb240533",

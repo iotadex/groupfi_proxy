@@ -61,6 +61,8 @@ var (
 	ProxySendAmount        uint64                // the amount of sending smr per time
 	ProxyWallet            string                // this is "1"
 	ProxyPkNftTag          string                // pk nft's tag
+	SplitLeftAmount        uint64                // divided left output's amount
+	SplitLeftCount         uint64                // the output count of divided left output
 	NameNftId              string                // name nft id
 	NameNftDays            int                   // the expired time of the name nft, days
 	DefaultImg             string                // default_image url of name nft
@@ -95,6 +97,8 @@ func Load() {
 		ProxySendAmount        uint64                `json:"proxy_send_amount"`
 		ProxyWallet            string                `json:"proxy_wallet"`
 		ProxyPkNftTag          string                `json:"proxy_pk_nft_tag"`
+		SplitLeftAmount        uint64                `json:"split_left_amount"`
+		SplitLeftCount         uint64                `json:"split_left_count"`
 		NameNftId              string                `json:"name_nftid"`
 		NameNftDays            int                   `json:"name_nft_days"`
 		DefaultImg             string                `json:"default_img"`
@@ -113,11 +117,6 @@ func Load() {
 	}
 	HttpPort = all.HttpPort
 	Db = all.Db
-	//	EvmNodes = make(map[uint64]node)
-	//	for id, node := range all.EvmNodes {
-	//		chainid, _ := strconv.ParseUint(id, 10, 64)
-	//		EvmNodes[chainid] = node
-	//	}
 	ShimmerRpc = all.ShimmerRpc
 	UpdateProtocolTime = all.UpdateProtocolTime
 	SendIntervalTime = all.SendIntervalTime
@@ -127,6 +126,8 @@ func Load() {
 	ProxySendAmount = all.ProxySendAmount
 	ProxyWallet = all.ProxyWallet
 	ProxyPkNftTag = all.ProxyPkNftTag
+	SplitLeftAmount = all.SplitLeftAmount
+	SplitLeftCount = all.SplitLeftCount
 	NameNftId = all.NameNftId
 	NameNftDays = all.NameNftDays
 	DefaultImg = all.DefaultImg

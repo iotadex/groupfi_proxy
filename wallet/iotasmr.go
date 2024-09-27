@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"gproxy/config"
 	"gproxy/tools"
 	"time"
 
@@ -337,15 +338,15 @@ func (w *IotaSmrWallet) createBasicNFTOutput(toAddr iotago.Address, meta, tag []
 	return mintOutput
 }
 
-func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte, bOutput iotago.Output, bOutputID iotago.OutputID, protocol *iotago.ProtocolParameters) ([]byte, error) {
+func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte, bOutput iotago.Output, bOutputID iotago.OutputID, protocol *iotago.ProtocolParameters) ([]byte, int, error) {
 	prefix, toAddr, err := iotago.ParseBech32(bech32To)
 	if err != nil {
-		return nil, fmt.Errorf("toAddress error. %s, %v", bech32To, err)
+		return nil, 0, fmt.Errorf("toAddress error. %s, %v", bech32To, err)
 	}
 
 	addr, signer, err := w.getWalletAddress()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	collectionOutput := iotago.NFTOutput{
@@ -369,32 +370,51 @@ func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte, bO
 	} else {
 		left, err = w.getBasiceUnSpentOutputs(txBuilder, collectionOutput.Amount, prefix, addr)
 		if err != nil {
-			return nil, fmt.Errorf("get basic shimmer outputs error. %s, %v", addr.Bech32(prefix), err)
+			return nil, 0, fmt.Errorf("get basic shimmer outputs error. %s, %v", addr.Bech32(prefix), err)
 		}
 	}
 
-	if left > 0 {
-		smrOutput := &iotago.BasicOutput{
-			Amount: left,
-			Conditions: iotago.UnlockConditions{&iotago.AddressUnlockCondition{
-				Address: addr,
-			}},
-		}
-		txBuilder.AddOutput(smrOutput)
-	}
+	outputCount := w.splitLeftOutputs(addr, left, txBuilder)
 
 	blockBuilder := txBuilder.BuildAndSwapToBlockBuilder(protocol, signer, nil)
 
 	block, err := blockBuilder.Build()
 	if err != nil {
-		return nil, fmt.Errorf("build block error. %v", err)
+		return nil, 0, fmt.Errorf("build block error. %v", err)
 	}
-	id, err := w.nodeAPI.SubmitBlock(context.Background(), block, protocol)
-	if err != nil {
-		return nil, fmt.Errorf("send block to node error. %v", err)
+	if _, err := w.nodeAPI.SubmitBlock(context.Background(), block, protocol); err != nil {
+		return nil, 0, fmt.Errorf("send block to node error. %v", err)
 	}
 
-	return id[:], nil
+	txid, err := block.Payload.(*iotago.Transaction).ID()
+
+	return txid[:], outputCount, err
+}
+
+func (w *IotaSmrWallet) splitLeftOutputs(addr iotago.Address, left uint64, txBuilder *builder.TransactionBuilder) int {
+	a := left / config.SplitLeftCount
+	if a < config.SplitLeftAmount {
+		a = config.SplitLeftAmount
+	}
+
+	count := 0
+	for left > 0 {
+		if left < a {
+			a = left
+			left = 0
+		} else {
+			left -= a
+		}
+		smrOutput := &iotago.BasicOutput{
+			Amount: a,
+			Conditions: iotago.UnlockConditions{&iotago.AddressUnlockCondition{
+				Address: addr,
+			}},
+		}
+		txBuilder.AddOutput(smrOutput)
+		count++
+	}
+	return count
 }
 
 func (w *IotaSmrWallet) CollectBackTimeLocked(lockedTime int64) (bool, error) {
@@ -653,9 +673,6 @@ func (w *IotaSmrWallet) getBasiceUnSpentOutputs(b *builder.TransactionBuilder, a
 			}
 			b.AddInput(&builder.TxInput{UnlockTarget: addr, Input: output, InputID: ids[i]})
 			sum += output.Deposit()
-			if sum >= 2*amount {
-				break
-			}
 		}
 	}
 	if sum < amount {

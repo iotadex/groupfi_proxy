@@ -243,7 +243,8 @@ the addresses are the solana's main account always
 ```json
 {
     "result": true,
-    "proxy_account": "a smr address"
+    "proxy_account": "a smr address",
+    "outputids": ["0x07aa975f6c267c33d77cd9900e2f4e3dab52608b118ba38cb014a8a23cb764bb0200"]
 }
 ```
 
