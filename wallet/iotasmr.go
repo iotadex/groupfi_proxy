@@ -338,7 +338,7 @@ func (w *IotaSmrWallet) createBasicNFTOutput(toAddr iotago.Address, meta, tag []
 	return mintOutput
 }
 
-func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte, bOutput iotago.Output, bOutputID iotago.OutputID, protocol *iotago.ProtocolParameters) ([]byte, [][]byte, error) {
+func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte, bOutput iotago.Output, bOutputID iotago.OutputID, protocol *iotago.ProtocolParameters) ([]byte, []*iotago.BasicOutput, error) {
 	prefix, toAddr, err := iotago.ParseBech32(bech32To)
 	if err != nil {
 		return nil, nil, fmt.Errorf("toAddress error. %s, %v", bech32To, err)
@@ -391,13 +391,13 @@ func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte, bO
 	return txid[:], outputs, err
 }
 
-func (w *IotaSmrWallet) splitLeftOutputs(addr iotago.Address, left uint64, txBuilder *builder.TransactionBuilder) [][]byte {
+func (w *IotaSmrWallet) splitLeftOutputs(addr iotago.Address, left uint64, txBuilder *builder.TransactionBuilder) []*iotago.BasicOutput {
 	a := left / config.SplitLeftCount
 	if a < config.SplitLeftAmount {
 		a = config.SplitLeftAmount
 	}
 
-	outputs := make([][]byte, 0)
+	outputs := make([]*iotago.BasicOutput, 0)
 	for left > 0 {
 		if left < (2 * a) {
 			a = left
@@ -412,8 +412,7 @@ func (w *IotaSmrWallet) splitLeftOutputs(addr iotago.Address, left uint64, txBui
 			}},
 		}
 		txBuilder.AddOutput(smrOutput)
-		data, _ := smrOutput.MarshalJSON()
-		outputs = append(outputs, data)
+		outputs = append(outputs, smrOutput)
 	}
 	return outputs
 }

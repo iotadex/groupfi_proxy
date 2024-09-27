@@ -245,7 +245,7 @@ the addresses are the solana's main account always
     "result": true,
     "proxy_account": "smr address",
     "outputids": ["0x07aa975f6c267c33d77cd9900e2f4e3dab52608b118ba38cb014a8a23cb764bb0200"],
-    "outputs": ["0x2379765290762389457293452934752395713894573894539457935345723945723945723947"]
+    "outputs": [{"basicOutput"}]
 }
 ```
 

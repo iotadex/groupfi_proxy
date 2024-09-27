@@ -662,19 +662,17 @@ func RegisterProxy(c *gin.Context) {
 
 	count := len(outputs)
 	outputids := make([]string, 0, count)
-	hexOutputs := make([]string, 0, count)
 	for i := 0; i < count; i++ {
 		outputid := append(txid[:], byte(i+1))
 		outputid = append(outputid, 0)
 		outputids = append(outputids, hexutil.Encode(outputid))
-		hexOutputs = append(hexOutputs, hexutil.Encode(outputs[i]))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"result":        true,
 		"proxy_account": smr,
 		"outputids":     outputids,
-		"outputs":       hexOutputs,
+		"outputs":       outputs,
 	})
 }
 

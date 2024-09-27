@@ -71,7 +71,7 @@ func SendTxEssence(signAcc string, txEssenceBytes []byte, asyn bool) ([]byte, []
 }
 
 // register a proxy account
-func MintSignAccPkNft(signAcc string, metadata []byte) ([]byte, [][]byte, error) {
+func MintSignAccPkNft(signAcc string, metadata []byte) ([]byte, []*iotago.BasicOutput, error) {
 	proxy, err := model.GetProxyAccount(signAcc)
 	if err != nil {
 		return nil, nil, err
