@@ -71,22 +71,22 @@ func SendTxEssence(signAcc string, txEssenceBytes []byte, asyn bool) ([]byte, []
 }
 
 // register a proxy account
-func MintSignAccPkNft(signAcc string, metadata []byte) ([]byte, int, error) {
+func MintSignAccPkNft(signAcc string, metadata []byte) ([]byte, [][]byte, error) {
 	proxy, err := model.GetProxyAccount(signAcc)
 	if err != nil {
-		return nil, 0, err
+		return nil, nil, err
 	}
 	if proxy == nil {
-		return nil, 0, fmt.Errorf("proxy account is not exist")
+		return nil, nil, fmt.Errorf("proxy account is not exist")
 	}
 
 	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, proxy.Smr, proxy.EnPk, "")
 	output, outputID := GetCacheOutput(proxy.Smr)
-	id, count, err := w.MinPkCollectionNft(proxy.Smr, metadata, []byte(config.ProxyPkNftTag), output, outputID, GetShimmerNodeProtocol())
+	id, outputs, err := w.MinPkCollectionNft(proxy.Smr, metadata, []byte(config.ProxyPkNftTag), output, outputID, GetShimmerNodeProtocol())
 	if err != nil {
-		return nil, 0, err
+		return nil, nil, err
 	}
-	return id, count, nil
+	return id, outputs, nil
 }
 
 func verifyMsgOutput(to string, op iotago.Output) bool {

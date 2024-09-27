@@ -647,7 +647,7 @@ func RegisterProxy(c *gin.Context) {
 		return
 	}
 
-	txid, outputCount, err := service.MintSignAccPkNft(signAcc, common.FromHex(meta))
+	txid, outputs, err := service.MintSignAccPkNft(signAcc, common.FromHex(meta))
 	if err != nil {
 		slog.Error("service.MintSignAccPkNft", "smr", smr, "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{
@@ -660,17 +660,21 @@ func RegisterProxy(c *gin.Context) {
 		slog.Info("mint pk nft", "TransactionId", hexutil.Encode(txid))
 	}
 
-	outputids := make([]string, 0, outputCount)
-	for i := 0; i < outputCount; i++ {
+	count := len(outputs)
+	outputids := make([]string, 0, count)
+	hexOutputs := make([]string, 0, count)
+	for i := 0; i < count; i++ {
 		outputid := append(txid[:], byte(i+1))
 		outputid = append(outputid, 0)
 		outputids = append(outputids, hexutil.Encode(outputid))
+		hexOutputs = append(hexOutputs, hexutil.Encode(outputs[i]))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"result":        true,
 		"proxy_account": smr,
 		"outputids":     outputids,
+		"outputs":       hexOutputs,
 	})
 }
 
