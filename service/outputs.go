@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/hex"
 	"gproxy/config"
 	"gproxy/model"
 	"gproxy/wallet"
@@ -80,12 +79,19 @@ func updateProxyPoolCacheOutputs() {
 
 	for addr := range addrs {
 		time.Sleep(time.Second)
+		cacheOutputMu.Lock()
+		_, exist := cacheOutputs[addr]
+		cacheOutputMu.Unlock()
+		if exist {
+			continue
+		}
+
 		output, id, err := w.GetUnspentOutput(addr)
 		if err != nil {
 			slog.Error("w.GetUnspentOutput error. %s, %v", addr, err)
 			continue
 		}
-		slog.Info("cache output", "addr", addr, "id", hex.EncodeToString(id[:]))
+		slog.Info("cache output", "addr", addr, "id", hexutil.Encode(id[:]))
 
 		cacheOutputMu.Lock()
 		cacheOutputs[addr] = CacheOutput{output: output, outputID: id}

@@ -99,6 +99,8 @@ func runCheckPendingOrders() {
 			if o.Type == model.SEND_POOL {
 				if err = model.UpdateProxyPoolState(o.To, state); err != nil {
 					slog.Error("model.UpdateProxyPoolState", "id", o.Id, "err", err)
+				} else {
+					CreateProxyPoolSignal <- true
 				}
 			}
 		}
