@@ -259,7 +259,7 @@ func filterGroupfiData(c *gin.Context) (*FilterV2, bool) {
 	done := false
 	if len(f.Chains) == 1 {
 		var err error
-		var indexes []int
+		var indexes []uint16
 		switch f.Chains[0].Erc {
 		case gl.ERC_MANGO:
 			indexes, err = selfdata.FilterMangoAddresses(f.Addresses)
@@ -305,6 +305,8 @@ func getEvmBelowIndexes(addrs []common.Address, f *FilterV2) ([]bool, error) {
 			inx, err = t.FilterERC20Addresses(addrs, common.HexToAddress(c.Contract), threshold)
 		case gl.ERC721:
 			inx, err = t.FilterERC721Addresses(addrs, common.HexToAddress(c.Contract))
+		case gl.ERC1155:
+			inx, err = selfdata.FilterERC1155Addresses(c.Chain, c.Contract, addrs)
 		case gl.ERC_NATIVE:
 			inx, err = t.FilterEthAddresses(addrs, threshold)
 		default:

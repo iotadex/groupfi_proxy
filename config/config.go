@@ -127,7 +127,13 @@ func Load() {
 	ProxyWallet = all.ProxyWallet
 	ProxyPkNftTag = all.ProxyPkNftTag
 	SplitLeftAmount = all.SplitLeftAmount
+	if SplitLeftAmount < 100000 {
+		SplitLeftAmount = 100000
+	}
 	SplitLeftCount = all.SplitLeftCount
+	if SplitLeftCount < 1 {
+		SplitLeftCount = 1
+	}
 	NameNftId = all.NameNftId
 	NameNftDays = all.NameNftDays
 	DefaultImg = all.DefaultImg

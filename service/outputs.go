@@ -92,10 +92,11 @@ func updateProxyPoolCacheOutputs() {
 			continue
 		}
 		slog.Info("cache output", "addr", addr, "id", hexutil.Encode(id[:]))
-
-		cacheOutputMu.Lock()
-		cacheOutputs[addr] = CacheOutput{output: output, outputID: id}
-		cacheOutputMu.Unlock()
+		if output != nil {
+			cacheOutputMu.Lock()
+			cacheOutputs[addr] = CacheOutput{output: output, outputID: id}
+			cacheOutputMu.Unlock()
+		}
 	}
 }
 

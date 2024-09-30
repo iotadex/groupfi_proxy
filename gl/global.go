@@ -34,6 +34,7 @@ const (
 	ERC20      = 20
 	ERC404     = 404
 	ERC721     = 721
+	ERC1155    = 1155
 	ERC_MANGO  = 10000
 )
 

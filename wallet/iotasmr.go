@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"gproxy/config"
 	"gproxy/tools"
-	"log/slog"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -385,11 +384,9 @@ func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte, bO
 	}
 	txid, err := block.Payload.(*iotago.Transaction).ID()
 
-	go func() {
-		if _, err := w.nodeAPI.SubmitBlock(context.Background(), block, protocol); err != nil {
-			slog.Error("send block to node", "err", err)
-		}
-	}()
+	if _, err := w.nodeAPI.SubmitBlock(context.Background(), block, protocol); err != nil {
+		return nil, nil, fmt.Errorf("send block to node. %v", err)
+	}
 
 	return txid[:], outputs, err
 }
