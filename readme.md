@@ -6,6 +6,16 @@ https://api.groupfi.ai
 ```
 
 ## public apis
+### GET /hornet, get a hornet node url
+#### response
+```json
+{
+    "result": true,
+    "id":     1,
+    "rpc": "https://example.com"
+}
+```
+
 ### GET /chains, get all the evm chains that grougfi supported
 #### response
 ```json
