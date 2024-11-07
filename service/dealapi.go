@@ -7,6 +7,7 @@ import (
 	"gproxy/model"
 	"gproxy/wallet"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/iotaledger/hive.go/serializer/v2"
@@ -14,7 +15,7 @@ import (
 )
 
 // send message
-func SendTxEssence(signAcc string, txEssenceBytes []byte, asyn bool) ([]byte, []byte, error) {
+func SendTxEssence(hornet, signAcc string, txEssenceBytes []byte, asyn bool) ([]byte, []byte, error) {
 	// get proxy from signAcc
 	proxy, err := model.GetProxyAccount(signAcc)
 	if err != nil {
@@ -48,19 +49,31 @@ func SendTxEssence(signAcc string, txEssenceBytes []byte, asyn bool) ([]byte, []
 	tx := newTransaction(essence, signature)
 	txid, _ := tx.ID()
 
+	// get hornet wallet
+	node := GetEnableHornetNode()
+	if node == nil || node.Info == nil {
+		return nil, nil, fmt.Errorf("there is no healthy hornet node")
+	}
+	var rpc string
+	if strings.HasPrefix(hornet, "https") {
+		rpc = hornet
+	} else {
+		rpc = node.Url
+	}
+	w := wallet.NewIotaSmrWallet(rpc, "", "", "0x00")
+
 	// send the tx to network
-	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", "0x00")
 	var blockId []byte
 	if asyn {
 		go func() {
-			if blockId, err = w.SendSignedTxDataWithoutPow(tx, GetShimmerNodeProtocol()); err != nil {
+			if blockId, err = w.SendSignedTxDataWithoutPow(tx, node.Info); err != nil {
 				slog.Error("w.SendSignedTxDataWithoutPow", "proxy", proxy.Smr, "err", err)
 			} else {
 				slog.Info("send msg meta output", "blockid", hex.EncodeToString(blockId))
 			}
 		}()
 	} else {
-		if blockId, err = w.SendSignedTxDataWithoutPow(tx, GetShimmerNodeProtocol()); err != nil {
+		if blockId, err = w.SendSignedTxDataWithoutPow(tx, node.Info); err != nil {
 			slog.Error("w.SendSignedTxDataWithoutPow", "proxy", proxy.Smr, "err", err)
 		} else {
 			slog.Info("send msg meta output", "blockid", hex.EncodeToString(blockId))
@@ -80,9 +93,14 @@ func MintSignAccPkNft(signAcc string, metadata []byte) ([]byte, []*iotago.BasicO
 		return nil, nil, fmt.Errorf("proxy account is not exist")
 	}
 
-	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, proxy.Smr, proxy.EnPk, "")
+	node := GetEnableHornetNode()
+	if node == nil || node.Info == nil {
+		return nil, nil, fmt.Errorf("there is no healthy hornet node")
+	}
+	w := wallet.NewIotaSmrWallet(node.Url, proxy.Smr, proxy.EnPk, "")
+
 	output, outputID := GetCacheOutput(proxy.Smr)
-	id, outputs, err := w.MinPkCollectionNft(proxy.Smr, metadata, []byte(config.ProxyPkNftTag), output, outputID, GetShimmerNodeProtocol())
+	id, outputs, err := w.MinPkCollectionNft(proxy.Smr, metadata, []byte(config.ProxyPkNftTag), output, outputID, node.Info)
 	if err != nil {
 		return nil, nil, err
 	}

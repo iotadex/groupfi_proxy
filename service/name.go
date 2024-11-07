@@ -15,7 +15,7 @@ var mintNameSignal chan bool
 
 func RunMintNameNft() {
 	mintNameSignal = make(chan bool, 1)
-	f := func(w *wallet.IotaSmrWallet, addr string, preMintTs *int64) {
+	f := func(addr, pk string, preMintTs *int64) {
 		if (time.Now().Unix() - *preMintTs) < config.SendIntervalTime {
 			return
 		}
@@ -30,7 +30,15 @@ func RunMintNameNft() {
 
 		basicOutput, basicId := GetCacheOutput(addr)
 		nftOutput, nftOutputId := GetCacheNFT()
-		if id, err := w.MintNameNFT(r.To, r.Expire, r.Meta, []byte(config.NameNftTag), basicOutput, basicId, nftOutput, nftOutputId, GetShimmerNodeProtocol()); err != nil {
+
+		node := GetEnableHornetNode()
+		if node == nil || node.Info == nil {
+			slog.Error("mint name nft. There is no healthy hornet node")
+			return
+		}
+		w := wallet.NewIotaSmrWallet(node.Url, addr, pk, config.NameNftId)
+
+		if id, err := w.MintNameNFT(r.To, r.Expire, r.Meta, []byte(config.NameNftTag), basicOutput, basicId, nftOutput, nftOutputId, node.Info); err != nil {
 			slog.Error("sq.w.MintNameNFT", "to", r.To, "err", err)
 		} else {
 			if err = model.UpdateBlockIdToNameNftRecord(r.Nftid, hexutil.Encode(id)); err != nil {
@@ -45,15 +53,14 @@ func RunMintNameNft() {
 	if err != nil {
 		log.Panicf("model.GetIssuerByNftid error. %s, %v", config.NameNftId, err)
 	}
-	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, addr, pk, config.NameNftId)
 	ticker := time.NewTicker(time.Second * time.Duration(config.SendIntervalTime))
 	preMintTs := int64(0)
 	for {
 		select {
 		case <-mintNameSignal:
-			f(w, addr, &preMintTs)
+			f(addr, pk, &preMintTs)
 		case <-ticker.C:
-			f(w, addr, &preMintTs)
+			f(addr, pk, &preMintTs)
 		}
 	}
 }

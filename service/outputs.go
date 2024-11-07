@@ -65,7 +65,12 @@ func StartUpdateCacheOutputs() {
 }
 
 func updateProxyPoolCacheOutputs() {
-	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", "")
+	node := GetEnableHornetNode()
+	if node == nil || node.Info == nil {
+		slog.Error("updateProxyPoolCacheOutputs. There is no healthy hornet node")
+		return
+	}
+	w := wallet.NewIotaSmrWallet(node.Url, "", "", "")
 
 	// Get addresses which are confirmed
 	addrs, err := model.GetProxyPool(model.CONFIRMED_SEND)
@@ -106,7 +111,13 @@ func updateMintNameNftCacheOutputs() {
 		slog.Error("model.GetIssuerByNftid", "namenftid", config.NameNftId, "err", err)
 		return
 	}
-	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", config.NameNftId)
+
+	node := GetEnableHornetNode()
+	if node == nil || node.Info == nil {
+		slog.Error("updateMintNameNftCacheOutputs. There is no healthy hornet node")
+		return
+	}
+	w := wallet.NewIotaSmrWallet(node.Url, "", "", config.NameNftId)
 
 	output, id, err := w.GetUnspentOutput(addr)
 	if err != nil {

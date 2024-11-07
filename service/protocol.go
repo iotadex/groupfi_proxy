@@ -1,21 +1,11 @@
 package service
 
-import (
-	"context"
-	"gproxy/config"
-	"log/slog"
-	"sync"
-	"time"
-
-	iotago "github.com/iotaledger/iota.go/v3"
-	"github.com/iotaledger/iota.go/v3/nodeclient"
-)
-
+/*
 var nodeProtocol iotago.ProtocolParameters
 var protocolMu sync.RWMutex
 
-func UpateShimmerNodeProtocol() {
-	nodeApi := nodeclient.New(config.ShimmerRpc)
+func UpateHornetNodeProtocol() {
+	nodeApi := nodeclient.New(config.HornetRpcDefault)
 
 	f := func() {
 		info, err := nodeApi.Info(context.Background())
@@ -36,9 +26,10 @@ func UpateShimmerNodeProtocol() {
 	}
 }
 
-func GetShimmerNodeProtocol() *iotago.ProtocolParameters {
+func GetHornetNodeProtocol() *iotago.ProtocolParameters {
 	protocolMu.RLock()
 	defer protocolMu.RUnlock()
 	pp := nodeProtocol
 	return &pp
 }
+*/

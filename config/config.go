@@ -49,11 +49,9 @@ var serviceType map[string]int = map[string]int{
 }
 
 var (
-	HttpPort int // http service port
-	Db       db  // database config
-	//EvmNodes               map[uint64]node       // evm node config of groupfi
-	ShimmerRpc             string                // shimmer L1 network rpc url
-	UpdateProtocolTime     int64                 // update protocol parameters of shimmer node, time as seconds
+	HttpPort               int                   // http service port
+	Db                     db                    // database config
+	HornetHealthyTime      int64                 // update hornet nodes, time as minutes
 	SendIntervalTime       int64                 // the interval time of sending smr, seconds
 	ProxyPoolCheckMinutes  int64                 // the interval time of checking proxy pool's count, minutes
 	MinProxyPoolCount      int                   // the min proxy pool's count
@@ -88,9 +86,8 @@ func Load() {
 		HttpPort               int                   `json:"http_port"`
 		Db                     db                    `json:"db"`
 		EvmNodes               map[string]node       `json:"evm_node"`
-		ShimmerRpc             string                `json:"shimmer_rpc"`
+		HornetHealthyTime      int64                 `json:"hornet_healthy_time"`
 		SendIntervalTime       int64                 `json:"send_interval_time"`
-		UpdateProtocolTime     int64                 `json:"update_protocol_time"`
 		ProxyPoolCheckMinutes  int64                 `json:"proxy_pool_check_minutes"`
 		MinProxyPoolCount      int                   `json:"min_proxy_pool_count"`
 		ProxyBalanceCheckHours int64                 `json:"proxy_balance_check_hours"`
@@ -117,8 +114,7 @@ func Load() {
 	}
 	HttpPort = all.HttpPort
 	Db = all.Db
-	ShimmerRpc = all.ShimmerRpc
-	UpdateProtocolTime = all.UpdateProtocolTime
+	HornetHealthyTime = all.HornetHealthyTime
 	SendIntervalTime = all.SendIntervalTime
 	ProxyPoolCheckMinutes = all.ProxyPoolCheckMinutes
 	MinProxyPoolCount = all.MinProxyPoolCount

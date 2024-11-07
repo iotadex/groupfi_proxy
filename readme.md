@@ -268,7 +268,7 @@ the addresses are the solana's main account always
 
 
 
-### POST /proxy/send, send the TransactionEssence which contains a msg as metadata on shimmer L1 network
+### POST /proxy/send?hornet={https://production.api.groupfi.ai, optional}, send the TransactionEssence which contains a msg as metadata on shimmer L1 network
 #### params
 ```json
 {
@@ -287,7 +287,7 @@ the addresses are the solana's main account always
 }
 ```
 
-### POST /proxy/send/asyn, send the TransactionEssence which contains a msg as metadata on shimmer L1 network, asynchronization
+### POST /proxy/send/asyn?hornet={production, optional}, send the TransactionEssence which contains a msg as metadata on shimmer L1 network, asynchronization
 #### params
 ```json
 {

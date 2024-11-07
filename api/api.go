@@ -57,6 +57,24 @@ func Faucet(c *gin.Context) {
 	})
 }
 
+func GetHornetNode(c *gin.Context) {
+	node := service.GetEnableHornetNode()
+	if node == nil {
+		c.JSON(http.StatusOK, gin.H{
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "there is no healthy hornet node",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"result": true,
+		"id":     node.Id,
+		"rpc":    node.Url,
+	})
+}
+
 func GetChains(c *gin.Context) {
 	update := c.DefaultQuery("update", "0")
 	if update != "0" {
@@ -705,10 +723,11 @@ func GetProxyAccount(c *gin.Context) {
 }
 
 func SendTxEssence(c *gin.Context) {
+	hornet := c.Query("hornet")
 	signAcc := c.GetString("publickey")
 	txEssenceBytes := common.FromHex(c.GetString("data"))
 
-	txid, bid, err := service.SendTxEssence(signAcc, txEssenceBytes, false)
+	txid, bid, err := service.SendTxEssence(hornet, signAcc, txEssenceBytes, false)
 	if err != nil {
 		slog.Error("service.SendTxEssence", "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{
@@ -727,10 +746,11 @@ func SendTxEssence(c *gin.Context) {
 }
 
 func SendTxEssenceAsyn(c *gin.Context) {
+	hornet := c.Query("hornet")
 	signAcc := c.GetString("publickey")
 	txEssenceBytes := common.FromHex(c.GetString("data"))
 
-	txid, bid, err := service.SendTxEssence(signAcc, txEssenceBytes, true)
+	txid, bid, err := service.SendTxEssence(hornet, signAcc, txEssenceBytes, true)
 	if err != nil {
 		slog.Error("service.SendTxEssence", "signAcc", signAcc, "err", err)
 		c.JSON(http.StatusOK, gin.H{

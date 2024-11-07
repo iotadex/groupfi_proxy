@@ -3,7 +3,7 @@ package service
 import "gproxy/config"
 
 func Start() {
-	go UpateShimmerNodeProtocol()
+	StartHornetNodes()
 
 	go StartUpdateCacheOutputs()
 

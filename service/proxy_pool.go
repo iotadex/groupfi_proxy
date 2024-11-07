@@ -25,14 +25,19 @@ func RunKeepProxyPoolFull() {
 }
 
 func RunCheckProxyPoolBalance() {
-	// totalBalances := make(map[string]uint64)
-	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", "")
 	ticker := time.NewTicker(time.Hour * time.Duration(config.ProxyBalanceCheckHours))
 	for range ticker.C {
 		addrs, err := model.GetProxyPool(model.USED_ADDRESS)
 		if err != nil {
 			slog.Error("model.GetUsedProxyPool", "err", err)
 		}
+
+		node := GetEnableHornetNode()
+		if node == nil || node.Info == nil {
+			slog.Error("RunCheckProxyPoolBalance. There is no healthy hornet node")
+			continue
+		}
+		w := wallet.NewIotaSmrWallet(node.Url, "", "", "")
 
 		for bech32Addr, enpk := range addrs {
 			time.Sleep(time.Second * 5)
@@ -68,7 +73,12 @@ func RunRecycleMsgOutputs() {
 				continue
 			}
 
-			w := wallet.NewIotaSmrWallet(config.ShimmerRpc, bech32Addr, enpk, "")
+			node := GetEnableHornetNode()
+			if node == nil || node.Info == nil {
+				slog.Error("RunRecycleMsgOutputs. There is no healthy hornet node")
+				return
+			}
+			w := wallet.NewIotaSmrWallet(node.Url, bech32Addr, enpk, "")
 
 			id, err := w.Recycle(config.RecycleFilterTags)
 			if err != nil {

@@ -58,6 +58,8 @@ func InitRouter() *gin.Engine {
 	api := gin.New()
 	api.Use(gin.LoggerWithConfig(gin.LoggerConfig{Output: GinLogger}), gin.Recovery())
 
+	api.GET("/hornet", GetHornetNode)
+
 	api.GET("/chains", GetChains)
 
 	api.GET("/rpc", GetRpcByChainId)

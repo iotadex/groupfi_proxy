@@ -7,8 +7,7 @@
         "usr": "groupfiapi",
         "pwd": "92d2ad82cae5014d4e7c0e5bc80dba8dcf80d9b152ec8e4b387ae252aadaa6d8"
     },
-    "shimmer_rpc": "https://prerelease.api.iotacat.com",
-    "update_protocol_time": 60,
+    "hornet_healthy_time": 4,
     "send_interval_time": 60,
     "proxy_pool_check_minutes": 10,
     "min_proxy_pool_count": 20,

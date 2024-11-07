@@ -108,7 +108,7 @@ func (w *IotaSmrWallet) SendMetaOnly(meta []byte, lockedTime int64) ([]byte, err
 	return id[:], nil
 }
 
-func (w *IotaSmrWallet) SendBasic(bech32To string, amount uint64) ([]byte, error) {
+func (w *IotaSmrWallet) SendBasic(bech32To string, amount uint64, bMultiOutput bool) ([]byte, error) {
 	prefix, toAddr, err := iotago.ParseBech32(bech32To)
 	if err != nil {
 		return nil, fmt.Errorf("toAddress error. %s, %v", bech32To, err)
@@ -126,17 +126,23 @@ func (w *IotaSmrWallet) SendBasic(bech32To string, amount uint64) ([]byte, error
 
 	txBuilder := builder.NewTransactionBuilder(info.Protocol.NetworkID())
 
-	output := iotago.BasicOutput{
-		Amount: amount,
-		Conditions: iotago.UnlockConditions{&iotago.AddressUnlockCondition{
-			Address: toAddr,
-		}},
+	if bMultiOutput {
+		w.splitLeftOutputs(toAddr, amount, txBuilder)
+	} else {
+		output := iotago.BasicOutput{
+			Amount: amount,
+			Conditions: iotago.UnlockConditions{&iotago.AddressUnlockCondition{
+				Address: toAddr,
+			}},
+		}
+		txBuilder.AddOutput(&output)
 	}
+
 	left, err := w.getBasiceUnSpentOutputs(txBuilder, amount, prefix, addr)
 	if err != nil {
 		return nil, err
 	}
-	txBuilder.AddOutput(&output)
+
 	if left > 0 {
 		txBuilder.AddOutput(&iotago.BasicOutput{
 			Amount: left,
@@ -391,19 +397,19 @@ func (w *IotaSmrWallet) MinPkCollectionNft(bech32To string, meta, tag []byte, bO
 	return txid[:], outputs, err
 }
 
-func (w *IotaSmrWallet) splitLeftOutputs(addr iotago.Address, left uint64, txBuilder *builder.TransactionBuilder) []*iotago.BasicOutput {
-	a := left / config.SplitLeftCount
+func (w *IotaSmrWallet) splitLeftOutputs(addr iotago.Address, amount uint64, txBuilder *builder.TransactionBuilder) []*iotago.BasicOutput {
+	a := amount / config.SplitLeftCount
 	if a < config.SplitLeftAmount {
 		a = config.SplitLeftAmount
 	}
 
 	outputs := make([]*iotago.BasicOutput, 0)
-	for left > 0 {
-		if left < (2 * a) {
-			a = left
-			left = 0
+	for amount > 0 {
+		if amount < (2 * a) {
+			a = amount
+			amount = 0
 		} else {
-			left -= a
+			amount -= a
 		}
 		smrOutput := &iotago.BasicOutput{
 			Amount: a,

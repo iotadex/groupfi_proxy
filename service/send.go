@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"gproxy/config"
 	"gproxy/model"
 	"gproxy/wallet"
@@ -39,7 +40,13 @@ func RunSendSmr() {
 			return
 		}
 
-		blockId, err := w.SendBasic(o.To, o.Amount)
+		var blockId []byte
+		if o.Type == model.SEND_POOL {
+			blockId, err = w.SendBasic(o.To, o.Amount, false)
+		} else {
+			blockId, err = w.SendBasic(o.To, o.Amount, false)
+		}
+
 		if err != nil {
 			slog.Error("w.SendBasic", "order", *o, "err", err)
 			// store back
@@ -73,13 +80,24 @@ func RunSendSmr() {
 
 func runCheckPendingOrders() {
 	ticker := time.NewTicker(time.Second * 10)
-	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, "", "", "")
+
 	for range ticker.C {
 		orders, err := model.GetPendingOrders()
 		if err != nil {
 			slog.Error("model.GetPendingOrders", "err", err)
 			continue
 		}
+
+		if len(orders) == 0 {
+			continue
+		}
+
+		node := GetEnableHornetNode()
+		if node == nil || node.Info == nil {
+			slog.Error("runCheckPendingOrders. There is no healthy hornet node")
+			return
+		}
+		w := wallet.NewIotaSmrWallet(node.Url, "", "", "")
 
 		for _, o := range orders {
 			time.Sleep(time.Second)
@@ -114,6 +132,10 @@ func getWallet(nftid string) (*wallet.IotaSmrWallet, error) {
 		return nil, err
 	}
 
-	w := wallet.NewIotaSmrWallet(config.ShimmerRpc, addr, enpk, "0x0")
+	node := GetEnableHornetNode()
+	if node == nil || node.Info == nil {
+		return nil, fmt.Errorf("getWallet. There is no healthy hornet node")
+	}
+	w := wallet.NewIotaSmrWallet(node.Url, addr, enpk, "0x0")
 	return w, nil
 }
