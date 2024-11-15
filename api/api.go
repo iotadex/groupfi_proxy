@@ -282,6 +282,13 @@ func filterGroupfiData(c *gin.Context) (*FilterV2, bool) {
 		case gl.ERC_MANGO:
 			indexes, err = selfdata.FilterMangoAddresses(f.Addresses)
 			done = true
+		case gl.ERC72100, gl.ERC115500:
+			evmAddresses := make([]common.Address, 0, len(f.Addresses))
+			for _, addr := range f.Addresses {
+				evmAddresses = append(evmAddresses, common.HexToAddress(addr))
+			}
+			indexes, err = selfdata.FilterNftAddresses(f.Chains[0].Chain, f.Chains[0].Contract, f.Chains[0].Threshold, f.Chains[0].Erc, evmAddresses)
+			done = true
 		}
 
 		if done {
@@ -324,7 +331,7 @@ func getEvmBelowIndexes(addrs []common.Address, f *FilterV2) ([]bool, error) {
 		case gl.ERC721:
 			inx, err = t.FilterERC721Addresses(addrs, common.HexToAddress(c.Contract))
 		case gl.ERC1155:
-			inx, err = selfdata.FilterERC1155Addresses(c.Chain, c.Contract, addrs)
+			inx, err = selfdata.FilterNftAddresses(c.Chain, c.Contract, "1", gl.ERC1155, addrs)
 		case gl.ERC_NATIVE:
 			inx, err = t.FilterEthAddresses(addrs, threshold)
 		default:
@@ -572,6 +579,16 @@ func CheckName(c *gin.Context) {
 }
 
 func MintNameNftForMM(c *gin.Context) {
+	if len(config.NameNftId) == 0 {
+		slog.Error("MintNameNft don't support")
+		c.JSON(http.StatusOK, gin.H{
+			"result":      false,
+			gl.ErrCodeStr: gl.SYSTEM_ERROR,
+			gl.ErrMsgStr:  "system error",
+		})
+		return
+	}
+
 	signAcc := c.GetString("publickey")
 	name := strings.ToLower(c.GetString("data"))
 

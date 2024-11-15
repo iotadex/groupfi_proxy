@@ -318,14 +318,16 @@ the addresses are the solana's main account always
 
 ## Groups Supported
 
-| Group Name |   Erc |   Chain     | Description |
-| ---------- | ----- | ----------- | ----------- |
-| erc20      |   20  | all evm     | erc20 token |
-| erc721     |   721 | all evm     | erc721 NFT  |
-| spl        |   20  | solana      | spl token   |
-| native     |   0   | evm,solana  | native token|
-| mango      | 10000 | solana      | mango market|
-| erc404     | 404   | all evm     | erc404 token|
+| Group Name |   Erc  |   Chain     | Description |
+| ---------- | ------ | ----------- | ----------- |
+| erc20      |   20   | all evm     | erc20 token |
+| erc721     |   721  | all evm     | erc721 NFT  |
+| spl        |   20   | solana      | spl token   |
+| native     |   0    | evm,solana  | native token|
+| mango      | 10000  | solana      | mango market|
+| erc404     | 404    | all evm     | erc404 token|
+| erc72100   | 72100  | partial evm | token_uri   |
+| erc115500  | 115500 | partial evm | token_uri   |
 
 ## Error Response
 ### Response format

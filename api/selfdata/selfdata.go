@@ -52,7 +52,7 @@ func FilterMangoAddresses(addresses []string) ([]uint16, error) {
 	return res.Indexes, nil
 }
 
-func FilterERC1155Addresses(chainid uint64, contract string, addresses []common.Address) ([]uint16, error) {
+func FilterNftAddresses(chainid uint64, contract, threshhold string, erc int, addresses []common.Address) ([]uint16, error) {
 	url := fmt.Sprintf("%s/filter", config.GroupfiDataUri)
 	addrs := make([]string, 0, len(addresses))
 	for _, addr := range addresses {
@@ -62,8 +62,8 @@ func FilterERC1155Addresses(chainid uint64, contract string, addresses []common.
 		Chain:     chainid,
 		Contract:  contract,
 		Addresses: addrs,
-		Threshold: "1",
-		Erc:       gl.ERC1155,
+		Threshold: threshhold,
+		Erc:       erc,
 	}
 	data, err := tools.HttpJsonPost(url, params)
 	if err != nil {
