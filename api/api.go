@@ -207,10 +207,11 @@ func FilterGroup(c *gin.Context) {
 type FilterV2 struct {
 	Addresses []string `json:"addresses"`
 	Chains    []struct {
-		Chain     uint64 `json:"chain"`
-		Contract  string `json:"contract"`
-		Threshold string `json:"threshold"`
-		Erc       int    `json:"erc"`
+		Chain       uint64 `json:"chain"`
+		Contract    string `json:"contract"`
+		Threshold   string `json:"threshold"`
+		Erc         int    `json:"erc"`
+		UriContains string `json:"uriContains"`
 	} `json:"chains"`
 	Ts int64 `json:"ts"`
 }
@@ -287,7 +288,7 @@ func filterGroupfiData(c *gin.Context) (*FilterV2, bool) {
 			for _, addr := range f.Addresses {
 				evmAddresses = append(evmAddresses, common.HexToAddress(addr))
 			}
-			indexes, err = selfdata.FilterNftAddresses(f.Chains[0].Chain, f.Chains[0].Contract, f.Chains[0].Threshold, f.Chains[0].Erc, evmAddresses)
+			indexes, err = selfdata.FilterNftAddresses(f.Chains[0].Chain, f.Chains[0].Contract, f.Chains[0].UriContains, f.Chains[0].Erc, evmAddresses)
 			done = true
 		}
 

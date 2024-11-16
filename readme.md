@@ -171,7 +171,8 @@ the addresses are the solana's main account always
             "chain": 148,
             "contract" : "group contract address",
             "threshold" : "1000000000",
-            "erc" : 721
+            "erc" : 721,
+            "uriContains" : "https"
         }
     ],
     "ts" : 1712647238
