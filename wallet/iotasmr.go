@@ -416,6 +416,9 @@ func (w *IotaSmrWallet) splitLeftOutputs(addr iotago.Address, amount uint64, txB
 			Conditions: iotago.UnlockConditions{&iotago.AddressUnlockCondition{
 				Address: addr,
 			}},
+			Features: iotago.Features{&iotago.TagFeature{
+				Tag: []byte("GROUPFICASH"),
+			}},
 		}
 		txBuilder.AddOutput(smrOutput)
 		outputs = append(outputs, smrOutput)
