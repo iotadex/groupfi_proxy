@@ -234,6 +234,37 @@ func (t *EvmToken) FilterERC721Addresses(addrs []common.Address, c common.Addres
 	return res.Indexes[:res.Count], nil
 }
 
+// 批量查询一组以太坊地址的 ERC1155 代币余额
+func (t *EvmToken) FilterERC1155Addresses(addrs []common.Address, c common.Address, ids, thresholds []*big.Int) ([]bool, error) {
+	client, err := ethclient.Dial(t.rpc)
+	if err != nil {
+		return nil, err
+	}
+	erc1155, err := NewTokens(c, client)
+	if err != nil {
+		return nil, err
+	}
+	// BalanceOfBatch abi 要求 addrs 和 ids 长度相同
+	totalSize := len(addrs) * len(ids)
+	newAddrs := make([]common.Address, totalSize)
+	newIds := make([]*big.Int, totalSize)
+	for i := 0; i < totalSize; i++ {
+		newAddrs[i] = addrs[i/len(ids)]
+		newIds[i] = ids[i%len(ids)]
+	}
+
+	res, err := erc1155.BalanceOfBatch(&bind.CallOpts{}, newAddrs, newIds)
+	if err != nil {
+		return nil, err
+	}
+	var boolRes = make([]bool, len(res))
+	for i, r := range res {
+		thresholdIndex := i % (len(thresholds))
+		boolRes[i] = r.Cmp(thresholds[thresholdIndex]) >= 0
+	}
+	return boolRes, nil
+}
+
 func (t *EvmToken) CheckEthAddresses(adds, subs []common.Address, threshold *big.Int) (int8, error) {
 	client, err := ethclient.Dial(t.rpc)
 	if err != nil {
