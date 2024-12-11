@@ -204,14 +204,21 @@ func FilterGroup(c *gin.Context) {
 	})
 }
 
+type TokenRule struct {
+	Type      int    `json:"type"`
+	TokenId   string `json:"tokenId"`
+	Threshold string `json:"threshold"`
+}
+
 type FilterV2 struct {
 	Addresses []string `json:"addresses"`
 	Chains    []struct {
-		Chain       uint64 `json:"chain"`
-		Contract    string `json:"contract"`
-		Threshold   string `json:"threshold"`
-		Erc         int    `json:"erc"`
-		UriContains string `json:"uriContains"`
+		Chain       uint64      `json:"chain"`
+		Contract    string      `json:"contract"`
+		Threshold   string      `json:"threshold"`
+		Erc         int         `json:"erc"`
+		UriContains string      `json:"uriContains"`
+		TokenRules  []TokenRule `json:"tokenRules"`
 	} `json:"chains"`
 	Ts int64 `json:"ts"`
 }
@@ -264,6 +271,79 @@ func FilterGroupV2(c *gin.Context) {
 	})
 }
 
+func countOperands(tokenRules []TokenRule) int {
+	count := 0
+	for _, rule := range tokenRules {
+		if rule.Type == TYPE_OPERAND {
+			count++
+		}
+	}
+	return count
+}
+
+func parseBigInt(s string) *big.Int {
+	n, ok := new(big.Int).SetString(s, 10)
+	if !ok {
+		return new(big.Int)
+	}
+	return n
+}
+
+func handleTokenRules(tokenRules []TokenRule) ([]ExprElement, []*big.Int, []*big.Int) {
+	operandCount := countOperands(tokenRules)
+	elements := make([]ExprElement, 0, len(tokenRules))
+	tokenIds := make([]*big.Int, 0, operandCount)
+	thresholds := make([]*big.Int, 0, operandCount)
+
+	for _, rule := range tokenRules {
+		elements = append(elements, ExprElement{
+			Type: rule.Type,
+		})
+		// 处理每个规则
+		if rule.Type == TYPE_OPERAND {
+			tokenId := parseBigInt(rule.TokenId)
+			threshold := parseBigInt(rule.Threshold)
+
+			tokenIds = append(tokenIds, tokenId)
+			thresholds = append(thresholds, threshold)
+		}
+	}
+	return elements, tokenIds, thresholds
+}
+
+func getEvmNode(chain uint64) (*tokens.EvmToken, bool) {
+	node, exist := model.EvmChains[chain]
+	if !exist {
+		return nil, false
+	}
+	return tokens.NewEvmToken(node.Rpc, "", node.Contract, chain, 0), true
+}
+
+func evaluateResults(addresses []string, elements []ExprElement, boolRes []bool) ([]uint16, error) {
+	indexes := make([]uint16, 0, len(addresses))
+	boolResIndex := 0
+
+	for i := range addresses {
+		for j := range elements {
+			if elements[j].Type == TYPE_OPERAND {
+				elements[j].Val = boolRes[boolResIndex]
+				boolResIndex++
+			}
+		}
+
+		// 计算表达式的最终结果
+		exprEvaluator := NewExprEvaluator(elements)
+		finalBoolRes, err := exprEvaluator.Evaluate()
+		if err != nil {
+			return nil, err
+		}
+		if !finalBoolRes {
+			indexes = append(indexes, uint16(i))
+		}
+	}
+	return indexes, nil
+}
+
 func filterGroupfiData(c *gin.Context) (*FilterV2, bool) {
 	f := FilterV2{}
 	if err := c.BindJSON(&f); err != nil {
@@ -289,6 +369,48 @@ func filterGroupfiData(c *gin.Context) (*FilterV2, bool) {
 				evmAddresses = append(evmAddresses, common.HexToAddress(addr))
 			}
 			indexes, err = selfdata.FilterNftAddresses(f.Chains[0].Chain, f.Chains[0].Contract, f.Chains[0].UriContains, f.Chains[0].Erc, evmAddresses)
+			done = true
+		case gl.ERC1155:
+			t, exist := getEvmNode(f.Chains[0].Chain)
+			if !exist {
+				c.JSON(http.StatusOK, gin.H{
+					"result":      false,
+					gl.ErrCodeStr: gl.PARAMS_ERROR,
+					gl.ErrMsgStr:  fmt.Sprintf("chain %d not exist", f.Chains[0].Chain),
+				})
+				return nil, true
+			}
+			if len(f.Chains[0].TokenRules) == 0 {
+				c.JSON(http.StatusOK, gin.H{
+					"result":  true,
+					"indexes": []uint16{},
+				})
+				return nil, true
+			}
+			// 处理 token rules, 生成表达式元素, 和 tokenids, 和 thresholds
+			elements, tokenIds, thresholds := handleTokenRules(f.Chains[0].TokenRules)
+			evmAddresses := make([]common.Address, len(f.Addresses))
+			for i, addr := range f.Addresses {
+				evmAddresses[i] = common.HexToAddress(addr)
+			}
+			boolRes, err := t.FilterERC1155Addresses(evmAddresses, common.HexToAddress(f.Chains[0].Contract), tokenIds, thresholds)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"result":      false,
+					gl.ErrCodeStr: gl.SYSTEM_ERROR,
+					gl.ErrMsgStr:  err.Error(),
+				})
+				return nil, true
+			}
+			indexes, err = evaluateResults(f.Addresses, elements, boolRes)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"result":      false,
+					gl.ErrCodeStr: gl.SYSTEM_ERROR,
+					gl.ErrMsgStr:  err.Error(),
+				})
+				return nil, true
+			}
 			done = true
 		}
 
